@@ -6,14 +6,13 @@ import static org.utilities.Utilities.collectionToArray;
 import opennlp.tools.postag.POSModel;
 import opennlp.tools.postag.POSTaggerME;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
 
 
 public class ErrorDetector {
-    public ErrorDetector(String pOSTaggerModelPath, String textCorpusPath) throws IOException {
+    public ErrorDetector(Corpus corpus, String pOSTaggerModelPath) throws IOException {
         pOSTagger_ = new POSTaggerME(new POSModel(new FileInputStream(pOSTaggerModelPath)));
 
         // Use a Hashtable to save POS Patterns to avoid saving identical patterns twice.
@@ -21,12 +20,11 @@ public class ErrorDetector {
         // String arrays with one another.
         Hashtable<Integer, Tags[]> pOSPatterns = new Hashtable<Integer, Tags[]>();
 
-        Scanner scanner = new Scanner(new File(textCorpusPath));
-        while (scanner.hasNextLine()) {
-            Tags[] taggedLine = tag(scanner.nextLine());
+        TextLine[] corpusLines = corpus.getLines();
+        for (TextLine textLine : corpusLines) {
+            Tags[] taggedLine = tag(textLine);
             pOSPatterns.put(Arrays.hashCode(taggedLine), taggedLine);
         }
-        scanner.close();
 
         // Move Hashtable data to array.
         pOSPatterns_ = new Tags[pOSPatterns.size()][];
@@ -153,13 +151,7 @@ public class ErrorDetector {
     }
 
     private Tags[] tag(TextLine line) {
-        // TODO For now, the Error Detector removes punctuation marks from both the corpus and the ASR output.
-        // TODO This should change in the future as the Error Detector should include punctuation marks.
-        return Tags.createFromTagsStringArray(pOSTagger_.tag(line.split(true)));
-    }
-
-    private Tags[] tag(String line){
-        return tag(new TextLine(line));
+        return Tags.createFromTagsStringArray(pOSTagger_.tag(line.split()));
     }
 
     private int[] getErrorCandidateWords(String source, String destination) {
@@ -168,7 +160,7 @@ public class ErrorDetector {
         int pathLength = levenshteinPath.length;
 
         int[] errorCandidateWords = new int[pathLength];
-        for(int i = 0;i < pathLength;i++){
+        for (int i = 0; i < pathLength; i++) {
             errorCandidateWords[i] = levenshteinPath[i][1];
         }
 

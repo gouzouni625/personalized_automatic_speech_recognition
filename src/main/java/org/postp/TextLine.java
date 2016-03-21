@@ -6,6 +6,14 @@ public class TextLine {
         line_ = line;
     }
 
+    public TextLine(String line, boolean removePunctuationMarks) {
+        if (removePunctuationMarks) {
+            line_ = removePunctuationMarks(line);
+        } else {
+            line_ = line;
+        }
+    }
+
     public String[] split(boolean... flags) {
         return split(line_, wordSeparator_, flags);
     }
@@ -35,12 +43,15 @@ public class TextLine {
         return stringBuilder.toString().split(wordSeparator + "+");
     }
 
-    public void setWordSeparator(String wordSeparator) {
-        wordSeparator_ = wordSeparator;
-    }
+    public static String removePunctuationMarks(String line) {
+        StringBuilder stringBuilder = new StringBuilder();
+        for (char ch : line.toCharArray()) {
+            if (!PunctuationMarks.isPunctuationMark(ch)) {
+                stringBuilder.append(ch);
+            }
+        }
 
-    public String getWordSeparator() {
-        return wordSeparator_;
+        return stringBuilder.toString();
     }
 
     public enum PunctuationMarks {
@@ -70,8 +81,21 @@ public class TextLine {
         private char symbol_;
     }
 
-    public String getLine(){
+    @Override
+    public String toString() {
         return line_;
+    }
+
+    public String getLine() {
+        return line_;
+    }
+
+    public void setWordSeparator(String wordSeparator) {
+        wordSeparator_ = wordSeparator;
+    }
+
+    public String getWordSeparator() {
+        return wordSeparator_;
     }
 
     private final String line_;
