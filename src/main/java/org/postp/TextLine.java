@@ -70,7 +70,11 @@ public class TextLine {
         private char symbol_;
     }
 
-    private String line_;
+    public String getLine(){
+        return line_;
+    }
+
+    private final String line_;
 
     private String wordSeparator_ = " ";
 

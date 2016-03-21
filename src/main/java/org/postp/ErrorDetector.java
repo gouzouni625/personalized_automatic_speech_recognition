@@ -1,9 +1,7 @@
 package org.postp;
 
-import static java.lang.Integer.min;
 import static org.apache.commons.lang3.StringUtils.getLevenshteinDistance;
 import static org.utilities.Utilities.collectionToArray;
-import static org.utilities.Utilities.objectCollectionToPrimitiveArray;
 
 import opennlp.tools.postag.POSModel;
 import opennlp.tools.postag.POSTaggerME;
@@ -14,35 +12,28 @@ import java.io.IOException;
 import java.util.*;
 
 
-public class POSPatternBasedErrorDetector {
-    public POSPatternBasedErrorDetector(String pOSTaggerModelPath, String textCorpusPath) throws IOException {
+public class ErrorDetector {
+    public ErrorDetector(String pOSTaggerModelPath, String textCorpusPath) throws IOException {
         pOSTagger_ = new POSTaggerME(new POSModel(new FileInputStream(pOSTaggerModelPath)));
-
-        // Use a HashSet to save the text lines to avoid saving identical lines twice.
-        HashSet<String> lines = new HashSet<String>();
-
-        Scanner scanner = new Scanner(new File(textCorpusPath));
-        while (scanner.hasNextLine()) {
-            lines.add(scanner.nextLine());
-        }
-        scanner.close();
 
         // Use a Hashtable to save POS Patterns to avoid saving identical patterns twice.
         // HashSet could find identical String arrays since they weren't the same object, so a hash is needed to compare
         // String arrays with one another.
         Hashtable<Integer, Tags[]> pOSPatterns = new Hashtable<Integer, Tags[]>();
 
-        for (String line : lines) {
-            Tags[] taggedLine = tag(line);
+        Scanner scanner = new Scanner(new File(textCorpusPath));
+        while (scanner.hasNextLine()) {
+            Tags[] taggedLine = tag(scanner.nextLine());
             pOSPatterns.put(Arrays.hashCode(taggedLine), taggedLine);
         }
+        scanner.close();
 
         // Move Hashtable data to array.
         pOSPatterns_ = new Tags[pOSPatterns.size()][];
         collectionToArray(pOSPatterns.values(), pOSPatterns_);
     }
 
-    public int[] process(String aSROutput) {
+    public int[] process(TextLine aSROutput) {
         // Tag the ASR output.
         String abbreviatedASROutputPOSPattern = Tags.tagArrayToAbbreviatedString(tag(aSROutput));
 
@@ -63,7 +54,7 @@ public class POSPatternBasedErrorDetector {
 
         // Find the error candidate words from the ASR output based on the selected POS pattern.
         // The ASR output is not obligated to include all the tags that the selected POST patterns includes.
-        return getErrorWordCandidates(abbreviatedASROutputPOSPattern,
+        return getErrorCandidateWords(abbreviatedASROutputPOSPattern,
                 Tags.tagArrayToAbbreviatedString(pOSPatterns_[selectedPOSPattern]));
     }
 
@@ -161,86 +152,27 @@ public class POSPatternBasedErrorDetector {
         private String abbreviation_;
     }
 
-    private Tags[] tag(String line) {
-        return Tags.createFromTagsStringArray(pOSTagger_.tag(new TextLine(line).split(true)));
+    private Tags[] tag(TextLine line) {
+        // TODO For now, the Error Detector removes punctuation marks from both the corpus and the ASR output.
+        // TODO This should change in the future as the Error Detector should include punctuation marks.
+        return Tags.createFromTagsStringArray(pOSTagger_.tag(line.split(true)));
     }
 
-    private int[] getErrorWordCandidates(String source, String destination) {
-        int sourceLength = source.length();
-        int destinationLength = destination.length();
+    private Tags[] tag(String line){
+        return tag(new TextLine(line));
+    }
 
-        // Initialize the Levenshtein matrix.
-        int[][] levenshteinMatrix = new int[destinationLength + 1][sourceLength + 1];
-        for (int i = 0; i <= destinationLength; i++) {
-            for (int j = 0; j <= sourceLength; j++) {
-                if (j == 0 && i == 0) {
-                    levenshteinMatrix[0][0] = 0;
-                } else if (i == 0) {
-                    levenshteinMatrix[0][j] = j;
-                } else if (j == 0) {
-                    levenshteinMatrix[i][0] = i;
-                } else {
-                    levenshteinMatrix[i][j] = 0;
-                }
-            }
+    private int[] getErrorCandidateWords(String source, String destination) {
+        int[][] levenshteinPath = new LevenshteinMatrix(source, destination).getPath();
+
+        int pathLength = levenshteinPath.length;
+
+        int[] errorCandidateWords = new int[pathLength];
+        for(int i = 0;i < pathLength;i++){
+            errorCandidateWords[i] = levenshteinPath[i][1];
         }
 
-        // Build the Levenshtein matrix.
-        int substitutionCost;
-        for (int j = 1; j <= sourceLength; j++) {
-            for (int i = 1; i <= destinationLength; i++) {
-                if (destination.charAt(i - 1) == source.charAt(j - 1)) {
-                    substitutionCost = 0;
-                } else {
-                    substitutionCost = 1;
-                }
-
-                levenshteinMatrix[i][j] = min(
-                        levenshteinMatrix[i - 1][j] + 1, min(
-                                levenshteinMatrix[i][j - 1] + 1,
-                                levenshteinMatrix[i - 1][j - 1] + substitutionCost
-                        )
-                );
-            }
-        }
-
-        HashSet<Integer> errorCandidateWords = new HashSet<Integer>();
-        int currentScore = levenshteinMatrix[destinationLength][sourceLength];
-
-        int row = destinationLength;
-        int column = sourceLength;
-
-        int leftValue;
-        int aboveValue;
-        int diagonalValue;
-
-        int minValue;
-        while (currentScore > 0) {
-            leftValue = levenshteinMatrix[row][column - 1];
-            aboveValue = levenshteinMatrix[row - 1][column];
-            diagonalValue = levenshteinMatrix[row - 1][column - 1];
-
-            minValue = min(leftValue, min(aboveValue, diagonalValue));
-            if (currentScore != minValue) {
-                // Note that in Levenshtein matrix, columns start counting from 1 not zero.
-                errorCandidateWords.add(column - 1);
-            }
-
-            if (minValue == diagonalValue) {
-                row--;
-                column--;
-            } else if (minValue == leftValue) {
-                column--;
-            } else {
-                row--;
-            }
-
-            currentScore = minValue;
-        }
-
-        int[] errorCandidateWordsArray = new int[errorCandidateWords.size()];
-        objectCollectionToPrimitiveArray(errorCandidateWords, errorCandidateWordsArray);
-        return errorCandidateWordsArray;
+        return errorCandidateWords;
     }
 
     private POSTaggerME pOSTagger_;
