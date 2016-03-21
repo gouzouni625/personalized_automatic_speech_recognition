@@ -1,0 +1,9 @@
+devel
+target
+build
+
+*.iml
+
+*.wav
+
+notes
