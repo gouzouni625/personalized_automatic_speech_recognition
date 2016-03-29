@@ -8,7 +8,7 @@ public class TextLine {
 
     public TextLine(String line, boolean removePunctuationMarks) {
         if (removePunctuationMarks) {
-            line_ = removePunctuationMarks(line);
+            line_ = removePunctuationMarks(line, wordSeparator_);
         } else {
             line_ = line;
         }
@@ -43,7 +43,7 @@ public class TextLine {
         return stringBuilder.toString().split(wordSeparator + "+");
     }
 
-    public static String removePunctuationMarks(String line) {
+    public static String removePunctuationMarks(String line, String wordSeparator) {
         StringBuilder stringBuilder = new StringBuilder();
         for (char ch : line.toCharArray()) {
             if (!PunctuationMarks.isPunctuationMark(ch)) {
@@ -51,7 +51,7 @@ public class TextLine {
             }
         }
 
-        return stringBuilder.toString();
+        return stringBuilder.toString().replaceAll(wordSeparator + "{2,}", wordSeparator);
     }
 
     public enum PunctuationMarks {
@@ -79,6 +79,35 @@ public class TextLine {
         }
 
         private char symbol_;
+    }
+
+    // start is inclusive.
+    // end is exclusive.
+    public TextLine subLine(int beginIndex, int endIndex){
+        if(beginIndex >= endIndex){
+            TextLine subLine = new TextLine("");
+            subLine.setWordSeparator(wordSeparator_);
+
+            return subLine;
+        }
+
+        // No need to think about removing punctuation marks. If this TextLine has them removed, then the new line
+        // will also have them removed. Using this method, new TextLines can be created that have the same word separators
+        // as the Text Lines provided by the user. That make the recognizer agnostic as far as the word separator is
+        // concerned.
+        String[] words = split();
+
+        StringBuilder stringBuilder = new StringBuilder();
+        for(int i = beginIndex;i < endIndex;i++){
+            stringBuilder.append(words[i]).append(wordSeparator_);
+        }
+        String subString = stringBuilder.toString();
+
+        // Note that the last word separator is removed.
+        TextLine subLine = new TextLine(subString.substring(0, subString.length() - wordSeparator_.length()));
+        subLine.setWordSeparator(wordSeparator_);
+
+        return subLine;
     }
 
     @Override

@@ -1,14 +1,17 @@
 package org.postp;
 
+import org.utilities.ArrayIterable;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Scanner;
 
 import static org.utilities.Utilities.collectionToArray;
 
 
-public class Corpus {
+public class Corpus implements Iterable<TextLine> {
     public Corpus(String textCorpusPath) throws FileNotFoundException {
         this(textCorpusPath, false);
     }
@@ -43,6 +46,10 @@ public class Corpus {
         }
 
         return stringBuilder.toString();
+    }
+
+    public Iterator<TextLine> iterator(){
+        return (new ArrayIterable<TextLine>(lines_).iterator());
     }
 
     private final TextLine[] lines_;

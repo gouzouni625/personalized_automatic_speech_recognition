@@ -31,7 +31,7 @@ public class ErrorDetector {
         collectionToArray(pOSPatterns.values(), pOSPatterns_);
     }
 
-    public int[] process(TextLine aSROutput) {
+    public ErrorWord[] process(TextLine aSROutput) {
         // Tag the ASR output.
         String abbreviatedASROutputPOSPattern = Tags.tagArrayToAbbreviatedString(tag(aSROutput));
 
@@ -52,8 +52,20 @@ public class ErrorDetector {
 
         // Find the error candidate words from the ASR output based on the selected POS pattern.
         // The ASR output is not obligated to include all the tags that the selected POST patterns includes.
-        return getErrorCandidateWords(abbreviatedASROutputPOSPattern,
+        int[] errorWordIndices = getErrorCandidateWords(abbreviatedASROutputPOSPattern,
                 Tags.tagArrayToAbbreviatedString(pOSPatterns_[selectedPOSPattern]));
+
+        String[] words = aSROutput.split();
+
+        ErrorWord[] errorWords = new ErrorWord[errorWordIndices.length];
+        int index = 0;
+        for(int errorWordIndex : errorWordIndices){
+            errorWords[index] = new ErrorWord(words[errorWordIndex], aSROutput, errorWordIndex);
+
+            index++;
+        }
+
+        return errorWords;
     }
 
     // TODO Add part of speech for each tag.
