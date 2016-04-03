@@ -2,6 +2,7 @@ package org.postp;
 
 import static org.apache.commons.lang3.StringUtils.getLevenshteinDistance;
 import static org.utilities.Utilities.collectionToArray;
+import static org.utilities.Utilities.objectCollectionToPrimitiveArray;
 
 import opennlp.tools.postag.POSTaggerME;
 import org.prep.Corpus;
@@ -168,12 +169,16 @@ public class ErrorDetector {
     private int[] getErrorCandidateWords(String source, String destination) {
         int[][] levenshteinPath = new LevenshteinMatrix(source, destination).getPath();
 
-        int pathLength = levenshteinPath.length;
+        HashSet<Integer> uniqueErrorWords = new HashSet<Integer>();
 
-        int[] errorCandidateWords = new int[pathLength];
-        for (int i = 0; i < pathLength; i++) {
-            errorCandidateWords[i] = levenshteinPath[i][1];
+        for(int[] step : levenshteinPath){
+            uniqueErrorWords.add(step[1]);
         }
+
+        int numberOfErrorWords = uniqueErrorWords.size();
+        int[] errorCandidateWords = new int[numberOfErrorWords];
+
+        objectCollectionToPrimitiveArray(uniqueErrorWords, errorCandidateWords);
 
         return errorCandidateWords;
     }
