@@ -3,28 +3,26 @@ package org.postp;
 import static org.apache.commons.lang3.StringUtils.getLevenshteinDistance;
 import static org.utilities.Utilities.collectionToArray;
 
-import opennlp.tools.postag.POSModel;
 import opennlp.tools.postag.POSTaggerME;
 import org.prep.Corpus;
 
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.*;
 
 
 public class ErrorDetector {
-    public ErrorDetector(Corpus corpus, String pOSTaggerModelPath) throws IOException {
-        pOSTagger_ = new POSTaggerME(new POSModel(new FileInputStream(pOSTaggerModelPath)));
+    public ErrorDetector(Corpus corpus, POSTaggerME pOSTagger) {
+        pOSTagger_ = pOSTagger;
 
-        // Use a Hashtable to save POS Patterns to avoid saving identical patterns twice.
-        // HashSet could find identical String arrays since they weren't the same object, so a hash is needed to compare
-        // String arrays with one another.
+        createPOSPatterns(corpus);
+    }
+
+    private void createPOSPatterns(Corpus corpus){
         Hashtable<Integer, Tags[]> pOSPatterns = new Hashtable<Integer, Tags[]>();
 
-        TextLine[] corpusLines = corpus.getLines();
-        for (TextLine textLine : corpusLines) {
-            Tags[] taggedLine = tag(textLine);
-            pOSPatterns.put(Arrays.hashCode(taggedLine), taggedLine);
+        TextLine[] corpusSentences = corpus.getSentences();
+        for (TextLine sentence : corpusSentences) {
+            Tags[] taggedSentence = tag(sentence);
+            pOSPatterns.put(Arrays.hashCode(taggedSentence), taggedSentence);
         }
 
         // Move Hashtable data to array.

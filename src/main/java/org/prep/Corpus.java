@@ -5,44 +5,59 @@ import org.utilities.ArrayIterable;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Scanner;
+import java.util.regex.Pattern;
 
 import static org.utilities.Utilities.collectionToArray;
 
 
 public class Corpus implements Iterable<TextLine> {
-    public Corpus(String textCorpusPath) throws FileNotFoundException {
+    public Corpus(String textCorpusPath) throws IOException {
         this(textCorpusPath, false);
     }
 
-    public Corpus(String textCorpusPath, boolean removePunctuationMarks) throws FileNotFoundException {
-        ArrayList<TextLine> lines = new ArrayList<TextLine>();
+    public Corpus(String textCorpusPath, boolean removePunctuationMarks) throws IOException {
+        this(textCorpusPath, " ", ".", "\n", removePunctuationMarks);
+    }
+
+    public Corpus(String textCorpusPath, String wordSeparator, String sentenceSeparator,
+                  String newLineDelimiter, boolean removePunctuationMarks)
+            throws FileNotFoundException {
+
+        wordSeparator_ = wordSeparator;
+        sentenceSeparator_ = sentenceSeparator;
+        newLineDelimiter_ = newLineDelimiter;
+
+        ArrayList<TextLine> sentences = new ArrayList<TextLine>();
 
         Scanner scanner = new Scanner(new File(textCorpusPath));
-        while (scanner.hasNextLine()) {
-            lines.add(new TextLine(scanner.nextLine(), removePunctuationMarks));
+        scanner.useDelimiter(
+                Pattern.compile(
+                        Pattern.quote(wordSeparator_) + "?" +
+                                Pattern.quote(sentenceSeparator_ + wordSeparator_) + "?"
+                )
+        );
+        while (scanner.hasNext()) {
+            sentences.add(new TextLine(scanner.next().
+                    replaceAll(newLineDelimiter_, "").
+                    replaceAll(wordSeparator_ + "+", wordSeparator_), removePunctuationMarks));
         }
         scanner.close();
 
-        lines_ = new TextLine[lines.size()];
-        collectionToArray(lines, lines_);
+        sentences_ = new TextLine[sentences.size()];
+        collectionToArray(sentences, sentences_);
     }
 
-    public TextLine[] getLines() {
-        return lines_;
-    }
-
-    public void setWordSeparator(String wordSeparator) {
-        for (TextLine textLine : lines_) {
-            textLine.setWordSeparator(wordSeparator);
-        }
+    public TextLine[] getSentences() {
+        return sentences_;
     }
 
     public String toSingleLine() {
         StringBuilder stringBuilder = new StringBuilder();
-        for (TextLine textLine : lines_) {
+        for (TextLine textLine : sentences_) {
             stringBuilder.append(textLine.getLine());
         }
 
@@ -50,9 +65,13 @@ public class Corpus implements Iterable<TextLine> {
     }
 
     public Iterator<TextLine> iterator(){
-        return (new ArrayIterable<TextLine>(lines_).iterator());
+        return (new ArrayIterable<TextLine>(sentences_).iterator());
     }
 
-    private final TextLine[] lines_;
+    private final TextLine[] sentences_;
+
+    private final String wordSeparator_;
+    private final String sentenceSeparator_;
+    private final String newLineDelimiter_;
 
 }
