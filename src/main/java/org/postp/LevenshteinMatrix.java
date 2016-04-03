@@ -57,6 +57,9 @@ public class LevenshteinMatrix {
         int row = destinationLength;
         int column = sourceLength;
 
+        int previousRow;
+        int previousColumn;
+
         int leftValue;
         int aboveValue;
         int diagonalValue;
@@ -64,14 +67,21 @@ public class LevenshteinMatrix {
         int minValue;
         int pathIndex = 0;
         while (currentScore > 0) {
-            leftValue = matrix_[row][column - 1];
-            aboveValue = matrix_[row - 1][column];
-            diagonalValue = matrix_[row - 1][column - 1];
+            if(row == 0 && column == 0){
+                break;
+            }
+
+            previousRow = row > 0 ? row - 1 : 0;
+            previousColumn = column > 0 ? column - 1 : 0;
+
+            leftValue = matrix_[row][previousColumn];
+            aboveValue = matrix_[previousRow][column];
+            diagonalValue = matrix_[previousRow][previousColumn];
 
             minValue = min(leftValue, min(aboveValue, diagonalValue));
             if (currentScore != minValue) {
                 // Note that in Levenshtein matrix, columns start counting from 1 not zero.
-                path_[pathIndex] = new int[] {row - 1, column - 1};
+                path_[pathIndex] = new int[] {previousRow, previousColumn};
                 pathIndex++;
             }
 
@@ -86,6 +96,39 @@ public class LevenshteinMatrix {
 
             currentScore = minValue;
         }
+    }
+
+    @Override
+    public String toString(){
+        int sourceLength = source_.length();
+        int destinationLength = destination_.length();
+
+        StringBuilder stringBuilder = new StringBuilder();
+
+        stringBuilder.append("|" + "  " + "|" + "  ");
+        for(char ch : source_.toCharArray()){
+            stringBuilder.append(ch).append("  ");
+        }
+        stringBuilder.append("\n");
+
+        stringBuilder.append("|").append("  ");
+        for(int i = 0;i <= destinationLength;i++){
+            if(i > 0) {
+                stringBuilder.append(destination_.charAt(i - 1)).append("  ");
+            }
+
+            for(int j = 0;j <= sourceLength;j++){
+                if(matrix_[i][j] >= 10) {
+                    stringBuilder.append(matrix_[i][j]).append(" ");
+                }
+                else{
+                    stringBuilder.append(matrix_[i][j]).append("  ");
+                }
+            }
+            stringBuilder.append("\n");
+        }
+
+        return stringBuilder.toString();
     }
 
     public int[][] getMatrix(){
