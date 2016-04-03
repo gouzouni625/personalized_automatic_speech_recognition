@@ -55,15 +55,6 @@ public class Corpus implements Iterable<TextLine> {
         return sentences_;
     }
 
-    public String toSingleLine() {
-        StringBuilder stringBuilder = new StringBuilder();
-        for (TextLine textLine : sentences_) {
-            stringBuilder.append(textLine.getLine());
-        }
-
-        return stringBuilder.toString();
-    }
-
     public Iterator<TextLine> iterator(){
         return (new ArrayIterable<TextLine>(sentences_).iterator());
     }

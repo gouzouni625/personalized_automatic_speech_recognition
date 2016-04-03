@@ -91,10 +91,13 @@ public class ErrorCorrector {
         for(String regularExpressionPattern : regularExpressionPatterns){
             matchedWordPatterns = new ArrayList<String>();
             Pattern pattern = Pattern.compile(regularExpressionPattern);
-            Matcher matcher = pattern.matcher(corpus_.toSingleLine());
 
-            while(matcher.find()){
-                matchedWordPatterns.add(matcher.group()); // Note that group(0) is reserved for the whole expression.
+            for(TextLine sentence : corpus_.getSentences()) {
+                Matcher matcher = pattern.matcher(sentence.getLine());
+
+                while (matcher.find()) {
+                    matchedWordPatterns.add(matcher.group());
+                }
             }
 
             allMatchedWordPatterns.add(matchedWordPatterns);
