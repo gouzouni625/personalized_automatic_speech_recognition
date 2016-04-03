@@ -1,6 +1,8 @@
 package org.postp;
 
 
+import org.prep.Corpus;
+
 import static org.apache.commons.lang3.StringUtils.getLevenshteinDistance;
 
 

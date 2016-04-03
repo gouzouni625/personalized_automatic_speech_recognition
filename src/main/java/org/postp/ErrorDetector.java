@@ -5,6 +5,7 @@ import static org.utilities.Utilities.collectionToArray;
 
 import opennlp.tools.postag.POSModel;
 import opennlp.tools.postag.POSTaggerME;
+import org.prep.Corpus;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -179,7 +180,7 @@ public class ErrorDetector {
         return errorCandidateWords;
     }
 
-    private POSTaggerME pOSTagger_;
+    private final POSTaggerME pOSTagger_;
 
     Tags[][] pOSPatterns_;
 
