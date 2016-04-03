@@ -88,10 +88,10 @@ public class WordSequencePattern {
         // 2) if you use 9 or more words ({0,9}) the result is "silence this is the third interval of speaking and"
         //    because the second "the" show up. Find a way to deal with this situation so that getting back only
         //    the first result is possible.
-        String pattern = "(([a-zA-Z]+" + line_.getWordSeparator() + "?){0," + maxWordsForChangeablePart + "})";
+        String pattern = "(([a-zA-Z]+" + line_.getWordSeparator() + "){0," + Integer.toString(maxWordsForChangeablePart - 1) + "}[a-zA-Z]+)";
 
         for(int i = 0, n = patterns.length;i < n;i++){
-            patterns[i] = wordsOnTheLeft_[i] + line_.getWordSeparator() + pattern + wordsOnTheRight_[i];
+            patterns[i] = wordsOnTheLeft_[i] + line_.getWordSeparator() + pattern +  line_.getWordSeparator() + wordsOnTheRight_[i];
         }
 
         return patterns;
