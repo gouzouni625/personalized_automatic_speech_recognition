@@ -91,7 +91,17 @@ public class WordSequencePattern {
         String pattern = "(([a-zA-Z]+" + line_.getWordSeparator() + "){0," + Integer.toString(maxWordsForChangeablePart - 1) + "}[a-zA-Z]+)";
 
         for(int i = 0, n = patterns.length;i < n;i++){
-            patterns[i] = wordsOnTheLeft_[i] + line_.getWordSeparator() + pattern +  line_.getWordSeparator() + wordsOnTheRight_[i];
+            patterns[i] = "";
+
+            if(wordsOnTheLeft_[i].getLine().length() > 0){
+                patterns[i] += wordsOnTheLeft_[i] + line_.getWordSeparator();
+            }
+
+            patterns[i] += pattern;
+
+            if(wordsOnTheRight_[i].getLine().length() > 0){
+                patterns[i] += line_.getWordSeparator() + wordsOnTheRight_[i];
+            }
         }
 
         return patterns;
