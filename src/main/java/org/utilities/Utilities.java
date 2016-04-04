@@ -1,5 +1,6 @@
 package org.utilities;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 
@@ -42,6 +43,37 @@ public class Utilities {
 
             index++;
         }
+    }
+
+    public static Margin[] arrayMargins(boolean[] array, boolean trues){
+        ArrayList<Margin> margins = new ArrayList<Margin>();
+
+        int start = - 1;
+        int end = - 1;
+
+        int arrayLength = array.length;
+        for(int i = 0;i < arrayLength;i++){
+            if(array[i] == trues){
+                if(start == - 1){
+                    start = i;
+                }
+            }
+            else{
+                if(start != - 1) {
+                    margins.add(new Margin(start, i));
+
+                    start = -1;
+                }
+            }
+        }
+        if(start != -1){
+            margins.add(new Margin(start, arrayLength));
+        }
+
+        Margin[] marginsArray = new Margin[margins.size()];
+        collectionToArray(margins, marginsArray);
+
+        return marginsArray;
     }
 
 }
