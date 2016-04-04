@@ -1,9 +1,9 @@
 package org.postp;
 
 public class ErrorWord {
-    public ErrorWord(String word, TextLine line, int index){
+    public ErrorWord(String word, TextLine contextLine, int index){
         word_ = word;
-        contextLine_ = line;
+        contextLine_ = contextLine;
         index_ = index;
 
         int maxIndex = contextLine_.split().length - 1;
@@ -38,14 +38,6 @@ public class ErrorWord {
 
     public int getIndex(){
         return index_;
-    }
-
-    public TextLine getChangeablePart(){
-        return contextLine_.subLine(wordOnTheLeftIndex_, wordOnTheRightIndex_ + 1);
-    }
-
-    public WordSequencePattern getWordSequencePattern(){
-        return new WordSequencePattern(getChangeablePart(), contextLine_, wordOnTheLeftIndex_);
     }
 
     public int getWordOnTheLeftIndex(){

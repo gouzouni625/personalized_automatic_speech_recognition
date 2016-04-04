@@ -13,6 +13,7 @@ import java.util.*;
 public class ErrorDetector {
     public ErrorDetector(Corpus corpus, POSTaggerME pOSTagger) {
         pOSTagger_ = pOSTagger;
+        corpus_ = corpus;
 
         createPOSPatterns(corpus);
     }
@@ -32,6 +33,13 @@ public class ErrorDetector {
     }
 
     public ErrorWord[] process(TextLine aSROutput) {
+        // If the ASR output exists inside the corpus, then there are no errors
+        for(TextLine sentence : corpus_){
+            if(sentence.getLine().contains(aSROutput.getLine())){
+                return new ErrorWord[] {};
+            }
+        }
+
         // Tag the ASR output.
         String abbreviatedASROutputPOSPattern = Tags.tagArrayToAbbreviatedString(tag(aSROutput));
 
@@ -183,7 +191,19 @@ public class ErrorDetector {
         return errorCandidateWords;
     }
 
+    public void setCorpus(Corpus corpus){
+        corpus_ = corpus;
+
+        createPOSPatterns(corpus);
+    }
+
+    public Corpus getCorpus(){
+        return corpus_;
+    }
+
     private final POSTaggerME pOSTagger_;
+
+    private Corpus corpus_;
 
     Tags[][] pOSPatterns_;
 

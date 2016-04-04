@@ -20,16 +20,16 @@ public class ErrorCorrector {
         dictionary_ = dictionary;
     }
 
-    public String correct(ErrorWord[] errorWords) {
+    public String correct(TextLine aSROutput, ErrorWord[] errorWords) {
         if(errorWords == null){
-            return "";
+            return aSROutput.getLine();
         }
 
         if(errorWords.length == 0){
-            return "";
+            return aSROutput.getLine();
         }
 
-        WordSequencePattern[] wordSequencePatterns = getWordSequencePatterns(errorWords);
+        WordSequencePattern[] wordSequencePatterns = getWordSequencePatterns(aSROutput, errorWords);
 
         for(WordSequencePattern wordSequencePattern : wordSequencePatterns){
             String[] regularExpressions = wordSequencePattern.getRegularExpressionPatterns(5);
@@ -89,9 +89,8 @@ public class ErrorCorrector {
         return getCorrectLine(wordSequencePatterns, unChangedParts_);
     }
 
-    private WordSequencePattern[] getWordSequencePatterns(ErrorWord[] errorWords){
-        TextLine context = errorWords[0].getContextLine();
-        int numberOfContextWords = context.split().length;
+    private WordSequencePattern[] getWordSequencePatterns(TextLine aSROutput, ErrorWord[] errorWords){
+        int numberOfContextWords = aSROutput.split().length;
 
         boolean[] wordIsChangeable = new boolean[numberOfContextWords];
         for(ErrorWord errorWord : errorWords){
@@ -105,7 +104,7 @@ public class ErrorCorrector {
         ArrayList<WordSequencePattern> wordSequencePatterns = new ArrayList<WordSequencePattern>();
         Margin[] margins = arrayMargins(wordIsChangeable, true);
         for(Margin margin : margins){
-            wordSequencePatterns.add(new WordSequencePattern(context.subLine(margin.leftIndex_, margin.rightIndex_), context, margin.leftIndex_));
+            wordSequencePatterns.add(new WordSequencePattern(aSROutput.subLine(margin.leftIndex_, margin.rightIndex_), aSROutput, margin.leftIndex_));
         }
 
         WordSequencePattern[] wordSequencePatternsArray = new WordSequencePattern[wordSequencePatterns.size()];
