@@ -42,9 +42,13 @@ public class Corpus implements Iterable<TextLine> {
                 )
         );
         while (scanner.hasNext()) {
-            sentences.add(new TextLine(scanner.next().
+            String nextToken = scanner.next().
                     replaceAll(newLineDelimiter_, "").
-                    replaceAll(wordSeparator_ + "+", wordSeparator_), removePunctuationMarks));
+                    replaceAll(wordSeparator_ + "+", wordSeparator_);
+
+            if(nextToken.length() > 0 && !nextToken.equals(wordSeparator_)) {
+                sentences.add(new TextLine(nextToken, removePunctuationMarks));
+            }
         }
         scanner.close();
 
