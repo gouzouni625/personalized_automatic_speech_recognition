@@ -21,6 +21,14 @@ public class ErrorCorrector {
     }
 
     public String correct(ErrorWord[] errorWords) {
+        if(errorWords == null){
+            return "";
+        }
+
+        if(errorWords.length == 0){
+            return "";
+        }
+
         WordSequencePattern[] wordSequencePatterns = getWordSequencePatterns(errorWords);
 
         for(WordSequencePattern wordSequencePattern : wordSequencePatterns){
@@ -113,7 +121,7 @@ public class ErrorCorrector {
         int index = 0;
         int numberOfWordSequencePatterns = wordSequencePatterns.length;
 
-        if(unChangedParts[0].leftIndex_ > 0){
+        if(unChangedParts != null && unChangedParts.length > 0 && unChangedParts[0].leftIndex_ > 0){
             stringBuilder.append(wordSequencePatterns[0].getReplacingPart());
             index++;
         }
