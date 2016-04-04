@@ -42,14 +42,13 @@ public class ErrorWord {
         return new WordSequencePattern(getChangeablePart(), contextLine_, wordOnTheLeftIndex_);
     }
 
-    public String getReplacingPart(){
-        return replacingPart_;
+    public int getWordOnTheLeftIndex(){
+        return wordOnTheLeftIndex_;
     }
 
-    public void setReplacingPart(String replacingPart){
-        replacingPart_ = replacingPart;
+    public int getWordOnTheRightIndex(){
+        return wordOnTheRightIndex_;
     }
-
 
     private final String word_;
     private final TextLine contextLine_;
@@ -57,7 +56,5 @@ public class ErrorWord {
 
     private final int wordOnTheLeftIndex_;
     private final int wordOnTheRightIndex_;
-
-    private String replacingPart_;
 
 }

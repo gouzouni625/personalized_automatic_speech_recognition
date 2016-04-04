@@ -2,8 +2,11 @@ package org.postp;
 
 
 import org.prep.Corpus;
+import org.utilities.Margin;
 
 import static org.apache.commons.lang3.StringUtils.getLevenshteinDistance;
+import static org.utilities.Utilities.arrayMargins;
+import static org.utilities.Utilities.collectionToArray;
 
 
 import java.io.FileNotFoundException;
@@ -18,8 +21,9 @@ public class ErrorCorrector {
     }
 
     public String correct(ErrorWord[] errorWords) {
-        for(ErrorWord errorWord : errorWords){
-            WordSequencePattern wordSequencePattern = errorWord.getWordSequencePattern();
+        WordSequencePattern[] wordSequencePatterns = getWordSequencePatterns(errorWords);
+
+        for(WordSequencePattern wordSequencePattern : wordSequencePatterns){
             String[] regularExpressions = wordSequencePattern.getRegularExpressionPatterns(5);
 
             // Each considerable word sequence pattern has an array of matched word patterns.
@@ -71,18 +75,61 @@ public class ErrorCorrector {
                 }
             }
 
-            errorWord.setReplacingPart(bestKey);
+            wordSequencePattern.setReplacingPart(bestKey);
         }
 
-        return getCorrectLine(errorWords);
+        return getCorrectLine(wordSequencePatterns, unChangedParts_);
     }
 
-    private String getCorrectLine(ErrorWord[] errorWords){
-        String aSROutput = errorWords[0].getContextLine().getLine();
+    private WordSequencePattern[] getWordSequencePatterns(ErrorWord[] errorWords){
+        TextLine context = errorWords[0].getContextLine();
+        int numberOfContextWords = context.split().length;
 
-        aSROutput = aSROutput.replace(errorWords[0].getChangeablePart().getLine(), errorWords[0].getReplacingPart());
+        boolean[] wordIsChangeable = new boolean[numberOfContextWords];
+        for(ErrorWord errorWord : errorWords){
+            for(int i = errorWord.getWordOnTheLeftIndex(), n = errorWord.getWordOnTheRightIndex();i <= n;i++){
+                wordIsChangeable[i] = true;
+            }
+        }
 
-        return aSROutput;
+        unChangedParts_ = arrayMargins(wordIsChangeable, false);
+
+        ArrayList<WordSequencePattern> wordSequencePatterns = new ArrayList<WordSequencePattern>();
+        Margin[] margins = arrayMargins(wordIsChangeable, true);
+        for(Margin margin : margins){
+            wordSequencePatterns.add(new WordSequencePattern(context.subLine(margin.leftIndex_, margin.rightIndex_), context, margin.leftIndex_));
+        }
+
+        WordSequencePattern[] wordSequencePatternsArray = new WordSequencePattern[wordSequencePatterns.size()];
+        collectionToArray(wordSequencePatterns, wordSequencePatternsArray);
+
+        return wordSequencePatternsArray;
+    }
+
+    private String getCorrectLine(WordSequencePattern[] wordSequencePatterns, Margin[] unChangedParts){
+        TextLine aSROutput = wordSequencePatterns[0].getLine();
+
+        StringBuilder stringBuilder = new StringBuilder();
+        int index = 0;
+        int numberOfWordSequencePatterns = wordSequencePatterns.length;
+
+        if(unChangedParts[0].leftIndex_ > 0){
+            stringBuilder.append(wordSequencePatterns[0].getReplacingPart());
+            index++;
+        }
+
+        for(Margin unChangedPart : unChangedParts){
+            stringBuilder.append(wordSeparator_);
+            stringBuilder.append(aSROutput.subLine(unChangedPart.leftIndex_, unChangedPart.rightIndex_));
+
+            if(index < numberOfWordSequencePatterns) {
+                stringBuilder.append(wordSeparator_);
+                stringBuilder.append(wordSequencePatterns[index].getReplacingPart());
+                index++;
+            }
+        }
+
+        return stringBuilder.toString();
     }
 
     private String[][] getMatchedWordPatterns(String[] regularExpressionPatterns){
@@ -161,9 +208,8 @@ public class ErrorCorrector {
 
     private Dictionary dictionary_;
 
-    private int minimumSurroundingWordLength_ = 5;
-    private int maximumSurroundingWordLength_ = 5;
-
     public String wordSeparator_ = " ";
+
+    private Margin[] unChangedParts_;
 
 }

@@ -1,6 +1,8 @@
 package org.postp;
 
 
+import org.utilities.Margin;
+
 import java.util.ArrayList;
 
 import static org.utilities.Utilities.collectionToArray;
@@ -138,9 +140,23 @@ public class WordSequencePattern {
         return pronunciationSequences;
     }
 
+    public String getReplacingPart(){
+        return replacingPart_;
+    }
+
+    public void setReplacingPart(String replacingPart){
+        replacingPart_ = replacingPart;
+    }
+
+    public TextLine getLine(){
+        return line_;
+    }
+
     private final TextLine changeablePart_;
     private final TextLine line_;
-    private final int index_;
+    private final int index_; //!< The inclusive index where the changeable part begins
+
+    private String replacingPart_;
 
     private TextLine[] wordsOnTheLeft_;
     private TextLine[] wordsOnTheRight_;
