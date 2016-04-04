@@ -85,10 +85,10 @@ public class LevenshteinMatrix {
                 pathIndex++;
             }
 
-            if (minValue == diagonalValue) {
+            if (minValue == diagonalValue && row != previousRow && column != previousColumn) {
                 row--;
                 column--;
-            } else if (minValue == leftValue) {
+            } else if (minValue == leftValue && column != previousColumn) {
                 column--;
             } else {
                 row--;
