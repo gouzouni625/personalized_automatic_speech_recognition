@@ -6,6 +6,7 @@ import org.utilities.ArrayIterable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Scanner;
@@ -57,6 +58,19 @@ public class Corpus implements Iterable<TextLine> {
 
     public Iterator<TextLine> iterator(){
         return (new ArrayIterable<TextLine>(sentences_).iterator());
+    }
+
+    public void saveToFile(File file) throws FileNotFoundException {
+        PrintWriter printWriter = new PrintWriter(file);
+
+        for(TextLine sentence : sentences_){
+            printWriter.write(
+                    "<s>" + wordSeparator_ + sentence.toString().toLowerCase() +
+                            wordSeparator_ + "</s>" + newLineDelimiter_
+            );
+        }
+
+        printWriter.close();
     }
 
     private final TextLine[] sentences_;
