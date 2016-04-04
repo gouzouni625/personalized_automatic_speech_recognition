@@ -7,7 +7,7 @@ import static org.utilities.Utilities.objectCollectionToPrimitiveArray;
 import opennlp.tools.postag.POSTaggerME;
 import org.prep.Corpus;
 
-import java.util.*;
+import java.util.HashSet;
 
 
 public class ErrorDetector {
@@ -19,17 +19,15 @@ public class ErrorDetector {
     }
 
     private void createPOSPatterns(Corpus corpus){
-        Hashtable<Integer, Tags[]> pOSPatterns = new Hashtable<Integer, Tags[]>();
+        HashSet<String> pOSPatterns = new HashSet<String>();
 
         TextLine[] corpusSentences = corpus.getSentences();
         for (TextLine sentence : corpusSentences) {
-            Tags[] taggedSentence = tag(sentence);
-            pOSPatterns.put(Arrays.hashCode(taggedSentence), taggedSentence);
+            pOSPatterns.add(Tags.tagArrayToAbbreviatedString(tag(sentence)));
         }
 
-        // Move Hashtable data to array.
-        pOSPatterns_ = new Tags[pOSPatterns.size()][];
-        collectionToArray(pOSPatterns.values(), pOSPatterns_);
+        pOSPatterns_ = new String[pOSPatterns.size()];
+        collectionToArray(pOSPatterns, pOSPatterns_);
     }
 
     public ErrorWord[] process(TextLine aSROutput) {
@@ -46,11 +44,9 @@ public class ErrorDetector {
         // Find the POS pattern that is closer to the POST patter of the ASR output.
         int selectedPOSPattern = 0;
         int currentScore;
-        int bestScore = getLevenshteinDistance(abbreviatedASROutputPOSPattern,
-                Tags.tagArrayToAbbreviatedString(pOSPatterns_[0]));
+        int bestScore = getLevenshteinDistance(abbreviatedASROutputPOSPattern, pOSPatterns_[0]);
         for (int i = 1, n = pOSPatterns_.length; i < n; i++) {
-            currentScore = getLevenshteinDistance(abbreviatedASROutputPOSPattern,
-                    Tags.tagArrayToAbbreviatedString(pOSPatterns_[i]));
+            currentScore = getLevenshteinDistance(abbreviatedASROutputPOSPattern, pOSPatterns_[i]);
 
             if (currentScore < bestScore) {
                 bestScore = currentScore;
@@ -61,7 +57,7 @@ public class ErrorDetector {
         // Find the error candidate words from the ASR output based on the selected POS pattern.
         // The ASR output is not obligated to include all the tags that the selected POST patterns includes.
         int[] errorWordIndices = getErrorCandidateWords(abbreviatedASROutputPOSPattern,
-                Tags.tagArrayToAbbreviatedString(pOSPatterns_[selectedPOSPattern]));
+                pOSPatterns_[selectedPOSPattern]);
 
         String[] words = aSROutput.split();
 
@@ -205,6 +201,6 @@ public class ErrorDetector {
 
     private Corpus corpus_;
 
-    Tags[][] pOSPatterns_;
+    String[] pOSPatterns_;
 
 }
