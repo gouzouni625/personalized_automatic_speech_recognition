@@ -77,6 +77,16 @@ public class Corpus implements Iterable<TextLine> {
         printWriter.close();
     }
 
+    public boolean contains(String string){
+        for(TextLine sentence : sentences_){
+            if(sentence.getLine().contains(string)){
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private final TextLine[] sentences_;
 
     private final String wordSeparator_;

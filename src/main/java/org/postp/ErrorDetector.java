@@ -31,11 +31,8 @@ public class ErrorDetector {
     }
 
     public ErrorWord[] process(TextLine aSROutput) {
-        // If the ASR output exists inside the corpus, then there are no errors
-        for(TextLine sentence : corpus_){
-            if(sentence.getLine().contains(aSROutput.getLine())){
-                return new ErrorWord[] {};
-            }
+        if(corpus_.contains(aSROutput.getLine())){
+            return new ErrorWord[] {};
         }
 
         // Tag the ASR output.
