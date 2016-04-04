@@ -10,7 +10,13 @@ public class ErrorWord {
 
         if(index_ == 0){
             wordOnTheLeftIndex_ = index_;
-            wordOnTheRightIndex_ = 1;
+
+            if(maxIndex == 0) {
+                wordOnTheRightIndex_ = 0;
+            }
+            else{
+                wordOnTheRightIndex_ = 1;
+            }
         }
         else if(index_ == maxIndex){
             wordOnTheLeftIndex_ = maxIndex - 1;
