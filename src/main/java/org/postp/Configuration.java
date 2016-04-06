@@ -32,6 +32,42 @@ public class Configuration {
         newLineDelimiter_ = newLineDelimiter;
     }
 
+    public boolean arePunctuationMarksRemoved(){
+        return removePunctuationMarks_;
+    }
+
+    public void setRemovePunctuationMarks(boolean removePunctuationMarks){
+        removePunctuationMarks_ = removePunctuationMarks;
+    }
+
+    public enum PunctuationMarks {
+        FULL_STOP('.'),
+        COMMA(','),
+        EXCLAMATION_MARK('!'),
+        QUESTION_MARK('?'),
+        APOSTROPHE('\'');
+
+        PunctuationMarks(char symbol) {
+            symbol_ = symbol;
+        }
+
+        public char getSymbol() {
+            return symbol_;
+        }
+
+        public static boolean isPunctuationMark(char ch) {
+            for (PunctuationMarks mark : PunctuationMarks.values()) {
+                if (ch == mark.getSymbol()) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private char symbol_;
+    }
+
     private static Configuration instance_ = new Configuration();
 
     private String wordSeparator_ = " ";
@@ -39,5 +75,6 @@ public class Configuration {
     private String newLineDelimiter_ = System.getProperty("line.separator"); //!< The system
                                                                              //!< independent line
                                                                              //!< separator
+    private boolean removePunctuationMarks_ = true;
 
 }
