@@ -58,7 +58,8 @@ public class TextLine {
         FULL_STOP('.'),
         COMMA(','),
         EXCLAMATION_MARK('!'),
-        QUESTION_MARK('?');
+        QUESTION_MARK('?'),
+        APOSTROPHE('\'');
 
         PunctuationMarks(char symbol) {
             symbol_ = symbol;
