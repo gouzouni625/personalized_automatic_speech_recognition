@@ -49,7 +49,6 @@ public class Utilities {
         ArrayList<Margin> margins = new ArrayList<Margin>();
 
         int start = - 1;
-        int end = - 1;
 
         int arrayLength = array.length;
         for(int i = 0;i < arrayLength;i++){
@@ -74,6 +73,10 @@ public class Utilities {
         collectionToArray(margins, marginsArray);
 
         return marginsArray;
+    }
+
+    public static String getResourcePath(String resource){
+        return Utilities.class.getResource(resource).getPath();
     }
 
 }
