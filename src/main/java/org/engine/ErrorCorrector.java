@@ -1,7 +1,8 @@
-package org.postp;
+package org.engine;
 
 
-import org.prep.Corpus;
+import org.corpus.TextLine;
+import org.corpus.Corpus;
 import org.utilities.Margin;
 
 import static org.apache.commons.lang3.StringUtils.getLevenshteinDistance;
@@ -90,7 +91,7 @@ public class ErrorCorrector {
     }
 
     private WordSequencePattern[] getWordSequencePatterns(TextLine aSROutput, ErrorWord[] errorWords){
-        int numberOfContextWords = aSROutput.split().length;
+        int numberOfContextWords = aSROutput.tokenize().length;
 
         boolean[] wordIsChangeable = new boolean[numberOfContextWords];
         for(ErrorWord errorWord : errorWords){

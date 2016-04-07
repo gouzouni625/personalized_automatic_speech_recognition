@@ -1,9 +1,10 @@
-package org.postp;
+package org.corpus;
 
-import org.postp.Configuration.PunctuationMarks;
+import org.engine.Configuration;
+import org.engine.Configuration.PunctuationMarks;
 
-public class TextLine {
-    public TextLine(String line) {
+public class WordSequence {
+    public WordSequence(String line) {
         line_ = configuration_.arePunctuationMarksRemoved() ? removePunctuationMarks(line) : line;
     }
 
@@ -28,9 +29,9 @@ public class TextLine {
 
     // beginIndex is inclusive
     // endIndex is exclusive
-    public TextLine subLine(int beginIndex, int endIndex){
+    public WordSequence subLine(int beginIndex, int endIndex){
         if(beginIndex >= endIndex){
-            return new TextLine("");
+            return new WordSequence("");
         }
 
         String[] words = tokenize();
@@ -41,7 +42,7 @@ public class TextLine {
         }
         stringBuilder.append(words[endIndex - 1]); // Avoid adding a word separator at the end
 
-        return new TextLine(stringBuilder.toString());
+        return new WordSequence(stringBuilder.toString());
     }
 
     @Override

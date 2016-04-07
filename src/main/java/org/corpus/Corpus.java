@@ -1,7 +1,7 @@
-package org.prep;
+package org.corpus;
 
 import org.postp.Configuration;
-import org.postp.TextLine;
+import org.corpus.TextLine;
 import org.utilities.ArrayIterable;
 
 import java.io.File;

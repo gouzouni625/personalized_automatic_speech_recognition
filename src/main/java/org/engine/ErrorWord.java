@@ -1,4 +1,6 @@
-package org.postp;
+package org.engine;
+
+import org.corpus.TextLine;
 
 public class ErrorWord {
     public ErrorWord(String word, TextLine contextLine, int index){
@@ -6,7 +8,7 @@ public class ErrorWord {
         contextLine_ = contextLine;
         index_ = index;
 
-        int maxIndex = contextLine_.split().length - 1;
+        int maxIndex = contextLine_.tokenize().length - 1;
 
         if(index_ == 0){
             wordOnTheLeftIndex_ = index_;

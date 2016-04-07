@@ -1,7 +1,7 @@
-package org.postp;
+package org.engine;
 
 
-import org.utilities.Margin;
+import org.corpus.TextLine;
 
 import java.util.ArrayList;
 
@@ -48,9 +48,9 @@ public class WordSequencePattern {
         ArrayList<TextLine> wordsOnTheLeft = new ArrayList<TextLine>();
         ArrayList<TextLine> wordsOnTheRight = new ArrayList<TextLine>();
 
-        String[] words = line_.split();
+        String[] words = line_.tokenize();
         int numberOfWords = words.length;
-        int changeablePartLength = changeablePart_.split().length;
+        int changeablePartLength = changeablePart_.tokenize().length;
 
         for(int i = minSurroundingWords_, length = i + changeablePartLength;i <= maxSurroundingWords_;i++, length++){
             for(int j = -i;j < 1;j++){
@@ -90,30 +90,32 @@ public class WordSequencePattern {
         // 2) if you use 9 or more words ({0,9}) the result is "silence this is the third interval of speaking and"
         //    because the second "the" show up. Find a way to deal with this situation so that getting back only
         //    the first result is possible.
-        String pattern = "(([a-zA-Z]+" + line_.getWordSeparator() + "){0," + Integer.toString(maxWordsForChangeablePart - 1) + "}[a-zA-Z]+)";
-
-        for(int i = 0, n = patterns.length;i < n;i++){
-            patterns[i] = "";
-
-            if(wordsOnTheLeft_[i].getLine().length() > 0){
-                patterns[i] += wordsOnTheLeft_[i] + line_.getWordSeparator();
-            }
-
-            patterns[i] += pattern;
-
-            if(wordsOnTheRight_[i].getLine().length() > 0){
-                patterns[i] += line_.getWordSeparator() + wordsOnTheRight_[i];
-            }
-        }
-
-        return patterns;
+        // String pattern = "(([a-zA-Z]+" + line_.getWordSeparator() + "){0," + Integer.toString
+                //(maxWordsForChangeablePart - 1) + "}[a-zA-Z]+)";
+        //
+        // for(int i = 0, n = patterns.length;i < n;i++){
+        //     patterns[i] = "";
+        //
+        //     if(wordsOnTheLeft_[i].getLine().length() > 0){
+        //         patterns[i] += wordsOnTheLeft_[i] + line_.getWordSeparator();
+        //     }
+        //
+        //     patterns[i] += pattern;
+        //
+        //     if(wordsOnTheRight_[i].getLine().length() > 0){
+        //         patterns[i] += line_.getWordSeparator() + wordsOnTheRight_[i];
+        //     }
+        // }
+        //
+        // return patterns;
+        return null;
     }
 
     public String[] getPronunciationSequences(Dictionary dictionary){
         String[] pronunciationSequences = new String[wordsOnTheLeft_.length];
 
         StringBuilder stringBuilder = new StringBuilder();
-        String[] phones = dictionary.getPhones(changeablePart_.split());
+        String[] phones = dictionary.getPhones(changeablePart_.tokenize());
         for(String phone : phones){
             stringBuilder.append(phone);
         }
@@ -122,14 +124,14 @@ public class WordSequencePattern {
         for(int i = 0, n = pronunciationSequences.length;i < n;i++){
             stringBuilder = new StringBuilder();
 
-            phones = dictionary.getPhones(wordsOnTheLeft_[i].split());
+            phones = dictionary.getPhones(wordsOnTheLeft_[i].tokenize());
             for(String phone : phones){
                 stringBuilder.append(phone);
             }
 
             stringBuilder.append(changeablePartPhones);
 
-            phones = dictionary.getPhones(wordsOnTheRight_[i].split());
+            phones = dictionary.getPhones(wordsOnTheRight_[i].tokenize());
             for(String phone : phones){
                 stringBuilder.append(phone);
             }

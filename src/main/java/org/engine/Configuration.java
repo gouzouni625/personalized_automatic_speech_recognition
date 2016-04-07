@@ -1,4 +1,4 @@
-package org.postp;
+package org.engine;
 
 public class Configuration {
     private Configuration() {

@@ -1,11 +1,12 @@
-package org.postp;
+package org.engine;
 
 import static org.apache.commons.lang3.StringUtils.getLevenshteinDistance;
 import static org.utilities.Utilities.collectionToArray;
 import static org.utilities.Utilities.objectCollectionToPrimitiveArray;
 
 import opennlp.tools.postag.POSTaggerME;
-import org.prep.Corpus;
+import org.corpus.TextLine;
+import org.corpus.Corpus;
 
 import java.util.HashSet;
 
@@ -56,7 +57,7 @@ public class ErrorDetector {
         int[] errorWordIndices = getErrorCandidateWords(abbreviatedASROutputPOSPattern,
                 pOSPatterns_[selectedPOSPattern]);
 
-        String[] words = aSROutput.split();
+        String[] words = aSROutput.tokenize();
 
         ErrorWord[] errorWords = new ErrorWord[errorWordIndices.length];
         int index = 0;
@@ -164,7 +165,7 @@ public class ErrorDetector {
     }
 
     private Tags[] tag(TextLine line) {
-        return Tags.createFromTagsStringArray(pOSTagger_.tag(line.split()));
+        return Tags.createFromTagsStringArray(pOSTagger_.tag(line.tokenize()));
     }
 
     private int[] getErrorCandidateWords(String source, String destination) {
