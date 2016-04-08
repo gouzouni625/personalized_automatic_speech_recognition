@@ -1,4 +1,4 @@
-package org.engine;
+package org.math;
 
 import static java.lang.Integer.min;
 
