@@ -29,10 +29,12 @@ public class Corpus implements Iterable<WordSequence> {
     }
 
     private WordSequence[] tokenize(String text){
-        String[] sentences = text.replaceAll("[_\\-()!\\?',]+", "").
-                replaceAll("\\[.*\\]", "").
-                replaceAll("\\n", "").
-                replaceAll(" +", " ").toLowerCase().split(" ?. ?");
+        String[] sentences = text.replaceAll("[_\\-()',:\"]+", " ").
+                replaceAll("[!\\?]", ".").
+                replaceAll("\\[.\\]", " ").
+                replaceAll("\\n", " ").
+                replaceAll(" +", " ").
+                toLowerCase().split(" ?\\. ?");
 
         int numberOfSentences = sentences.length;
         WordSequence[] wordSequences = new WordSequence[numberOfSentences];
