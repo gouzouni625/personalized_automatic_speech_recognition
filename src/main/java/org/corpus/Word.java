@@ -2,23 +2,23 @@ package org.corpus;
 
 
 public class Word {
-    public Word(String word, WordSequence sequence, int index){
-        word_ = word;
-        sequence_ = sequence;
+    public Word(String text, WordSequence wordSequence, int index){
+        text_ = text;
+        wordSequence_ = wordSequence;
         index_ = index;
     }
 
-    public String getWord(){
-        return word_;
+    public String getText(){
+        return text_;
     }
 
     @Override
     public String toString(){
-        return getWord();
+        return getText();
     }
 
-    public WordSequence getSequence(){
-        return sequence_;
+    public WordSequence getWordSequence(){
+        return wordSequence_;
     }
 
     public int getIndex(){
@@ -33,8 +33,8 @@ public class Word {
         wrong_ = wrong;
     }
 
-    private final String word_;
-    private final WordSequence sequence_;
+    private final String text_;
+    private final WordSequence wordSequence_;
     private final int index_;
 
     private boolean wrong_ = false;

@@ -59,6 +59,16 @@ public class Corpus implements Iterable<WordSequence> {
         printWriter.close();
     }
 
+    public boolean containsText(String text){
+        for(WordSequence sequence_ : sentences_){
+            if(sequence_.containsText(text)){
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public Iterator<WordSequence> iterator(){
         return (new ArrayIterable<WordSequence>(sentences_).iterator());
     }
