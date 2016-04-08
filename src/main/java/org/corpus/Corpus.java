@@ -1,89 +1,67 @@
 package org.corpus;
 
-import org.postp.Configuration;
-import org.corpus.TextLine;
 import org.utilities.ArrayIterable;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Scanner;
-import java.util.regex.Pattern;
-
-import static org.utilities.Utilities.collectionToArray;
 
 
-public class Corpus implements Iterable<TextLine> {
-    public Corpus(String textCorpusPath) throws FileNotFoundException {
-        ArrayList<TextLine> sentences = new ArrayList<TextLine>();
+public class Corpus implements Iterable<WordSequence> {
+    public static Corpus createFromFile(File file) throws FileNotFoundException {
+        Scanner scanner = new Scanner(file);
 
-        Scanner scanner = new Scanner(new File(textCorpusPath));
-        scanner.useDelimiter(
-                Pattern.compile(
-                        Pattern.quote(
-                                configuration_.getWordSeparator()
-                        ) + "?" +
-                                Pattern.quote(
-                                        configuration_.getSentenceSeparator() +
-                                                configuration_.getWordSeparator()
-                                ) + "?"
-                )
-        );
-        while (scanner.hasNext()) {
-            String nextToken = scanner.next().
-                    replaceAll("[_\\-()]+", configuration_.getWordSeparator()).
-                    replaceAll("\\[.*\\]", configuration_.getWordSeparator()).
-                    replaceAll(configuration_.getNewLineDelimiter(), "").
-                    replaceAll(configuration_.getWordSeparator() + "+",
-                            configuration_.getWordSeparator()).
-                    toLowerCase();
+        StringBuilder stringBuilder = new StringBuilder();
 
-            if(nextToken.length() > 0 && !nextToken.equals(configuration_.getWordSeparator())) {
-                sentences.add(new TextLine(nextToken));
-            }
+        while(scanner.hasNextLine()){
+            stringBuilder.append(scanner.nextLine());
         }
-        scanner.close();
 
-        sentences_ = new TextLine[sentences.size()];
-        collectionToArray(sentences, sentences_);
+        return new Corpus(stringBuilder.toString());
     }
 
-    public TextLine[] getSentences() {
+    private Corpus(String text){
+        text_ = text;
+
+        sentences_ = tokenize(text);
+    }
+
+    private WordSequence[] tokenize(String text){
+        String[] sentences = text.replaceAll("[_\\-()!\\?',]+", "").
+                replaceAll("\\[.*\\]", "").
+                replaceAll("\\n", "").
+                replaceAll(" +", " ").toLowerCase().split(" ?. ?");
+
+        int numberOfSentences = sentences.length;
+        WordSequence[] wordSequences = new WordSequence[numberOfSentences];
+        for(int i = 0;i < numberOfSentences;i++){
+            wordSequences[i] = new WordSequence(sentences[i], " ");
+        }
+
+        return wordSequences;
+    }
+
+    public WordSequence[] getSentences() {
         return sentences_;
-    }
-
-    public Iterator<TextLine> iterator(){
-        return (new ArrayIterable<TextLine>(sentences_).iterator());
     }
 
     public void saveToFile(File file) throws FileNotFoundException {
         PrintWriter printWriter = new PrintWriter(file);
 
-        for(TextLine sentence : sentences_){
-            printWriter.write(
-                    "<s>" + configuration_.getWordSeparator() + sentence.toString().toLowerCase() +
-                            configuration_.getWordSeparator() + "</s>" +
-                            configuration_.getNewLineDelimiter()
-            );
+        for(WordSequence sentence : sentences_){
+            printWriter.write("<s> " + sentence + " </s>\n");
         }
 
         printWriter.close();
     }
 
-    public boolean contains(String string){
-        for(TextLine sentence : sentences_){
-            if(sentence.getLine().contains(string)){
-                return true;
-            }
-        }
-
-        return false;
+    public Iterator<WordSequence> iterator(){
+        return (new ArrayIterable<WordSequence>(sentences_).iterator());
     }
 
-    private final TextLine[] sentences_;
-
-    private final Configuration configuration_ = Configuration.getInstance();
+    private final String text_;
+    private final WordSequence[] sentences_;
 
 }

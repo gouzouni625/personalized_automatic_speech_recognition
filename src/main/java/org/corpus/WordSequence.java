@@ -1,7 +1,5 @@
 package org.corpus;
 
-import org.engine.Configuration;
-import org.engine.Configuration.PunctuationMarks;
 import org.utilities.ArrayIterable;
 
 import java.util.Arrays;
@@ -9,20 +7,23 @@ import java.util.Iterator;
 
 
 public class WordSequence implements Iterable<Word> {
-    public WordSequence(String sequence) {
-        sequence_ = configuration_.arePunctuationMarksRemoved() ? removePunctuationMarks(
-                sequence) : sequence;
+    public WordSequence(String sequence, String wordSeparator) {
+        sequence_ = sequence;
+
+        wordSeparator_ = wordSeparator;
 
         words_ = tokenize(sequence);
     }
 
-    public WordSequence(Word[] words){
+    public WordSequence(Word[] words, String wordSeparator){
         words_ = words;
         int numberOfWords = words.length;
 
+        wordSeparator_ = wordSeparator;
+
         StringBuilder stringBuilder = new StringBuilder();
         for(int i = 0;i < numberOfWords - 1;i++){
-            stringBuilder.append(words[i].getWord()).append(configuration_.getWordSeparator());
+            stringBuilder.append(words[i].getWord()).append(wordSeparator_);
         }
         // Avoid appending a word separator at the end
         stringBuilder.append(words[numberOfWords - 1]);
@@ -30,23 +31,8 @@ public class WordSequence implements Iterable<Word> {
         sequence_ = stringBuilder.toString();
     }
 
-    private String removePunctuationMarks(String sequence) {
-        StringBuilder stringBuilder = new StringBuilder();
-        for (char ch : sequence.toCharArray()) {
-            if (!PunctuationMarks.isPunctuationMark(ch)) {
-                stringBuilder.append(ch);
-            }
-            else{
-                stringBuilder.append(configuration_.getWordSeparator());
-            }
-        }
-
-        return stringBuilder.toString().replaceAll(configuration_.getWordSeparator() + "{2,}",
-                configuration_.getWordSeparator());
-    }
-
     private Word[] tokenize(String sequence) {
-        String[] wordsString = sequence.split(configuration_.getWordSeparator());
+        String[] wordsString = sequence.split(wordSeparator_);
         int numberOfWords = wordsString.length;
 
         Word[] words = new Word[numberOfWords];
@@ -69,10 +55,10 @@ public class WordSequence implements Iterable<Word> {
      */
     public WordSequence subSequence(int beginIndex, int endIndex){
         if(beginIndex >= endIndex){
-            return new WordSequence("");
+            return new WordSequence("", wordSeparator_);
         }
 
-        return new WordSequence(Arrays.copyOfRange(words_, beginIndex, endIndex));
+        return new WordSequence(Arrays.copyOfRange(words_, beginIndex, endIndex), wordSeparator_);
     }
 
     @Override
@@ -95,6 +81,6 @@ public class WordSequence implements Iterable<Word> {
     private final String sequence_;
     private final Word[] words_;
 
-    private final Configuration configuration_ = Configuration.getInstance();
+    private final String wordSeparator_;
 
 }
