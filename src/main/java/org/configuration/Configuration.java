@@ -1,4 +1,4 @@
-package org.engine.configuration;
+package org.configuration;
 
 public class Configuration {
     private Configuration() {
