@@ -9,18 +9,18 @@ import java.util.Iterator;
 
 public class WordSequence implements Iterable<Word> {
     public WordSequence(String text, String wordSeparator) {
-        text_ = text;
+        text_ = text.toLowerCase();
 
-        wordSeparator_ = wordSeparator;
+        wordSeparator_ = wordSeparator.toLowerCase();
 
-        words_ = tokenize(text);
+        words_ = tokenize(text_);
     }
 
     public WordSequence(Word[] words, String wordSeparator){
         words_ = words;
         int numberOfWords = words.length;
 
-        wordSeparator_ = wordSeparator;
+        wordSeparator_ = wordSeparator.toLowerCase();
 
         StringBuilder stringBuilder = new StringBuilder();
         for(int i = 0;i < numberOfWords - 1;i++){

@@ -3,7 +3,7 @@ package org.corpus;
 
 public class Word {
     public Word(String text, WordSequence wordSequence, int index){
-        text_ = text;
+        text_ = text.toLowerCase();
         wordSequence_ = wordSequence;
         index_ = index;
     }
