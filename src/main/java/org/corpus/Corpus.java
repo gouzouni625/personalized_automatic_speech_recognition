@@ -1,12 +1,14 @@
 package org.corpus;
 
 import org.utilities.ArrayIterable;
+import org.utilities.Margin;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
-import java.util.Iterator;
-import java.util.Scanner;
+import java.util.*;
+
+import static org.apache.commons.collections4.ListUtils.longestCommonSubsequence;
 
 
 public class Corpus implements Iterable<WordSequence> {
@@ -67,6 +69,52 @@ public class Corpus implements Iterable<WordSequence> {
         }
 
         return false;
+    }
+
+    /**
+     * @brief Matches a given String against the sentences of this Corpus
+     *
+     * @param text
+     *     The String to match against the sentences of this Corpus
+     *
+     * @return The longest, continuous sub-sequence of Words inside this Corpus that matches the
+     *         given String
+     */
+    public WordSequence matchText(String text){
+        // Get the words of the given String
+        Word[] textWords = new WordSequence(text.toLowerCase(), " ").getWords();
+
+        ArrayList<WordSequence> subSequences = new ArrayList<WordSequence>();
+
+        // Apache Commons longestCommonSubsequence returns the objects of its first argument. That
+        // means that the Words added in subSequences are the actual Words that exists inside this
+        // Corpus.
+        for(WordSequence sentence : sentences_){
+            subSequences.add(new WordSequence(
+                    longestCommonSubsequence(
+                            Arrays.asList(sentence.getWords()),
+                            Arrays.asList(textWords),
+                            Word.textEquator
+                    ), " ")
+            );
+        }
+
+        // TODO Handle the case where there are two sub-sequences of the same length
+
+        Margin chosenMargin = subSequences.get(0).longestContinuousSubSequence();
+        Margin currentMargin;
+        int index = 0;
+        for(int i = 1, n = subSequences.size();i < n;i++){
+            currentMargin = subSequences.get(i).longestContinuousSubSequence();
+
+            if(currentMargin.length_ > chosenMargin.length_){
+                chosenMargin = currentMargin;
+                index = i;
+            }
+        }
+
+        return subSequences.get(index).subSequence(chosenMargin.leftIndex_,
+                chosenMargin.rightIndex_);
     }
 
     public Iterator<WordSequence> iterator(){
