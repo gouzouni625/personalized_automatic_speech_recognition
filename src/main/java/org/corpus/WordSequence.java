@@ -1,7 +1,6 @@
 package org.corpus;
 
 import org.utilities.ArrayIterable;
-import org.utilities.Margin;
 
 import java.util.Arrays;
 import java.util.Iterator;
@@ -73,6 +72,10 @@ public class WordSequence implements Iterable<Word> {
         return new WordSequence(Arrays.copyOfRange(words_, beginIndex, endIndex), wordSeparator_);
     }
 
+    public WordSequence subSequence(int beginIndex){
+        return subSequence(beginIndex, words_.length);
+    }
+
     public boolean containsText(String text){
         return text_.contains(text);
         // int startingPosition = Collections.indexOfSubList(
@@ -83,14 +86,11 @@ public class WordSequence implements Iterable<Word> {
         // return (startingPosition > -1);
     }
 
-    public Margin longestContinuousSubSequence(){
+    public WordSequence longestContinuousSubSequence(){
         int numberOfWords = words_.length;
 
-        if(numberOfWords == 0){
-            return null;
-        }
-        else if(numberOfWords == 1){
-            return new Margin(0, 1);
+        if(numberOfWords <= 1){
+            return this;
         }
 
         int maxLength = 1;
@@ -98,7 +98,7 @@ public class WordSequence implements Iterable<Word> {
         int currentLength = 1;
         int startingIndex = 0;
         int previousIndex = words_[0].getIndex();
-        for(int i = 1, n = words_.length;i < n;i++){
+        for(int i = 1;i < numberOfWords;i++){
             if(words_[i].getIndex() == previousIndex + 1){
                 currentLength++;
             }
@@ -119,7 +119,7 @@ public class WordSequence implements Iterable<Word> {
             maxStartingIndex = startingIndex;
         }
 
-        return new Margin(maxStartingIndex, maxStartingIndex + maxLength);
+        return subSequence(maxStartingIndex, maxStartingIndex + maxLength);
     }
 
     public boolean equals(String text){

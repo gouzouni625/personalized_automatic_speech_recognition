@@ -27,20 +27,6 @@ public class Word {
         return index_;
     }
 
-    public boolean isWrong(){
-        return wrong_;
-    }
-
-    public void setWrong(boolean wrong){
-        wrong_ = wrong;
-    }
-
-    private final String text_;
-    private final WordSequence wordSequence_;
-    private final int index_;
-
-    private boolean wrong_ = false;
-
     public static final Equator<Word> textEquator = new Equator<Word>() {
         public boolean equate(Word word1, Word word2) {
             return word1.getText().equals(word2.getText());
@@ -50,5 +36,9 @@ public class Word {
             return 0;
         }
     };
+
+    private final String text_;
+    private final WordSequence wordSequence_;
+    private final int index_;
 
 }
