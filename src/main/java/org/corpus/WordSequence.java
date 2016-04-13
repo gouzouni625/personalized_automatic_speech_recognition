@@ -126,6 +126,39 @@ public class WordSequence implements Iterable<Word> {
         return text_.equals(text.toLowerCase());
     }
 
+    public WordSequence[] split(WordSequence wordSequence){
+        Word[] words = wordSequence.getWords();
+
+        Word firstWord = words[0];
+        Word lastWord = words[words.length - 1];
+
+        int firstWordIndex = -1;
+        int lastWordIndex = -1;
+
+        for(int i = 0, n = words_.length;i < n;i++){
+            if((firstWordIndex == -1) && words_[i].getText().equals(firstWord.getText())){
+                firstWordIndex = i;
+
+                if(lastWordIndex != -1){
+                    break;
+                }
+            }
+
+            if((lastWordIndex == -1) && words_[i].getText().equals(lastWord.getText())){
+                lastWordIndex = i;
+
+                if(firstWordIndex != -1){
+                    break;
+                }
+            }
+        }
+
+        WordSequence wordSequenceOnTheLeft = subSequence(0, firstWordIndex);
+        WordSequence wordSequenceOnTheRight = subSequence(lastWordIndex + 1);
+
+        return new WordSequence[] {wordSequenceOnTheLeft, wordSequenceOnTheRight};
+    }
+
     @Override
     public String toString() {
         return getText();

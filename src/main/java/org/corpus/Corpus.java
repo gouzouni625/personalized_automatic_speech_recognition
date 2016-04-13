@@ -70,18 +70,9 @@ public class Corpus implements Iterable<WordSequence> {
         return false;
     }
 
-    /**
-     * @brief Matches a given String against the sentences of this Corpus
-     *
-     * @param text
-     *     The String to match against the sentences of this Corpus
-     *
-     * @return The longest, continuous sub-sequence of Words inside this Corpus that matches the
-     *         given String
-     */
-    public List<WordSequence> matchText(String text){
+    public List<WordSequence> matchWordSequence(WordSequence wordSequence){
         // Get the words of the given String
-        Word[] textWords = new WordSequence(text.toLowerCase(), " ").getWords();
+        Word[] words = wordSequence.getWords();
 
         ArrayList<WordSequence> subSequences = new ArrayList<WordSequence>();
 
@@ -92,7 +83,7 @@ public class Corpus implements Iterable<WordSequence> {
             subSequences.add(new WordSequence(
                     longestCommonSubsequence(
                             Arrays.asList(sentence.getWords()),
-                            Arrays.asList(textWords),
+                            Arrays.asList(words),
                             Word.textEquator
                     ), " ").longestContinuousSubSequence()
             );

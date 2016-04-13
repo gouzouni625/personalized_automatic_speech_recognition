@@ -17,99 +17,89 @@ public class Corrector {
     }
 
     public String correct(String asrOutput) {
-        List<WordSequence> matchingSequences = corpus_.matchText(asrOutput);
+        WordSequence asrOutputWS = new WordSequence(asrOutput.toLowerCase(), " ");
+
+        List<WordSequence> matchingSequences = corpus_.matchWordSequence(asrOutputWS);
 
         // If the whole asr output exists inside the corpus, consider it correct
         for (WordSequence matchingSequence : matchingSequences) {
-            if (matchingSequence.equals(asrOutput)) {
-                return asrOutput;
+            if (matchingSequence.equals(asrOutputWS.getText())) {
+                return asrOutputWS.getText();
             }
         }
 
-        String[] errorWords = asrOutput.toLowerCase().split(matchingSequences.get(0).getText());
-        String precedingErrorWords = errorWords[0].trim();
-        String succeedingErrorWords = errorWords[1].trim();
+        WordSequence[] errorWordSequences = asrOutputWS.split(matchingSequences.get(0));
+        WordSequence errorSequenceOnTheLeft = errorWordSequences[0];
+        WordSequence errorSequenceOnTheRight = errorWordSequences[1];
 
-        boolean checkPreceding = precedingErrorWords.length() > 0;
-        boolean checkSucceeding = succeedingErrorWords.length() > 0;
+        boolean checkLeft = errorSequenceOnTheLeft.getWords().length > 0;
+        boolean checkRight = errorSequenceOnTheRight.getWords().length > 0;
 
-        String[] precedingErrorWordPhones = dictionary_.getPhones(precedingErrorWords.split(" "));
-        String[] succeedingErrorWordPhones = dictionary_.getPhones(succeedingErrorWords.split(" "));
+        double minDifferenceOnTheLeft = Double.POSITIVE_INFINITY;
+        double minDifferenceOnTheRight = Double.POSITIVE_INFINITY;
 
-        int minPrecedingDistance = Integer.MAX_VALUE;
-        int minSucceedingDistance = Integer.MAX_VALUE;
-
-        int currentPrecedingDistance;
-        int currentSucceedingDistance;
-
-        WordSequence chosenPrecedingSequence = null;
-        WordSequence chosenSucceedingSequence = null;
+        WordSequence chosenSequenceOnTheLeft = null;
+        WordSequence chosenSequenceOnTheRight = null;
 
         for (WordSequence matchingSequence : matchingSequences) {
-            WordSequence precedingCandidateWords = matchingSequence.
-                    getWords()[0].
-                    getWordSequence().subSequence(0,
-                    matchingSequence.getWords()[0].getIndex());
+            WordSequence candidateSequenceOnTheLeft = matchingSequence
+                    .getWords()[0]
+                    .getWordSequence().subSequence(0,
+                            matchingSequence.getWords()[0].getIndex());
 
-            WordSequence succeedingCandidateWords = matchingSequence.
-                    getWords()[matchingSequence.getWords().length - 1].
-                    getWordSequence().subSequence(
-                    matchingSequence.getWords()[
-                            matchingSequence.getWords().length - 1].getIndex() + 1);
+            WordSequence candidateSequenceOnTheRight = matchingSequence
+                    .getWords()[matchingSequence.getWords().length - 1]
+                    .getWordSequence().subSequence(
+                            matchingSequence.getWords()[
+                                    matchingSequence.getWords().length - 1].getIndex() + 1);
 
-            if(checkPreceding){
-                String[] precedingCandidateWordPhones = dictionary_.getPhones(precedingCandidateWords);
+            if(checkLeft) {
+                double difference = wordSequencesDifference(errorSequenceOnTheLeft,
+                        candidateSequenceOnTheLeft);
 
-                currentPrecedingDistance = getLevenshteinDistance(
-                        concatenateStringArray(precedingErrorWordPhones),
-                        concatenateStringArray(precedingCandidateWordPhones));
+                if (difference < minDifferenceOnTheLeft) {
+                    minDifferenceOnTheLeft = difference;
 
-                if(currentPrecedingDistance < minPrecedingDistance){
-                    minPrecedingDistance = currentPrecedingDistance;
-
-                    chosenPrecedingSequence = precedingCandidateWords;
+                    chosenSequenceOnTheLeft = bestMatch_;
                 }
             }
 
-            if(checkSucceeding) {
-                String[] succeedingCandidateWordPhones = dictionary_.getPhones(succeedingCandidateWords);
+            if(checkRight) {
+                double difference = wordSequencesDifference(errorSequenceOnTheRight,
+                        candidateSequenceOnTheRight);
 
+                if (difference < minDifferenceOnTheRight) {
+                    minDifferenceOnTheRight = difference;
 
-                currentSucceedingDistance = getLevenshteinDistance(
-                        concatenateStringArray(succeedingErrorWordPhones),
-                        concatenateStringArray(succeedingCandidateWordPhones));
-
-                if (currentSucceedingDistance < minSucceedingDistance) {
-                    minSucceedingDistance = currentSucceedingDistance;
-
-                    chosenSucceedingSequence = succeedingCandidateWords;
+                    chosenSequenceOnTheRight = bestMatch_;
                 }
             }
         }
 
         StringBuilder stringBuilder = new StringBuilder();
-        if(chosenPrecedingSequence != null){
-            stringBuilder.append(chosenPrecedingSequence);
+        if(chosenSequenceOnTheLeft != null){
+            stringBuilder.append(chosenSequenceOnTheLeft);
         }
 
         stringBuilder.append(" ").append(matchingSequences.get(0)).append(" ");
 
-        if(chosenSucceedingSequence != null){
-            stringBuilder.append(chosenSucceedingSequence);
+        if(chosenSequenceOnTheRight != null){
+            stringBuilder.append(chosenSequenceOnTheRight);
         }
 
         return stringBuilder.toString();
      }
 
-    private String concatenateStringArray(String[] array){
-        StringBuilder stringBuilder = new StringBuilder();
+    private double wordSequencesDifference(WordSequence wordSequence1, WordSequence wordSequence2){
+        String[] phones1 = dictionary_.getPhones(wordSequence1);
+        String[] phones2 = dictionary_.getPhones(wordSequence2);
 
-        for(String item : array){
-            stringBuilder.append(item);
-        }
+        bestMatch_ = wordSequence2;
 
-        return stringBuilder.toString();
+        return getLevenshteinDistance(String.join(" ", phones1), String.join(" ", phones2));
     }
+
+    private WordSequence bestMatch_;
 
     private Corpus corpus_;
 
