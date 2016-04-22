@@ -5,6 +5,7 @@ import org.corpus.Corpus;
 import org.corpus.WordSequence;
 import org.dictionary.Dictionary;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static org.apache.commons.lang3.StringUtils.getLevenshteinDistance;
@@ -78,25 +79,50 @@ public class Corrector {
 
         StringBuilder stringBuilder = new StringBuilder();
         if(chosenSequenceOnTheLeft != null){
-            stringBuilder.append(chosenSequenceOnTheLeft);
+            stringBuilder.append(chosenSequenceOnTheLeft).append(" ");
         }
 
-        stringBuilder.append(" ").append(matchingSequences.get(0)).append(" ");
+        stringBuilder.append(matchingSequences.get(0));
 
         if(chosenSequenceOnTheRight != null){
-            stringBuilder.append(chosenSequenceOnTheRight);
+            stringBuilder.append(" ").append(chosenSequenceOnTheRight);
         }
 
         return stringBuilder.toString();
      }
 
     private double wordSequencesDifference(WordSequence wordSequence1, WordSequence wordSequence2){
+        int numberOfWords1 = wordSequence1.getWords().length;
+        int numberOfWords2 = wordSequence2.getWords().length;
+
         String[] phones1 = dictionary_.getPhones(wordSequence1);
         String[] phones2 = dictionary_.getPhones(wordSequence2);
 
-        bestMatch_ = wordSequence2;
+        if(numberOfWords1 >= numberOfWords2){
+            bestMatch_ = wordSequence2;
 
-        return getLevenshteinDistance(String.join(" ", phones1), String.join(" ", phones2));
+            return getLevenshteinDistance(String.join(" ", phones1), String.join(" ", phones2));
+        }
+
+        int minDistance = Integer.MAX_VALUE;
+        int index = -1;
+        for(int i = 0, n = numberOfWords2 / numberOfWords1;i <= n;i += numberOfWords1){
+            // Notice that in copyOfRange(boolean[] original, int from, int to),
+            // argument 'to' is exclusive and may lie outside the array.
+            int currentDistance = getLevenshteinDistance(
+                    String.join(" ", phones1),
+                    String.join(" ", Arrays.copyOfRange(phones2, i, i + numberOfWords1)));
+
+            if(currentDistance < minDistance){
+                minDistance = currentDistance;
+
+                index = i;
+            }
+        }
+
+        bestMatch_ = wordSequence2.subSequence(index, index + numberOfWords1);
+
+        return minDistance;
     }
 
     private WordSequence bestMatch_;

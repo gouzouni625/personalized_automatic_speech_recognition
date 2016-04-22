@@ -43,6 +43,10 @@ public class WordSequence implements Iterable<Word> {
     }
 
     private Word[] tokenize(String text) {
+        if(text.equals("")){
+            return new Word[] {};
+        }
+
         String[] wordStrings = text.split(wordSeparator_);
         int numberOfWords = wordStrings.length;
 
