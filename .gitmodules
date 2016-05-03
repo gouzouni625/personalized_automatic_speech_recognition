@@ -1,3 +1,9 @@
 [submodule "sphinx4"]
 	path = sphinx4
 	url = https://github.com/cmusphinx/sphinx4.git
+[submodule "sphinxbase"]
+	path = sphinxbase
+	url = https://github.com/cmusphinx/sphinxbase.git
+[submodule "sphinxtrain"]
+	path = sphinxtrain
+	url = https://github.com/cmusphinx/sphinxtrain.git
