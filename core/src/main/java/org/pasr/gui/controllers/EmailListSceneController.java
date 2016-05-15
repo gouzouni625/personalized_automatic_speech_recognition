@@ -57,4 +57,8 @@ public class EmailListSceneController implements Observer{
         treeView.getRoot().getChildren().add(folderItem);
     }
 
+    public void close() throws MessagingException {
+        emailFetcher_.close();
+    }
+
 }

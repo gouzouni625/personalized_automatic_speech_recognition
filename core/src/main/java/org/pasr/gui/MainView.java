@@ -22,6 +22,8 @@ public class MainView extends Application implements Authenticator{
 
     private Stage primaryStage_;
 
+    private EmailListSceneController emailListSceneController_;
+
     public static void main(String[] args){
         launch(args);
     }
@@ -44,10 +46,15 @@ public class MainView extends Application implements Authenticator{
     @Override
     public void authenticate (String username, String password) throws IOException, MessagingException {
         FXMLLoader emailListNodeLoader = new FXMLLoader(getClass().getResource("/fxml/email_list_scene.fxml"));
-        EmailListSceneController controller = new EmailListSceneController(username, password);
-        emailListNodeLoader.setController(controller);
+        emailListSceneController_ = new EmailListSceneController(username, password);
+        emailListNodeLoader.setController(emailListSceneController_);
         Parent emailListNode = emailListNodeLoader.load();
 
         primaryStage_.setScene(new Scene(emailListNode, screenSize_.getWidth(), screenSize_.getHeight()));
+    }
+
+    @Override
+    public void stop() throws MessagingException {
+        emailListSceneController_.close();
     }
 }

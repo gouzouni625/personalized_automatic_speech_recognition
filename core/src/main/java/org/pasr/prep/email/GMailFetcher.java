@@ -29,11 +29,17 @@ public class GMailFetcher extends EmailFetcher{
     }
 
     public void fetch(){
-        new Thread(this :: fetchMessages).start();
+        fetcher_ =  new Thread(this :: fetchMessages);
+        fetcherRunning_ = true;
+        fetcher_.start();
     }
 
     private void fetchMessages(){
         for(Folder folder : folders_){
+            if (!fetcherRunning_){
+                return;
+            }
+
             try {
                 if(checkFolder(folder)){
                     continue;
@@ -47,6 +53,8 @@ public class GMailFetcher extends EmailFetcher{
 
                 setChanged();
                 notifyObservers(new EmailFolder(folderName, getEmailsSubjects(folderName)));
+
+                folder.close(false);
             } catch (MessagingException | IOException e) {
                 e.printStackTrace();
             }
@@ -111,10 +119,7 @@ public class GMailFetcher extends EmailFetcher{
 
     @Override
     public void close() throws MessagingException {
-        for(Folder folder : folders_){
-            // There should be no deleted messages but use expunge = false just in case.
-            folder.close(false);
-        }
+        fetcherRunning_ = false;
 
         store_.close();
     }
@@ -124,5 +129,8 @@ public class GMailFetcher extends EmailFetcher{
     private Folder[] folders_;
 
     private HashMap<String, Message[]> messages_;
+
+    private Thread fetcher_;
+    private volatile boolean fetcherRunning_ = false;
 
 }
