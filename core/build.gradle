@@ -11,4 +11,6 @@ dependencies {
     // compile group: 'org.apache.lucene' , name: 'lucene-core'            , version: '5.5.0'
     // compile group: 'org.apache.lucene' , name: 'lucene-queryparser'     , version: '5.5.0'
     // compile group: 'org.apache.lucene' , name: 'lucene-analyzers-common', version: '5.5.0'
+
+    compile 'javax.mail:mail:1.5.0-b01'
 }
