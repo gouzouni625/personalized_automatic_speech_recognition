@@ -29,7 +29,7 @@ public class MainView extends Application implements Authenticator{
     }
 
     @Override
-    public void start (Stage primaryStage) throws Exception {
+    public void start (Stage primaryStage) throws IOException {
         primaryStage_ = primaryStage;
 
         primaryStage_.setTitle("Personalized Automatic Speech Recognition");

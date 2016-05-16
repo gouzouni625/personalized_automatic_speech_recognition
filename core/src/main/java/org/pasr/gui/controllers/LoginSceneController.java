@@ -6,9 +6,6 @@ import javafx.fxml.FXML;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 
-import javax.mail.MessagingException;
-import java.io.IOException;
-
 
 public class LoginSceneController {
 
@@ -29,12 +26,12 @@ public class LoginSceneController {
     }
 
     @FXML
-    private void submitButtonClicked() throws IOException, MessagingException {
+    private void submitButtonClicked() throws Exception {
         authenticator_.authenticate(emailAddress.getText(), password.getText());
     }
 
     public interface Authenticator{
-        void authenticate(String username, String password) throws IOException, MessagingException;
+        void authenticate(String username, String password) throws Exception;
     }
 
     public void setAuthenticator(Authenticator authenticator){

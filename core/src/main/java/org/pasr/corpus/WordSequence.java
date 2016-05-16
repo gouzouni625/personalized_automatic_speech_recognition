@@ -1,6 +1,6 @@
-package org.corpus;
+package org.pasr.corpus;
 
-import org.utilities.ArrayIterable;
+import org.pasr.utilities.ArrayIterable;
 
 import java.util.Arrays;
 import java.util.Iterator;

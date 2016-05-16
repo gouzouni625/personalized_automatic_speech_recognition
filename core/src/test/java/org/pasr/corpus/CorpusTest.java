@@ -1,9 +1,9 @@
-package org.corpus;
+package org.pasr.corpus;
 
 
 import org.junit.Before;
 import org.junit.Test;
-import org.utilities.Utilities;
+import org.pasr.utilities.Utilities;
 
 import java.io.File;
 import java.io.FileNotFoundException;

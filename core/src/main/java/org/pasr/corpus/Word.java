@@ -1,4 +1,4 @@
-package org.corpus;
+package org.pasr.corpus;
 
 
 import org.apache.commons.collections4.Equator;
