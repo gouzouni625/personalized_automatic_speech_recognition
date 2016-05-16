@@ -54,7 +54,9 @@ public class MainView extends Application implements Authenticator{
     }
 
     @Override
-    public void stop() throws MessagingException {
-        emailListSceneController_.close();
+    public void stop() throws Exception {
+        if(emailListSceneController_ != null) {
+            emailListSceneController_.close();
+        }
     }
 }

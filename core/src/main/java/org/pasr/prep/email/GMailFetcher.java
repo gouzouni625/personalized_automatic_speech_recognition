@@ -10,7 +10,6 @@ import javax.mail.Multipart;
 import javax.mail.Session;
 import javax.mail.Store;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Properties;
 
 
@@ -25,16 +24,14 @@ public class GMailFetcher extends EmailFetcher{
         store_.connect(properties.getProperty("mail.smtp.host"), address, password);
 
         folders_ = store_.getDefaultFolder().list("*");
-        messages_ = new HashMap<>();
     }
 
     public void fetch(){
-        fetcher_ =  new Thread(this :: fetchMessages);
         fetcherRunning_ = true;
-        fetcher_.start();
+        new Thread(this :: fetchMessages).start();
     }
 
-    private void fetchMessages(){
+    private void fetchMessages() {
         for(Folder folder : folders_){
             if (!fetcherRunning_){
                 return;
@@ -49,15 +46,29 @@ public class GMailFetcher extends EmailFetcher{
 
                 folder.open(Folder.READ_ONLY);
 
-                messages_.put(folderName, folder.getMessages());
+                Message[] messages = folder.getMessages();
+
+                int numberOfMessages = messages.length;
+                RecentFolder.Email[] emails = new RecentFolder.Email[numberOfMessages];
+
+                for(int i = 0;i < numberOfMessages;i++){
+                    emails[i] = new RecentFolder.Email(messages[i].getSubject(),
+                        ((Multipart)(messages[i].getContent())).getBodyPart(1).getContent().toString());
+                }
 
                 setChanged();
-                notifyObservers(new EmailFolder(folderName, getEmailsSubjects(folderName)));
+                notifyObservers(new RecentFolder(folderName, emails));
 
                 folder.close(false);
             } catch (MessagingException | IOException e) {
                 e.printStackTrace();
             }
+        }
+
+        try {
+            store_.close();
+        } catch (MessagingException e) {
+            e.printStackTrace();
         }
     }
 
@@ -66,71 +77,14 @@ public class GMailFetcher extends EmailFetcher{
     }
 
     @Override
-    public String[] getFoldersNames () throws MessagingException {
-        int numberOfFolders = folders_.length;
-        String[] folderNames = new String[numberOfFolders - 1];
-
-        int index = 0;
-        for (Folder folder : folders_) {
-            if (checkFolder(folder)) {
-                continue;
-            }
-
-            folderNames[index] = folder.getFullName();
-            index++;
-        }
-
-        return folderNames;
-    }
-
-    @Override
-    public String[] getEmailsSubjects (String folderFullName) throws MessagingException, IOException {
-        Message[] messages = messages_.get(folderFullName);
-
-        if(messages == null){
-            return new String[0];
-        }
-
-        int numberOfMessages = messages.length;
-        String[] subjects = new String[numberOfMessages];
-
-        for(int i = 0;i < numberOfMessages;i++){
-            subjects[i] = messages[i].getSubject();
-        }
-
-        return subjects;
-        //Folder folder = store_.getFolder(folderFullName);
-        //folder.open(Folder.READ_ONLY);
-        //
-        //Message[] messages = folder.getMessages();
-        //
-        //int numberOfMessages = messages.length;
-        //Email[] emails = new Email[numberOfMessages];
-        //
-        //for(int i = 0;i < numberOfMessages;i++){
-        //    String subject = messages[i].getSubject();
-        //    String body = ((Multipart)(messages[i].getContent())).getBodyPart(1).getContent().toString();
-        //
-        //    emails[i] = new Email(subject, body);
-        //}
-        //
-        //return emails;
-    }
-
-    @Override
-    public void close() throws MessagingException {
+    public void close() {
         fetcherRunning_ = false;
-
-        store_.close();
     }
 
-    private Store store_;
+    private volatile Store store_;
 
     private Folder[] folders_;
 
-    private HashMap<String, Message[]> messages_;
-
-    private Thread fetcher_;
     private volatile boolean fetcherRunning_ = false;
 
 }
