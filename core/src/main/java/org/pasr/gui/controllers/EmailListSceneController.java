@@ -6,12 +6,14 @@ import javafx.fxml.FXML;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
+import org.pasr.corpus.Corpus;
 import org.pasr.prep.email.EmailFetcher.RecentFolder.Email;
 import org.pasr.prep.email.EmailFetcher.RecentFolder;
 import org.pasr.prep.email.EmailFetcher;
 import org.pasr.prep.email.GMailFetcher;
 
 import javax.mail.MessagingException;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Observable;
 import java.util.Observer;
@@ -29,17 +31,26 @@ public class EmailListSceneController implements Observer{
     private TreeView<String> treeView;
 
     @FXML
-    private void submitButtonClicked(){
+    private void submitButtonClicked() throws Exception{
         // Create corpus.
         ObservableList<TreeItem<String>> list = treeView.getSelectionModel().getSelectedItems();
 
+        Corpus corpus = new Corpus();
+
         list.forEach(item -> {
-            System.out.println(((EmailTreeItem)(item)).isFolder());
+            EmailTreeItem emailTreeItem = (EmailTreeItem) item;
+
+            if(!emailTreeItem.isFolder()){
+                corpus.append(emailTreeItem.getBody());
+            }
         });
+
+        corpus.process();
+        hasCorpus_.setCorpus(corpus);
     }
 
     @FXML
-    public void initialize() throws MessagingException, IOException {
+    public void initialize() {
         TreeItem<String> root = new TreeItem<>("E-mails");
 
         treeView.setRoot(root);
@@ -47,6 +58,16 @@ public class EmailListSceneController implements Observer{
     }
 
     private EmailFetcher emailFetcher_;
+
+    public interface HasCorpus{
+        void setCorpus(Corpus corpus) throws Exception;
+    }
+
+    private HasCorpus hasCorpus_;
+
+    public void setHasCorpus(HasCorpus hasCorpus){
+        hasCorpus_ = hasCorpus;
+    }
 
     @SuppressWarnings ("SuspiciousMethodCalls")
     @Override
@@ -138,10 +159,10 @@ public class EmailListSceneController implements Observer{
         @Override
         public String toString(){
             if(isFolder()){
-                return name_;
+                return getName();
             }
             else{
-                return subject_;
+                return getSubject();
             }
         }
 

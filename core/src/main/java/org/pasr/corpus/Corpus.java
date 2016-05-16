@@ -11,6 +11,18 @@ import static org.apache.commons.collections4.ListUtils.longestCommonSubsequence
 
 
 public class Corpus implements Iterable<WordSequence> {
+    public Corpus(){
+        text_ = "";
+    }
+
+    public void append(String text){
+        text_ += text;
+    }
+
+    public void process(){
+        sentences_ = tokenize(text_);
+    }
+
     public static Corpus createFromFile(File file) throws FileNotFoundException {
         StringBuilder stringBuilder = new StringBuilder();
 
@@ -23,10 +35,10 @@ public class Corpus implements Iterable<WordSequence> {
         return new Corpus(stringBuilder.toString());
     }
 
-    private Corpus(String text){
+    public Corpus(String text){
         text_ = text;
 
-        sentences_ = tokenize(text);
+        process();
     }
 
     private WordSequence[] tokenize(String text){
@@ -110,7 +122,7 @@ public class Corpus implements Iterable<WordSequence> {
         return (new ArrayIterable<WordSequence>(sentences_).iterator());
     }
 
-    private final String text_;
-    private final WordSequence[] sentences_;
+    private String text_;
+    private WordSequence[] sentences_;
 
 }
