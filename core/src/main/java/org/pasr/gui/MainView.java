@@ -65,8 +65,8 @@ public class MainView extends Application implements Authenticator, HasCorpus {
 
         // Create language model
         corpus_.saveToFile(new File("cmuclmtk-0.7/language_model.txt"));
-        new ProcessBuilder("./generate_language_model.sh", "cmuclmtk-0.7/language_model.txt",
-            "cmuclmtk-0.7/language_model.lm", "3").start();
+        new ProcessBuilder("./generate_language_model.sh", "language_model.txt",
+            "language_model.lm", "3").start();
 
         // Move to recording scene
     }
