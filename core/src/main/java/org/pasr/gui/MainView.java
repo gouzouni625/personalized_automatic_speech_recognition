@@ -13,6 +13,7 @@ import org.pasr.gui.controllers.EmailListSceneController;
 import org.pasr.gui.controllers.LoginSceneController;
 import org.pasr.gui.controllers.LoginSceneController.Authenticator;
 import org.pasr.gui.controllers.EmailListSceneController.HasCorpus;
+import org.pasr.gui.controllers.VoiceRecordingSceneController;
 
 import javax.mail.MessagingException;
 import java.io.File;
@@ -26,6 +27,7 @@ public class MainView extends Application implements Authenticator, HasCorpus {
     private Stage primaryStage_;
 
     private EmailListSceneController emailListSceneController_;
+    private VoiceRecordingSceneController voiceRecordingSceneController_;
 
     private Corpus corpus_;
 
@@ -60,8 +62,13 @@ public class MainView extends Application implements Authenticator, HasCorpus {
     }
 
     @Override
-    public void setCorpus (Corpus corpus) throws IOException {
+    public void setCorpus (Corpus corpus) throws Exception {
         corpus_ = corpus;
+
+        // Stop the email fetcher from fetching more email
+        if(emailListSceneController_ != null) {
+            emailListSceneController_.close();
+        }
 
         // Create language model
         corpus_.saveToFile(new File("cmuclmtk-0.7/language_model.txt"));
@@ -69,6 +76,12 @@ public class MainView extends Application implements Authenticator, HasCorpus {
             "language_model.lm", "3").start();
 
         // Move to recording scene
+        FXMLLoader voiceRecordingNodeLoader = new FXMLLoader(getClass().getResource("/fxml/voice_recording_scene.fxml"));
+        voiceRecordingSceneController_ = new VoiceRecordingSceneController(corpus_);
+        voiceRecordingNodeLoader.setController(voiceRecordingSceneController_);
+        Parent voiceRecordingNode = voiceRecordingNodeLoader.load();
+
+        primaryStage_.setScene(new Scene(voiceRecordingNode, screenSize_.getWidth(), screenSize_.getHeight()));
     }
 
     @Override
@@ -77,4 +90,5 @@ public class MainView extends Application implements Authenticator, HasCorpus {
             emailListSceneController_.close();
         }
     }
+
 }
