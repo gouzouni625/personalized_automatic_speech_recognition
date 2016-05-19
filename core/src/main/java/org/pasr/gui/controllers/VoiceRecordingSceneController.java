@@ -69,13 +69,25 @@ public class VoiceRecordingSceneController {
     }
 
     @FXML
-    private void doneButtonClicked() throws IOException {
+    private void doneButtonClicked() throws Exception {
         // Move to asr
         fileidsWriter_.close();
         transcriptionWriter_.close();
 
         new ProcessBuilder("./adapt_acoustic_model.sh").start();
+
+        hasASR_.startASR();
     }
+
+    public interface HasASR{
+        void startASR() throws Exception;
+    }
+
+    public void setHasASR(HasASR hasASR){
+        hasASR_ = hasASR;
+    }
+
+    private HasASR hasASR_;
 
     private Microphone microphone_;
 

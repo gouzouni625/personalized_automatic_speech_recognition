@@ -14,13 +14,14 @@ import org.pasr.gui.controllers.LoginSceneController;
 import org.pasr.gui.controllers.LoginSceneController.Authenticator;
 import org.pasr.gui.controllers.EmailListSceneController.HasCorpus;
 import org.pasr.gui.controllers.VoiceRecordingSceneController;
+import org.pasr.gui.controllers.VoiceRecordingSceneController.HasASR;
 
 import javax.mail.MessagingException;
 import java.io.File;
 import java.io.IOException;
 
 
-public class MainView extends Application implements Authenticator, HasCorpus {
+public class MainView extends Application implements Authenticator, HasCorpus, HasASR {
 
     private final Rectangle2D screenSize_ = Screen.getPrimary().getVisualBounds();
 
@@ -78,6 +79,7 @@ public class MainView extends Application implements Authenticator, HasCorpus {
         // Move to recording scene
         FXMLLoader voiceRecordingNodeLoader = new FXMLLoader(getClass().getResource("/fxml/voice_recording_scene.fxml"));
         voiceRecordingSceneController_ = new VoiceRecordingSceneController(corpus_);
+        voiceRecordingSceneController_.setHasASR(this);
         voiceRecordingNodeLoader.setController(voiceRecordingSceneController_);
         Parent voiceRecordingNode = voiceRecordingNodeLoader.load();
 
@@ -89,6 +91,11 @@ public class MainView extends Application implements Authenticator, HasCorpus {
         if(emailListSceneController_ != null) {
             emailListSceneController_.close();
         }
+    }
+
+    @Override
+    public void startASR () throws IOException {
+        primaryStage_.setScene(new Scene(new FXMLLoader(getClass().getResource("/fxml/asr_scene.fxml")).load(), screenSize_.getWidth(), screenSize_.getHeight()));
     }
 
 }
