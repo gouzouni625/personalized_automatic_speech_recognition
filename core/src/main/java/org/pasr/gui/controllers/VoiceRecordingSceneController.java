@@ -58,7 +58,7 @@ public class VoiceRecordingSceneController {
     private void recordDoneButtonClicked() throws InterruptedException, IOException {
         microphone_.stop();
 
-        String currentFileName = microphone_.getCurrentFileName();
+        String currentFileName = microphone_.getCurrentFileName().split("\\.")[0];
 
         fileidsWriter_.println(currentFileName);
         transcriptionWriter_.println("<s> " + sentenceToRead.getText() + " </s>" + " (" + currentFileName + ")");
@@ -69,10 +69,12 @@ public class VoiceRecordingSceneController {
     }
 
     @FXML
-    private void doneButtonClicked(){
+    private void doneButtonClicked() throws IOException {
         // Move to asr
         fileidsWriter_.close();
         transcriptionWriter_.close();
+
+        new ProcessBuilder("./adapt_acoustic_model.sh").start();
     }
 
     private Microphone microphone_;
