@@ -8,18 +8,35 @@ import org.pasr.corpus.WordSequence;
 import org.pasr.prep.record.Microphone;
 
 import javax.sound.sampled.LineUnavailableException;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Iterator;
 
 
 // TODO add voice input visualizer
 public class VoiceRecordingSceneController {
-    public VoiceRecordingSceneController(Corpus corpus) {
+    @SuppressWarnings ("ResultOfMethodCallIgnored")
+    public VoiceRecordingSceneController(Corpus corpus) throws IOException {
         corpus_ = corpus;
 
         sentenceIterator_ = corpus_.iterator();
 
         microphone_ = new Microphone();
+
+        fileids_ = new File("acoustic_model_adaptation/records.fileids");
+        if(fileids_.exists()){
+            fileids_.delete();
+            fileids_.createNewFile();
+        }
+        fileidsWriter_ = new PrintWriter(new FileOutputStream(fileids_), true);
+        transcription_ = new File("acoustic_model_adaptation/records.transcription");
+        if(transcription_.exists()){
+            transcription_.delete();
+            transcription_.createNewFile();
+        }
+        transcriptionWriter_ = new PrintWriter(new FileOutputStream(transcription_), true);
     }
 
     @FXML
@@ -41,6 +58,11 @@ public class VoiceRecordingSceneController {
     private void recordDoneButtonClicked() throws InterruptedException, IOException {
         microphone_.stop();
 
+        String currentFileName = microphone_.getCurrentFileName();
+
+        fileidsWriter_.println(currentFileName);
+        transcriptionWriter_.println("<s> " + sentenceToRead.getText() + " </s>" + " (" + currentFileName + ")");
+
         if(sentenceIterator_.hasNext()) {
             sentenceToRead.setText(sentenceIterator_.next().getText());
         }
@@ -49,6 +71,8 @@ public class VoiceRecordingSceneController {
     @FXML
     private void doneButtonClicked(){
         // Move to asr
+        fileidsWriter_.close();
+        transcriptionWriter_.close();
     }
 
     private Microphone microphone_;
@@ -56,5 +80,10 @@ public class VoiceRecordingSceneController {
     private Corpus corpus_;
 
     private Iterator<WordSequence> sentenceIterator_;
+
+    private File fileids_;
+    private PrintWriter fileidsWriter_;
+    private File transcription_;
+    private PrintWriter transcriptionWriter_;
 
 }

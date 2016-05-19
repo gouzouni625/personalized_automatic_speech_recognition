@@ -40,3 +40,15 @@ make check
 make install
 
 cd ..
+
+## ===== Create acoustic model adaptation directory ===== ##
+mkdir acoustic_model_adaptation
+
+cp -a sphinx4/sphinx4-data/src/main/resources/edu/cmu/sphinx/models/en-us/en-us acoustic_model_adaptation/
+cp sphinx4/sphinx4-data/src/main/resources/edu/cmu/sphinx/models/en-us/cmudict-en-us.dict acoustic_model_adaptation/
+
+cp sphinxbase/bin/sphinx_fe acoustic_model_adaptation/
+cp sphinxtrain/libexec/sphinxtrain/bw acoustic_model_adaptation/
+cp sphinxtrain/libexec/sphinxtrain/mllr_solve acoustic_model_adaptation/
+
+cd ..

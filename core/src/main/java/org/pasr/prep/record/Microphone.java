@@ -7,8 +7,7 @@ public class Microphone {
     public Microphone() {
         audioFormat_ = new AudioFormat(16000, 16, 1, true, false);
 
-        numberOfFiles_ = 1;
-        currentFile_ = new File("record_" + numberOfFiles_ + ".wav");
+        fileCount_ = 0;
     }
 
     public void record() throws LineUnavailableException {
@@ -18,7 +17,8 @@ public class Microphone {
 
         audioInputStream_ = new AudioInputStream(targetDataLine_);
 
-        recorder_ = new Recorder();
+        fileCount_++;
+        recorder_ = new Recorder(new File("acoustic_model_adaptation/" + getCurrentFileName()));
         recordingThread_ = new Thread(recorder_);
         recordingThread_.start();
     }
@@ -32,9 +32,10 @@ public class Microphone {
 
         targetDataLine_.close();
         audioInputStream_.close();
+    }
 
-        numberOfFiles_++;
-        currentFile_ = new File("record_" + numberOfFiles_ + ".wav");
+    public String getCurrentFileName(){
+        return ("record_" + fileCount_ + ".wav");
     }
 
     private TargetDataLine targetDataLine_;
@@ -46,15 +47,18 @@ public class Microphone {
     private Recorder recorder_;
     private Thread recordingThread_;
 
-    private int numberOfFiles_;
-    private File currentFile_;
+    private int fileCount_;
 
     private class Recorder implements Runnable{
+        Recorder(File outputFile){
+            outputFile_ = outputFile;
+        }
+
         public void run() {
             while(running_) {
                 try {
                     System.out.println("Before");
-                    AudioSystem.write(audioInputStream_, AudioFileFormat.Type.WAVE, currentFile_);
+                    AudioSystem.write(audioInputStream_, AudioFileFormat.Type.WAVE, outputFile_);
                     System.out.println("After");
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -67,6 +71,8 @@ public class Microphone {
         }
 
         private boolean running_ = true;
+
+        private File outputFile_;
     }
 
 }
