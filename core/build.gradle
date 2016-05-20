@@ -4,6 +4,16 @@ jar {
     manifest {
         attributes 'Main-Class': 'org.pasr.gui.MainView'
     }
+
+    from {
+        (configurations.runtime).collect {
+            it.isDirectory() ? it : zipTree(it)
+        }
+    }
+}
+
+repositories() {
+    mavenCentral()
 }
 
 dependencies {
