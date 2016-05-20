@@ -9,12 +9,14 @@ import javafx.scene.Scene;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import org.pasr.corpus.Corpus;
+import org.pasr.gui.controllers.ASRSceneController;
 import org.pasr.gui.controllers.EmailListSceneController;
 import org.pasr.gui.controllers.LoginSceneController;
 import org.pasr.gui.controllers.LoginSceneController.Authenticator;
 import org.pasr.gui.controllers.EmailListSceneController.HasCorpus;
 import org.pasr.gui.controllers.VoiceRecordingSceneController;
 import org.pasr.gui.controllers.VoiceRecordingSceneController.HasASR;
+import org.pasr.postp.dictionary.Dictionary;
 
 import javax.mail.MessagingException;
 import java.io.File;
@@ -29,6 +31,7 @@ public class MainView extends Application implements Authenticator, HasCorpus, H
 
     private EmailListSceneController emailListSceneController_;
     private VoiceRecordingSceneController voiceRecordingSceneController_;
+    private ASRSceneController asrSceneController_;
 
     private Corpus corpus_;
 
@@ -94,8 +97,11 @@ public class MainView extends Application implements Authenticator, HasCorpus, H
     }
 
     @Override
-    public void startASR () throws IOException {
-        primaryStage_.setScene(new Scene(new FXMLLoader(getClass().getResource("/fxml/asr_scene.fxml")).load(), screenSize_.getWidth(), screenSize_.getHeight()));
+    public void startASR () throws Exception {
+        FXMLLoader asrNodeLoader = new FXMLLoader(getClass().getResource("/fxml/asr_scene.fxml"));
+        asrSceneController_ = new ASRSceneController(corpus_, Dictionary.createFromFile(new File(getClass().getResource("/edu/cmu/sphinx/models/en-us/cmudict-en-us.dict").getPath())));
+        asrNodeLoader.setController(asrSceneController_);
+        primaryStage_.setScene(new Scene(asrNodeLoader.load(), screenSize_.getWidth(), screenSize_.getHeight()));
     }
 
 }
