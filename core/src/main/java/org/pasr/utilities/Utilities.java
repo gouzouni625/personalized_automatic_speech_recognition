@@ -1,9 +1,12 @@
 package org.pasr.utilities;
 
 
+import java.io.InputStream;
+
+
 public class Utilities {
-    public static String getResourcePath(String resource){
-        return Utilities.class.getResource(resource).getPath();
+    public static InputStream getResourceStream(String resource){
+        return Utilities.class.getResourceAsStream(resource);
     }
 
 }
