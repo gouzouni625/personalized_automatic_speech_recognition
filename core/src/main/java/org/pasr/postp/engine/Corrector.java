@@ -1,9 +1,9 @@
-package org.engine;
+package org.pasr.postp.engine;
 
 
-import org.corpus.Corpus;
-import org.corpus.WordSequence;
-import org.dictionary.Dictionary;
+import org.pasr.corpus.Corpus;
+import org.pasr.corpus.WordSequence;
+import org.pasr.postp.dictionary.Dictionary;
 
 import java.util.Arrays;
 import java.util.List;
