@@ -1,3 +1,11 @@
+apply plugin: 'java'
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'org.pasr.gui.MainView'
+    }
+}
+
 dependencies {
     compile project(':sphinx4-core')
     compile project(':sphinx4-data')
