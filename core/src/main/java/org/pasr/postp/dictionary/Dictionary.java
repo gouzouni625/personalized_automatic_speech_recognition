@@ -3,17 +3,17 @@ package org.pasr.postp.dictionary;
 import org.pasr.corpus.Word;
 import org.pasr.corpus.WordSequence;
 
-import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.util.Hashtable;
 import java.util.Scanner;
 
 
 public class Dictionary {
-    public static Dictionary createFromFile(File file) throws FileNotFoundException {
+    public static Dictionary createFromInputStream(InputStream inputStream) throws FileNotFoundException {
         Hashtable<String, String> wordsToPhonesTable = new Hashtable<String, String>();
 
-        Scanner scanner = new Scanner(file);
+        Scanner scanner = new Scanner(inputStream);
         while(scanner.hasNextLine()){
             String line = scanner.nextLine();
 

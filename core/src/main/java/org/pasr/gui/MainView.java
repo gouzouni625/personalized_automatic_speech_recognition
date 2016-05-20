@@ -17,6 +17,7 @@ import org.pasr.gui.controllers.EmailListSceneController.HasCorpus;
 import org.pasr.gui.controllers.VoiceRecordingSceneController;
 import org.pasr.gui.controllers.VoiceRecordingSceneController.HasASR;
 import org.pasr.postp.dictionary.Dictionary;
+import org.pasr.utilities.Utilities;
 
 import java.io.File;
 
@@ -97,7 +98,7 @@ public class MainView extends Application implements Authenticator, HasCorpus, H
     @Override
     public void startASR () throws Exception {
         FXMLLoader asrNodeLoader = new FXMLLoader(getClass().getResource("/fxml/asr_scene.fxml"));
-        asrSceneController_ = new ASRSceneController(corpus_, Dictionary.createFromFile(new File(getClass().getResource("/edu/cmu/sphinx/models/en-us/cmudict-en-us.dict").getPath())));
+        asrSceneController_ = new ASRSceneController(corpus_, Dictionary.createFromInputStream(Utilities.getResourceStream("/edu/cmu/sphinx/models/en-us/cmudict-en-us.dict")));
         asrNodeLoader.setController(asrSceneController_);
         primaryStage_.setScene(new Scene(asrNodeLoader.load(), screenSize_.getWidth(), screenSize_.getHeight()));
     }
