@@ -18,9 +18,7 @@ import org.pasr.gui.controllers.VoiceRecordingSceneController;
 import org.pasr.gui.controllers.VoiceRecordingSceneController.HasASR;
 import org.pasr.postp.dictionary.Dictionary;
 
-import javax.mail.MessagingException;
 import java.io.File;
-import java.io.IOException;
 
 
 public class MainView extends Application implements Authenticator, HasCorpus, HasASR {
@@ -40,7 +38,7 @@ public class MainView extends Application implements Authenticator, HasCorpus, H
     }
 
     @Override
-    public void start (Stage primaryStage) throws IOException {
+    public void start (Stage primaryStage) throws Exception {
         primaryStage_ = primaryStage;
 
         primaryStage_.setTitle("Personalized Automatic Speech Recognition");
@@ -55,7 +53,7 @@ public class MainView extends Application implements Authenticator, HasCorpus, H
     }
 
     @Override
-    public void authenticate (String username, String password) throws IOException, MessagingException {
+    public void authenticate (String username, String password) throws Exception {
         FXMLLoader emailListNodeLoader = new FXMLLoader(getClass().getResource("/fxml/email_list_scene.fxml"));
         emailListSceneController_ = new EmailListSceneController(username, password);
         emailListSceneController_.setHasCorpus(this);

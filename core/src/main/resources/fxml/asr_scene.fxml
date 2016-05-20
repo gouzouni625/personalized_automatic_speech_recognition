@@ -9,7 +9,7 @@
     <HBox alignment="CENTER" GridPane.rowIndex="1" GridPane.columnIndex="0">
         <Label>Sentence recognized:</Label>
         <TextArea fx:id="asrResult" editable="false"/>
-        <Label>Corrected sentence:</Label>_
+        <Label>Corrected sentence:</Label>
         <TextArea fx:id="asrCorrected" editable="false"/>
     </HBox>
 </GridPane>
