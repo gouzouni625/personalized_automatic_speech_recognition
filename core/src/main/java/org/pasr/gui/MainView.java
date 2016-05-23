@@ -102,7 +102,7 @@ public class MainView extends Application implements Authenticator, HasCorpus, H
     @Override
     public void startASR () throws Exception {
         FXMLLoader asrNodeLoader = new FXMLLoader(getClass().getResource("/fxml/asr_scene.fxml"));
-        asrSceneController_ = new ASRSceneController(corpus_, Dictionary.createFromInputStream(Utilities.getResourceStream("/edu/cmu/sphinx/models/en-us/cmudict-en-us.dict")));
+        asrSceneController_ = new ASRSceneController(corpus_, Dictionary.createFromStream(Utilities.getResourceStream("/edu/cmu/sphinx/models/en-us/cmudict-en-us.dict")));
         asrNodeLoader.setController(asrSceneController_);
         primaryStage_.setScene(new Scene(asrNodeLoader.load(), screenSize_.getWidth(), screenSize_.getHeight()));
     }

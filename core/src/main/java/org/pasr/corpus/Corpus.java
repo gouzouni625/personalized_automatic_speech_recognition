@@ -4,6 +4,7 @@ import org.pasr.utilities.ArrayIterable;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.util.*;
 
@@ -23,10 +24,10 @@ public class Corpus implements Iterable<WordSequence> {
         sentences_ = tokenize(text_);
     }
 
-    public static Corpus createFromFile(File file) throws FileNotFoundException {
+    public static Corpus createFromStream(InputStream inputStream) throws FileNotFoundException {
         StringBuilder stringBuilder = new StringBuilder();
 
-        Scanner scanner = new Scanner(file);
+        Scanner scanner = new Scanner(inputStream);
         while(scanner.hasNextLine()){
             stringBuilder.append(scanner.nextLine());
         }

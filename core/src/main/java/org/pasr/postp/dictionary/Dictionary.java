@@ -10,7 +10,7 @@ import java.util.Scanner;
 
 
 public class Dictionary {
-    public static Dictionary createFromInputStream(InputStream inputStream) throws FileNotFoundException {
+    public static Dictionary createFromStream (InputStream inputStream) throws FileNotFoundException {
         Hashtable<String, String> wordsToPhonesTable = new Hashtable<String, String>();
 
         Scanner scanner = new Scanner(inputStream);
