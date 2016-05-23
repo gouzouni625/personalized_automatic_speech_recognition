@@ -8,6 +8,9 @@ import javafx.scene.control.TextField;
 
 
 public class LoginSceneController {
+    public LoginSceneController(Authenticator authenticator){
+        authenticator_ = authenticator;
+    }
 
     @FXML
     private Button submitButton;
@@ -32,10 +35,6 @@ public class LoginSceneController {
 
     public interface Authenticator{
         void authenticate(String username, String password) throws Exception;
-    }
-
-    public void setAuthenticator(Authenticator authenticator){
-        authenticator_ = authenticator;
     }
 
     private Authenticator authenticator_;

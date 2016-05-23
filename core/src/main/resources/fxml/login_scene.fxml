@@ -6,7 +6,7 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.layout.HBox?>
 
-<GridPane hgap="10" vgap="10" xmlns:fx="http://javafx.com/fxml" fx:controller="org.pasr.gui.controllers.LoginSceneController" alignment="CENTER">
+<GridPane hgap="10" vgap="10" xmlns:fx="http://javafx.com/fxml" alignment="CENTER">
     <TextField fx:id="emailAddress" promptText="E-mail address" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
     <PasswordField fx:id="password" promptText="Password" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
 

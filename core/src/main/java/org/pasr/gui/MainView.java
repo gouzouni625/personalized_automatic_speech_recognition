@@ -28,6 +28,7 @@ public class MainView extends Application implements Authenticator, HasCorpus, H
 
     private Stage primaryStage_;
 
+    private LoginSceneController loginSceneController_;
     private EmailListSceneController emailListSceneController_;
     private VoiceRecordingSceneController voiceRecordingSceneController_;
     private ASRSceneController asrSceneController_;
@@ -45,8 +46,9 @@ public class MainView extends Application implements Authenticator, HasCorpus, H
         primaryStage_.setTitle("Personalized Automatic Speech Recognition");
 
         FXMLLoader loginNodeLoader = new FXMLLoader(getClass().getResource("/fxml/login_scene.fxml"));
+        loginSceneController_ = new LoginSceneController(this);
+        loginNodeLoader.setController(loginSceneController_);
         Parent loginNode = loginNodeLoader.load();
-        ((LoginSceneController)loginNodeLoader.getController()).setAuthenticator(this);
 
         primaryStage_.setScene(new Scene(loginNode, screenSize_.getWidth(), screenSize_.getHeight()));
 
