@@ -1,0 +1,5 @@
+include 'metrics', 'core', 'sphinx4-core', 'sphinx4-data'
+
+project(':core').projectDir = new File("../core")
+project(':sphinx4-core').projectDir = new File("../sphinx4/sphinx4-core")
+project(':sphinx4-data').projectDir = new File("../sphinx4/sphinx4-data")
