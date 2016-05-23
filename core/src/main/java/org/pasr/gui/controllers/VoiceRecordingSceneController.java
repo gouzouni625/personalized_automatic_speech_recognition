@@ -18,7 +18,9 @@ import java.util.Iterator;
 // TODO add voice input visualizer
 public class VoiceRecordingSceneController {
     @SuppressWarnings ("ResultOfMethodCallIgnored")
-    public VoiceRecordingSceneController(Corpus corpus) throws IOException {
+    public VoiceRecordingSceneController(HasASR hasASR, Corpus corpus) throws IOException {
+        hasASR_ = hasASR;
+
         corpus_ = corpus;
 
         sentenceIterator_ = corpus_.iterator();
@@ -81,10 +83,6 @@ public class VoiceRecordingSceneController {
 
     public interface HasASR{
         void startASR() throws Exception;
-    }
-
-    public void setHasASR(HasASR hasASR){
-        hasASR_ = hasASR;
     }
 
     private HasASR hasASR_;

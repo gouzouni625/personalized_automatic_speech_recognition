@@ -81,8 +81,7 @@ public class MainView extends Application implements Authenticator, HasCorpus, H
 
         // Move to recording scene
         FXMLLoader voiceRecordingNodeLoader = new FXMLLoader(getClass().getResource("/fxml/voice_recording_scene.fxml"));
-        voiceRecordingSceneController_ = new VoiceRecordingSceneController(corpus_);
-        voiceRecordingSceneController_.setHasASR(this);
+        voiceRecordingSceneController_ = new VoiceRecordingSceneController(this, corpus_);
         voiceRecordingNodeLoader.setController(voiceRecordingSceneController_);
         Parent voiceRecordingNode = voiceRecordingNodeLoader.load();
 
