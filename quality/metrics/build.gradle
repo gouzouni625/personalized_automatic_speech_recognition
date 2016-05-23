@@ -1,0 +1,26 @@
+apply plugin: 'java'
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'org.metrics.WordErrorRate'
+    }
+
+    from {
+        (configurations.runtime).collect {
+            it.isDirectory() ? it : zipTree(it)
+        }
+    }
+}
+
+repositories() {
+    mavenCentral()
+}
+
+dependencies {
+    compile project(':core')
+    compile project(':sphinx4-core')
+    compile project(':sphinx4-data')
+
+    compile group: 'org.apache.commons'  , name: 'commons-collections4', version: '4.1'
+    compile group: 'com.google.code.gson', name: 'gson'                , version: '2.6.2'
+}
