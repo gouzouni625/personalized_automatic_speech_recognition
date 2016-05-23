@@ -58,8 +58,7 @@ public class MainView extends Application implements Authenticator, HasCorpus, H
     @Override
     public void authenticate (String username, String password) throws Exception {
         FXMLLoader emailListNodeLoader = new FXMLLoader(getClass().getResource("/fxml/email_list_scene.fxml"));
-        emailListSceneController_ = new EmailListSceneController(username, password);
-        emailListSceneController_.setHasCorpus(this);
+        emailListSceneController_ = new EmailListSceneController(this, username, password);
         emailListNodeLoader.setController(emailListSceneController_);
         Parent emailListNode = emailListNodeLoader.load();
 

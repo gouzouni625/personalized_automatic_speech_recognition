@@ -13,7 +13,6 @@ import org.pasr.prep.email.EmailFetcher;
 import org.pasr.prep.email.GMailFetcher;
 
 import javax.mail.MessagingException;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Observable;
 import java.util.Observer;
@@ -21,7 +20,9 @@ import java.util.Observer;
 
 public class EmailListSceneController implements Observer{
 
-    public EmailListSceneController(String username, String password) throws IOException, MessagingException {
+    public EmailListSceneController(HasCorpus hasCorpus, String username, String password) throws IOException, MessagingException {
+        hasCorpus_ = hasCorpus;
+
         emailFetcher_ = new GMailFetcher(username, password);
         emailFetcher_.addObserver(this);
         emailFetcher_.fetch();
@@ -64,10 +65,6 @@ public class EmailListSceneController implements Observer{
     }
 
     private HasCorpus hasCorpus_;
-
-    public void setHasCorpus(HasCorpus hasCorpus){
-        hasCorpus_ = hasCorpus;
-    }
 
     @SuppressWarnings ("SuspiciousMethodCalls")
     @Override
