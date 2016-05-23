@@ -33,11 +33,13 @@ public class ASRSceneController {
 
     @FXML
     public void initialize(){
+        recognizerRunning_ = true;
+
         recognizer_.startRecognition(true);
 
         new Thread(() -> {
             SpeechResult result;
-            while ((result = recognizer_.getResult()) != null) {
+            while ((result = recognizer_.getResult()) != null && recognizerRunning_) {
                 String hypothesis = result.getHypothesis();
                 asrResult.setText(asrResult.getText() + "\n" + hypothesis);
                 asrCorrected.setText(corrector_.correct(hypothesis));
@@ -47,7 +49,13 @@ public class ASRSceneController {
         }).start();
     }
 
+    public void close(){
+        recognizerRunning_ = false;
+    }
+
     private LiveSpeechRecognizer recognizer_;
     private Corrector corrector_;
+
+    private boolean recognizerRunning_ = false;
 
 }

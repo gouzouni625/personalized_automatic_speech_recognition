@@ -93,6 +93,10 @@ public class MainView extends Application implements Authenticator, HasCorpus, H
         if(emailListSceneController_ != null) {
             emailListSceneController_.close();
         }
+
+        if(asrSceneController_ != null){
+            asrSceneController_.close();
+        }
     }
 
     @Override
