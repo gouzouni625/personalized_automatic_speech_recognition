@@ -38,7 +38,8 @@ public class WordErrorRate{
 
     private boolean isReady_ = false;
 
-    private double errorWordRate_ = 0;
+    private int numberOfWordEdits = 0;
+    private int numberOfReferenceWords = 0;
 
     public void start(){
         isReady_ = false;
@@ -51,9 +52,7 @@ public class WordErrorRate{
             StringBuilder hypothesisBuilder = new StringBuilder();
 
             while ((recognitionResult = recognizer_.getResult()) != null) {
-                hypothesisBuilder.append(recognitionResult.getHypothesis());
-
-                System.out.println(recognitionResult.getHypothesis());
+                hypothesisBuilder.append(recognitionResult.getHypothesis()).append(" ");
             }
 
             recognizer_.stopRecognition();
@@ -70,14 +69,15 @@ public class WordErrorRate{
     }
 
     public double getResult(){
-        return errorWordRate_;
+        return ((double)(numberOfWordEdits)) / ((double)(numberOfReferenceWords));
     }
 
     private void updateErrorWordRate(String reference, String hypothesis){
         Integer[] referenceHashes = generateWordHashes(reference);
         Integer[] hypothesisHashes = generateWordHashes(hypothesis);
 
-        errorWordRate_ += ((double) (new LevenshteinMatrix(hypothesisHashes, referenceHashes).getDistance())) / referenceHashes.length;
+        numberOfReferenceWords += referenceHashes.length;
+        numberOfWordEdits += new LevenshteinMatrix<>(hypothesisHashes, referenceHashes).getDistance();
     }
 
     private Integer[] generateWordHashes(String string){
