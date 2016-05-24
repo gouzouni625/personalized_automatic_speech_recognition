@@ -3,8 +3,8 @@ package org.utilities;
 import static java.lang.Integer.min;
 
 
-public class LevenshteinMatrix {
-    public LevenshteinMatrix(Comparable[] source, Comparable[] destination){
+public class LevenshteinMatrix<T extends Comparable<T>> {
+    public LevenshteinMatrix(T[] source, T[] destination){
         source_ = source;
         destination_ = destination;
 
@@ -35,7 +35,7 @@ public class LevenshteinMatrix {
         int substitutionCost;
         for (int j = 1; j <= sourceLength; j++) {
             for (int i = 1; i <= destinationLength; i++) {
-                if (destination_[i - 1] == source_[j - 1]) {
+                if (destination_[i - 1].compareTo(source_[j - 1]) == 0) {
                     substitutionCost = 0;
                 } else {
                     substitutionCost = 1;
@@ -143,8 +143,8 @@ public class LevenshteinMatrix {
         return distance_;
     }
 
-    private Comparable[] source_;
-    private Comparable[] destination_;
+    private T[] source_;
+    private T[] destination_;
 
     private int[][] matrix_;
 
