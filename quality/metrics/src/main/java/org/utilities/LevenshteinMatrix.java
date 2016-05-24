@@ -4,7 +4,7 @@ import static java.lang.Integer.min;
 
 
 public class LevenshteinMatrix {
-    public LevenshteinMatrix(String source, String destination){
+    public LevenshteinMatrix(Comparable[] source, Comparable[] destination){
         source_ = source;
         destination_ = destination;
 
@@ -12,8 +12,8 @@ public class LevenshteinMatrix {
     }
 
     private void calculateMatrix(){
-        int sourceLength = source_.length();
-        int destinationLength = destination_.length();
+        int sourceLength = source_.length;
+        int destinationLength = destination_.length;
 
         // Initialize the Levenshtein matrix.
         matrix_ = new int[destinationLength + 1][sourceLength + 1];
@@ -35,7 +35,7 @@ public class LevenshteinMatrix {
         int substitutionCost;
         for (int j = 1; j <= sourceLength; j++) {
             for (int i = 1; i <= destinationLength; i++) {
-                if (destination_.charAt(i - 1) == source_.charAt(j - 1)) {
+                if (destination_[i - 1] == source_[j - 1]) {
                     substitutionCost = 0;
                 } else {
                     substitutionCost = 1;
@@ -100,21 +100,21 @@ public class LevenshteinMatrix {
 
     @Override
     public String toString(){
-        int sourceLength = source_.length();
-        int destinationLength = destination_.length();
+        int sourceLength = source_.length;
+        int destinationLength = destination_.length;
 
         StringBuilder stringBuilder = new StringBuilder();
 
         stringBuilder.append("|" + "  " + "|" + "  ");
-        for(char ch : source_.toCharArray()){
-            stringBuilder.append(ch).append("  ");
+        for(Comparable symbol : source_){
+            stringBuilder.append(symbol.toString()).append("  ");
         }
         stringBuilder.append("\n");
 
         stringBuilder.append("|").append("  ");
         for(int i = 0;i <= destinationLength;i++){
             if(i > 0) {
-                stringBuilder.append(destination_.charAt(i - 1)).append("  ");
+                stringBuilder.append(destination_[i - 1].toString()).append("  ");
             }
 
             for(int j = 0;j <= sourceLength;j++){
@@ -143,8 +143,8 @@ public class LevenshteinMatrix {
         return distance_;
     }
 
-    private String source_;
-    private String destination_;
+    private Comparable[] source_;
+    private Comparable[] destination_;
 
     private int[][] matrix_;
 
@@ -152,7 +152,4 @@ public class LevenshteinMatrix {
 
     private int distance_;
 
-    public interface Symbol<T> extends Comparable<T>{
-        public int length();
-    }
 }
