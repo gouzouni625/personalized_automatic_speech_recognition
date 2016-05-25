@@ -53,7 +53,7 @@ public class GMailFetcher extends EmailFetcher{
 
                 for(int i = 0;i < numberOfMessages;i++){
                     emails[i] = new RecentFolder.Email(messages[i].getSubject(),
-                        ((Multipart)(messages[i].getContent())).getBodyPart(1).getContent().toString());
+                        ((Multipart)(messages[i].getContent())).getBodyPart(0).getContent().toString());
                 }
 
                 setChanged();
