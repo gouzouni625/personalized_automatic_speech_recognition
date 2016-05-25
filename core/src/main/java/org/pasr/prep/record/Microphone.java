@@ -57,9 +57,7 @@ public class Microphone {
         public void run() {
             while(running_) {
                 try {
-                    System.out.println("Before");
                     AudioSystem.write(audioInputStream_, AudioFileFormat.Type.WAVE, outputFile_);
-                    System.out.println("After");
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
