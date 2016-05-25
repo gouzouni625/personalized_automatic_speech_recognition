@@ -38,15 +38,14 @@ public class Corpus implements Iterable<WordSequence> {
 
     public Corpus(String text){
         text_ = text;
-
-        process();
     }
 
     private WordSequence[] tokenize(String text){
-        String[] sentences = text.replaceAll("[_\\-()',:\"]+", " ").
+        String[] sentences = text.replaceAll("<.*>", " ").
+                replaceAll("[_\\-()',:\"]+", " ").
                 replaceAll("[!\\?]", ".").
                 replaceAll("\\[.\\]", " ").
-                replaceAll("\\n", " ").
+                replaceAll("\\r\\n", " ").
                 replaceAll(" +", " ").
                 toLowerCase().split(" ?\\. ?");
 
