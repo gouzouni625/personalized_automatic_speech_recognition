@@ -41,13 +41,15 @@ public class Corpus implements Iterable<WordSequence> {
     }
 
     private WordSequence[] tokenize(String text){
-        String[] sentences = text.replaceAll("<.*>", " ").
-                replaceAll("[_\\-()',:\"]+", " ").
-                replaceAll("[!\\?]", ".").
-                replaceAll("\\[.\\]", " ").
-                replaceAll("\\r\\n", " ").
-                replaceAll(" +", " ").
-                toLowerCase().split(" ?\\. ?");
+        String[] sentences = text.
+            replaceAll("<.*>", " ").            // Remove links
+            replaceAll("\\[(.*)]", "$1 .").     // Remove brackets but keep the text inside
+            replaceAll("\\((.*)\\)", "$1 .").   // Remove parentheses but keep the text inside
+            replaceAll("[_\\-',:\"]+", " ").    // Remove special characters
+            replaceAll("!", ".").               // Remove punctuation marks
+            replaceAll("\\r\\n", " ").          // Remove end of line
+            replaceAll(" +", " ").              // Trim repeating spaces
+            toLowerCase().split(" ?\\. ?");     // Split based on full stops
 
         int numberOfSentences = sentences.length;
         WordSequence[] wordSequences = new WordSequence[numberOfSentences];
