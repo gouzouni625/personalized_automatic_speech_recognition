@@ -103,13 +103,13 @@ public class Corpus implements Iterable<WordSequence> {
             );
         }
 
-        int maximumLength = Collections.max(subSequences, new Comparator<WordSequence>() {
-            public int compare(WordSequence wordSequence1, WordSequence wordSequence2) {
-                return wordSequence1.getWords().length - wordSequence2.getWords().length;
-            }
-        }).getWords().length;
+        int maximumLength = Collections.max(
+            subSequences,
+            (wordSequence1, wordSequence2) -> wordSequence1.getWords().length -
+                wordSequence2.getWords().length).
+            getWords().length;
 
-        ArrayList<WordSequence> longestSubSequences = new ArrayList<WordSequence>();
+        ArrayList<WordSequence> longestSubSequences = new ArrayList<>();
 
         for(WordSequence subSequence : subSequences){
             if(subSequence.getWords().length == maximumLength){
@@ -121,7 +121,7 @@ public class Corpus implements Iterable<WordSequence> {
     }
 
     public Iterator<WordSequence> iterator(){
-        return (new ArrayIterable<WordSequence>(sentences_).iterator());
+        return (new ArrayIterable<>(sentences_).iterator());
     }
 
     private String text_;

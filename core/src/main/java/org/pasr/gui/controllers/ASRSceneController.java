@@ -9,6 +9,7 @@ import javafx.scene.control.TextArea;
 import org.pasr.corpus.Corpus;
 import org.pasr.postp.dictionary.Dictionary;
 import org.pasr.postp.engine.Corrector;
+import org.pasr.postp.engine.algorithms.PhoneLevenshteinDistanceAlgorithm;
 
 import java.io.IOException;
 
@@ -22,6 +23,7 @@ public class ASRSceneController {
 
     public ASRSceneController(Corpus corpus, Dictionary dictionary) {
         corrector_ = new Corrector(corpus, dictionary);
+        corrector_.addCorrectionAlgorithm(new PhoneLevenshteinDistanceAlgorithm());
     }
 
     @FXML
