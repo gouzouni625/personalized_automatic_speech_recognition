@@ -45,19 +45,39 @@ public class Corpus implements Iterable<WordSequence> {
 
     private WordSequence[] tokenize(String text){
         String[] sentences = text.
-            replaceAll("<.*>", " ").            // Remove links
-            replaceAll("\\[(.*)]", "$1 .").     // Remove brackets but keep the text inside
-            replaceAll("\\((.*)\\)", "$1 .").   // Remove parentheses but keep the text inside
-            replaceAll("[_\\-',:\"]+", " ").    // Remove special characters
-            replaceAll("!", ".").               // Remove punctuation marks
-            replaceAll("\\r\\n", " ").          // Remove end of line
-            replaceAll(" +", " ").              // Trim repeating spaces
-            toLowerCase().split(" ?\\. ?");     // Split based on full stops
+            replaceAll("0", " zero ").
+            replaceAll("1", " one ").
+            replaceAll("2", " two ").
+            replaceAll("3", " three ").
+            replaceAll("4", " four ").
+            replaceAll("5", " five ").
+            replaceAll("6", " six ").
+            replaceAll("7", " seven ").
+            replaceAll("8", " eight ").
+            replaceAll("9", " nine ").
+            replaceAll("\\(", " ").
+            replaceAll("\\)", " . ").
+            replaceAll("\\[", " ").
+            replaceAll("]", " . ").
+            replaceAll("[!?]", ".").                      // Remove punctuation or question marks
+            replaceAll("[_\\-',:/\"<>|#@\\\\=+$~]+", " "). // Remove special characters
+            replaceAll("\\r\\n", " ").                    // Remove end of line
+            replaceAll("\\t", " ").                       // Remove tabs
+            replaceAll(" +", " ").                        // Trim repeating spaces
+            toLowerCase().
+            split(" ?\\. ?");                             // Split based on full stops
 
-        int numberOfSentences = sentences.length;
+        ArrayList<String> usefulSentences = new ArrayList<>();
+        for(String sentence : sentences){
+            if(sentence.length() >= 4){
+                usefulSentences.add(sentence);
+            }
+        }
+
+        int numberOfSentences = usefulSentences.size();
         WordSequence[] wordSequences = new WordSequence[numberOfSentences];
         for(int i = 0;i < numberOfSentences;i++){
-            wordSequences[i] = new WordSequence(sentences[i], " ");
+            wordSequences[i] = new WordSequence(usefulSentences.get(i), " ");
         }
 
         return wordSequences;
