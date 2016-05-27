@@ -1,12 +1,10 @@
 package org.pasr.corpus;
 
 
-import org.pasr.postp.engine.POSTagger.Tags;
 import org.pasr.utilities.ArrayIterable;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.util.*;
@@ -21,11 +19,11 @@ public class Corpus implements Iterable<WordSequence> {
         text_ = text;
     }
 
-    public void append(String text){
+    public synchronized void append(String text){
         text_ += text;
     }
 
-    public void process() throws IOException {
+    public void process() {
         createSentences();
     }
 
@@ -33,7 +31,7 @@ public class Corpus implements Iterable<WordSequence> {
         sentences_ = tokenize(text_);
     }
 
-    public static Corpus createFromStream(InputStream inputStream) throws FileNotFoundException {
+    public static Corpus createFromStream(InputStream inputStream){
         StringBuilder stringBuilder = new StringBuilder();
 
         Scanner scanner = new Scanner(inputStream);
@@ -67,6 +65,17 @@ public class Corpus implements Iterable<WordSequence> {
 
     public WordSequence[] getSentences() {
         return sentences_;
+    }
+
+    public String getText(){
+        return text_;
+    }
+
+    public static Corpus merge(Corpus corpus1, Corpus corpus2){
+        String text = corpus1.getText();
+        text += " " + corpus2.getText();
+
+        return new Corpus(text);
     }
 
     public void saveToFile(File file) throws FileNotFoundException {
