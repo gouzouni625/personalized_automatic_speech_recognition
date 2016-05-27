@@ -17,8 +17,8 @@ import static org.apache.commons.collections4.ListUtils.longestCommonSubsequence
 import static org.apache.commons.lang3.StringUtils.getLevenshteinDistance;
 
 
-public class PhoneLevenshteinDistanceAlgorithm implements CorrectionAlgorithm {
-    public PhoneLevenshteinDistanceAlgorithm(){}
+public class PhoneDistanceAlgorithm implements CorrectionAlgorithm {
+    public PhoneDistanceAlgorithm (){}
 
     @Override
     public String apply (String asrOutput, Corpus corpus, Dictionary dictionary) {
