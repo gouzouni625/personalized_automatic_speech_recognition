@@ -1,14 +1,15 @@
 package org.pasr.corpus;
 
+
+import org.pasr.postp.engine.POSTagger.Tags;
 import org.pasr.utilities.ArrayIterable;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.util.*;
-
-import static org.apache.commons.collections4.ListUtils.longestCommonSubsequence;
 
 
 public class Corpus implements Iterable<WordSequence> {
@@ -16,11 +17,19 @@ public class Corpus implements Iterable<WordSequence> {
         text_ = "";
     }
 
+    public Corpus(String text){
+        text_ = text;
+    }
+
     public void append(String text){
         text_ += text;
     }
 
-    public void process(){
+    public void process() throws IOException {
+        createSentences();
+    }
+
+    private void createSentences(){
         sentences_ = tokenize(text_);
     }
 
@@ -34,10 +43,6 @@ public class Corpus implements Iterable<WordSequence> {
         scanner.close();
 
         return new Corpus(stringBuilder.toString());
-    }
-
-    public Corpus(String text){
-        text_ = text;
     }
 
     private WordSequence[] tokenize(String text){
@@ -82,42 +87,6 @@ public class Corpus implements Iterable<WordSequence> {
         }
 
         return false;
-    }
-
-    public List<WordSequence> matchWordSequence(WordSequence wordSequence){
-        // Get the words of the given String
-        Word[] words = wordSequence.getWords();
-
-        ArrayList<WordSequence> subSequences = new ArrayList<WordSequence>();
-
-        // Apache Commons longestCommonSubsequence returns the objects of its first argument. That
-        // means that the Words added in subSequences are the actual Words that exists inside this
-        // Corpus.
-        for(WordSequence sentence : sentences_){
-            subSequences.add(new WordSequence(
-                    longestCommonSubsequence(
-                            Arrays.asList(sentence.getWords()),
-                            Arrays.asList(words),
-                            Word.textEquator
-                    ), " ").longestContinuousSubSequence()
-            );
-        }
-
-        int maximumLength = Collections.max(
-            subSequences,
-            (wordSequence1, wordSequence2) -> wordSequence1.getWords().length -
-                wordSequence2.getWords().length).
-            getWords().length;
-
-        ArrayList<WordSequence> longestSubSequences = new ArrayList<>();
-
-        for(WordSequence subSequence : subSequences){
-            if(subSequence.getWords().length == maximumLength){
-                longestSubSequences.add(subSequence);
-            }
-        }
-
-        return longestSubSequences;
     }
 
     public Iterator<WordSequence> iterator(){
