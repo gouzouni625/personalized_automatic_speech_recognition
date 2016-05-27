@@ -1,5 +1,7 @@
 package org.pasr.corpus;
 
+import org.pasr.postp.engine.POSTagger;
+import org.pasr.postp.engine.POSTagger.Tags;
 import org.pasr.utilities.ArrayIterable;
 
 import java.util.Arrays;
@@ -56,6 +58,10 @@ public class WordSequence implements Iterable<Word> {
         }
 
         return words;
+    }
+
+    public Tags[] getPOSPattern(){
+        return POSTagger.getInstance().tag(this);
     }
 
     /**
@@ -176,8 +182,20 @@ public class WordSequence implements Iterable<Word> {
         return words_;
     }
 
+    public String[] getWordsText(){
+        int numberOfWords = words_.length;
+
+        String[] wordsText = new String[numberOfWords];
+
+        for(int i = 0;i < numberOfWords;i++){
+            wordsText[i] = words_[i].getText();
+        }
+
+        return wordsText;
+    }
+
     public Iterator<Word> iterator(){
-        return (new ArrayIterable<Word>(words_).iterator());
+        return (new ArrayIterable<>(words_).iterator());
     }
 
     private final String text_;

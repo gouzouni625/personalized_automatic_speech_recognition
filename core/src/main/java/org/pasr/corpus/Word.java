@@ -2,12 +2,17 @@ package org.pasr.corpus;
 
 
 import org.apache.commons.collections4.Equator;
+import org.pasr.postp.engine.POSTagger;
+import org.pasr.postp.engine.POSTagger.Tags;
+
 
 public class Word {
     public Word(String text, WordSequence wordSequence, int index){
         text_ = text.toLowerCase();
         wordSequence_ = wordSequence;
         index_ = index;
+
+        pOSPattern_ = POSTagger.getInstance().tag(this);
     }
 
     public String getText(){
@@ -27,7 +32,11 @@ public class Word {
         return index_;
     }
 
-    public static final Equator<Word> textEquator = new Equator<Word>() {
+    public Tags getPOSPattern(){
+        return pOSPattern_;
+    }
+
+    public static final Equator<Word> textEquator_ = new Equator<Word>() {
         public boolean equate(Word word1, Word word2) {
             return word1.getText().equals(word2.getText());
         }
@@ -41,4 +50,5 @@ public class Word {
     private final WordSequence wordSequence_;
     private final int index_;
 
+    private final Tags pOSPattern_;
 }
