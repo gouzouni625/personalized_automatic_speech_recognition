@@ -1,6 +1,7 @@
 package org.pasr.utilities;
 
 
+import java.io.File;
 import java.io.InputStream;
 
 
@@ -11,6 +12,10 @@ public class Utilities {
         }
 
         return Utilities.class.getResourceAsStream(resource);
+    }
+
+    public static File getResourceFile(String filename){
+        return new File(Utilities.class.getResource(filename).getPath());
     }
 
 }
