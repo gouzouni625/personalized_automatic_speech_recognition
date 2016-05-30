@@ -194,12 +194,68 @@ public class WordSequence implements Iterable<Word> {
         return wordsText;
     }
 
+    public Word getWord(int index){
+        return words_[index];
+    }
+
+    public void appendWord (Word word){
+        int numberOfWords = words_.length;
+
+        Word[] newWords = new Word[numberOfWords + 1];
+
+        System.arraycopy(words_, 0, newWords, 0, numberOfWords);
+
+        newWords[numberOfWords] = word;
+
+        words_ = newWords;
+
+        if(!text_.isEmpty()) {
+            text_ += wordSeparator_;
+        }
+        text_ += word.getText();
+    }
+
+    public void prependWord(Word word){
+        int numberOfWords = words_.length;
+
+        Word[] newWords = new Word[numberOfWords + 1];
+
+        System.arraycopy(words_, 0, newWords, 1, numberOfWords);
+
+        newWords[0] = word;
+
+        words_ = newWords;
+
+        if(! text_.isEmpty()){
+            text_ = word.getText() + wordSeparator_ + text_;
+        }
+        else{
+            text_ = word.getText();
+        }
+    }
+
+    public Word getFirstWord(){
+        return words_[0];
+    }
+
+    public Word getLastWord(){
+        return words_[words_.length - 1];
+    }
+
+    public int numberOfWords(){
+        return words_.length;
+    }
+
+    public int indexOf(String word){
+        return Arrays.asList(getWordsText()).indexOf(word);
+    }
+
     public Iterator<Word> iterator(){
         return (new ArrayIterable<>(words_).iterator());
     }
 
-    private final String text_;
-    private final Word[] words_;
+    private String text_;
+    private Word[] words_;
 
     private final String wordSeparator_;
 
