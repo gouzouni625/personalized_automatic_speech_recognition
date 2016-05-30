@@ -59,13 +59,13 @@ public class Corpus implements Iterable<WordSequence> {
             replaceAll("\\)", " . ").
             replaceAll("\\[", " ").
             replaceAll("]", " . ").
-            replaceAll("[!?]", ".").                      // Remove punctuation or question marks
-            replaceAll("[_\\-',:/\"<>|#@\\\\=+$~]+", " "). // Remove special characters
-            replaceAll("\\r\\n", " ").                    // Remove end of line
-            replaceAll("\\t", " ").                       // Remove tabs
-            replaceAll(" +", " ").                        // Trim repeating spaces
+            replaceAll("[!?]", ".").                         // Remove punctuation or question marks
+            replaceAll("[_\\-',:/\"<>|#@\\\\=+$~*;]+", " "). // Remove special characters
+            replaceAll("\\r\\n", " ").                       // Remove end of line
+            replaceAll("\\t", " ").                          // Remove tabs
+            replaceAll(" +", " ").                           // Trim repeating spaces
             toLowerCase().
-            split(" ?\\. ?");                             // Split based on full stops
+            split(" ?\\. ?");                                // Split based on full stops
 
         ArrayList<String> usefulSentences = new ArrayList<>();
         for(String sentence : sentences){
