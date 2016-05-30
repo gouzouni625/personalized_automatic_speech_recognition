@@ -11,6 +11,7 @@ import org.pasr.postp.engine.POSTagger.Tags;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 
 import static org.apache.commons.collections4.ListUtils.longestCommonSubsequence;
@@ -144,15 +145,15 @@ public class PhoneDistanceAlgorithm implements CorrectionAlgorithm {
                 wordSequence2.getWords().length).
             getWords().length;
 
-        ArrayList<WordSequence> longestSubSequences = new ArrayList<>();
+        HashMap<Integer, WordSequence> longestSubSequences = new HashMap<>();
 
         for(WordSequence subSequence : subSequences){
             if(subSequence.getWords().length == maximumLength){
-                longestSubSequences.add(subSequence);
+                longestSubSequences.put(subSequence.getText().hashCode(), subSequence);
             }
         }
 
-        return longestSubSequences;
+        return new ArrayList<>(longestSubSequences.values());
     }
 
     private double scoreCandidate (Dictionary dictionary, WordSequence reference, WordSequence candidate) {
