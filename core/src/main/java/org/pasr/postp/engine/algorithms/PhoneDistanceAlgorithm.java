@@ -24,6 +24,7 @@ public class PhoneDistanceAlgorithm implements CorrectionAlgorithm {
     @Override
     public String apply (String asrOutput, Corpus corpus, Dictionary dictionary) {
         corpus_ = corpus;
+        dictionary_ = dictionary;
 
         WordSequence asrOutputWS = new WordSequence(asrOutput.toLowerCase(), " ");
 
@@ -52,15 +53,17 @@ public class PhoneDistanceAlgorithm implements CorrectionAlgorithm {
 
             WordSequence[] errorWordSequences = asrOutputWS.split(matchingWordSequence);
             WordSequence errorSequenceOnTheLeft = errorWordSequences[0];
+            errorSequenceOnTheLeft.appendWord(matchingWordSequence.getFirstWord());
             WordSequence errorSequenceOnTheRight = errorWordSequences[1];
+            errorSequenceOnTheRight.prependWord(matchingWordSequence.getLastWord());
 
-            if(errorSequenceOnTheLeft.getWords().length > 0) {
+            if(errorSequenceOnTheLeft.getWords().length > 1) {
                 WordSequence candidateSequenceOnTheLeft = matchingWordSequence
                     .getWords()[0]
                     .getWordSequence().subSequence(0,
-                        matchingWordSequence.getWords()[0].getIndex());
+                        matchingWordSequence.getFirstWord().getIndex() + 1);
 
-                double tempScore = scoreCandidate(dictionary, errorSequenceOnTheLeft,
+                double tempScore = scoreCandidate(errorSequenceOnTheLeft,
                     candidateSequenceOnTheLeft);
 
                 bestMatchOnTheLeft = bestMatch_;
@@ -76,14 +79,14 @@ public class PhoneDistanceAlgorithm implements CorrectionAlgorithm {
                 score += tempScore * ((double)(counter)) / (pOSPatternsOnTheLeft_.get(i).size());
             }
 
-            if(errorSequenceOnTheRight.getWords().length > 0) {
+            if(errorSequenceOnTheRight.getWords().length > 1) {
                 WordSequence candidateSequenceOnTheRight = matchingWordSequence
                     .getWords()[matchingWordSequence.getWords().length - 1]
                     .getWordSequence().subSequence(
                         matchingWordSequence.getWords()[
-                            matchingWordSequence.getWords().length - 1].getIndex() + 1);
+                            matchingWordSequence.getWords().length - 1].getIndex());
 
-                double tempScore = scoreCandidate(dictionary, errorSequenceOnTheRight,
+                double tempScore = scoreCandidate(errorSequenceOnTheRight,
                     candidateSequenceOnTheRight);
 
                 bestMatchOnTheRight = bestMatch_;
@@ -107,15 +110,29 @@ public class PhoneDistanceAlgorithm implements CorrectionAlgorithm {
         }
 
         StringBuilder stringBuilder = new StringBuilder();
-        if(chosenSequenceOnTheLeft != null){
+        if(chosenSequenceOnTheLeft != null && chosenSequenceOnTheLeft.numberOfWords() > 0){
             stringBuilder.append(chosenSequenceOnTheLeft).append(" ");
         }
 
-        stringBuilder.append(chosenMatchingSequence);
-
-        if(chosenSequenceOnTheRight != null){
-            stringBuilder.append(" ").append(chosenSequenceOnTheRight);
+        // Remove duplicate words in final string. This can occur because each chosen sequence
+        // might contain a word from the matching sequence.
+        if(chosenSequenceOnTheLeft != null &&
+            chosenSequenceOnTheLeft.getLastWord().getText().equals(chosenMatchingSequence.getFirstWord().getText())){
+            stringBuilder.append(chosenMatchingSequence.subSequence(1));
         }
+        else{
+            stringBuilder.append(chosenMatchingSequence);
+        }
+
+        if(chosenSequenceOnTheRight != null && chosenSequenceOnTheRight.numberOfWords() > 0){
+            if(chosenMatchingSequence.getLastWord().getText().equals(chosenSequenceOnTheRight.getFirstWord().getText())){
+                stringBuilder.append(" ").append(chosenSequenceOnTheRight.subSequence(1));
+            }
+            else{
+                stringBuilder.append(" ").append(chosenSequenceOnTheRight);
+            }
+        }
+
 
         return stringBuilder.toString();
     }
@@ -156,38 +173,27 @@ public class PhoneDistanceAlgorithm implements CorrectionAlgorithm {
         return new ArrayList<>(longestSubSequences.values());
     }
 
-    private double scoreCandidate (Dictionary dictionary, WordSequence reference, WordSequence candidate) {
-        int numberOfReferenceWords = reference.getWords().length;
-        int numberOfCandidateWords = candidate.getWords().length;
+    private double scoreCandidate (WordSequence reference, WordSequence candidate) {
+        // If the words of the reference exist inside the candidate in the same sequence (even if
+        // other words interject) return the part of the candidate that includes all the words of
+        // the reference, including the interjecting words. The score in that case will be the best
+        // possible.
+        if(longestCommonSubsequence(
+            Arrays.asList(reference.getWords()),
+            Arrays.asList(candidate.getWords()),
+            Word.textEquator_
+        ).size() == reference.numberOfWords()){
+            bestMatch_ = candidate.subSequence(
+                candidate.indexOf(reference.getFirstWord().getText()),
+                candidate.indexOf(reference.getLastWord().getText()) + 1
+            );
 
-        String[] phones1 = dictionary.getPhones(reference);
-        String[] phones2 = dictionary.getPhones(candidate);
-
-        if (numberOfReferenceWords >= numberOfCandidateWords) {
-            bestMatch_ = candidate;
-
-            return getLevenshteinDistance(String.join("", (CharSequence[]) phones1), String.join("", (CharSequence[]) phones2));
+            return 0;
         }
-
-        int minDistance = Integer.MAX_VALUE;
-        int index = - 1;
-        for (int i = 0, n = numberOfCandidateWords / numberOfReferenceWords; i <= n; i++) {
-            // Notice that in copyOfRange(boolean[] original, int from, int to),
-            // argument 'to' is exclusive and may lie outside the array.
-            int currentDistance = getLevenshteinDistance(
-                String.join("", (CharSequence[]) phones1),
-                String.join("", (CharSequence[]) Arrays.copyOfRange(phones2, i, i + numberOfReferenceWords)));
-
-            if (currentDistance < minDistance) {
-                minDistance = currentDistance;
-
-                index = i;
-            }
+        else{
+            bestMatch_ = new WordSequence("", " ");
+            return 1;
         }
-
-        bestMatch_ = candidate.subSequence(index, index + numberOfReferenceWords);
-
-        return minDistance;
     }
 
     private void matchPOSPatterns(List<WordSequence> wordSequences){
@@ -215,6 +221,7 @@ public class PhoneDistanceAlgorithm implements CorrectionAlgorithm {
     }
 
     private Corpus corpus_;
+    private Dictionary dictionary_;
 
     private WordSequence bestMatch_;
 
