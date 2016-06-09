@@ -3,13 +3,17 @@ package org.pasr.postp.dictionary;
 import org.pasr.corpus.Word;
 import org.pasr.corpus.WordSequence;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.io.PrintWriter;
 import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Scanner;
 
 
-public class Dictionary {
+public class Dictionary implements Iterable<Map.Entry<String, String>>{
     public static Dictionary createFromStream (InputStream inputStream) throws FileNotFoundException {
         Hashtable<String, String> wordsToPhonesTable = new Hashtable<String, String>();
 
@@ -69,6 +73,62 @@ public class Dictionary {
         }
 
         return phones;
+    }
+
+    public void remove(String key){
+        if(wordsToPhonesTable_.remove(key) == null){
+            return;
+        }
+
+        int index = 2;
+        while(wordsToPhonesTable_.remove(key + "(" + index + ")") != null){
+            index++;
+        }
+    }
+
+    public void saveToFile(File file) throws FileNotFoundException {
+        PrintWriter printWriter = new PrintWriter(file);
+
+        for (Map.Entry<String, String> item : wordsToPhonesTable_.entrySet()) {
+            printWriter.write(item.getKey() + " " + item.getValue() + "\n");
+        }
+
+        printWriter.close();
+    }
+
+    public void add(String key, String value){
+        if(!wordsToPhonesTable_.containsKey(key)) {
+            wordsToPhonesTable_.put(key, value);
+
+            return;
+        }
+
+        int index = 1;
+        while(wordsToPhonesTable_.containsKey(key + "(" + index + ")")){
+            // if the given value already exists inside the dictionary, don't add it again
+            if(wordsToPhonesTable_.get(key + "(" + index + ")").equals(value)){
+                return;
+            }
+
+            index++;
+        }
+
+        wordsToPhonesTable_.put(key + "(" + index + ")", value);
+    }
+
+    public void addAll(Map<String, String> entries){
+        for(Map.Entry<String, String> entry : entries.entrySet()){
+            this.add(entry.getKey(), entry.getValue());
+        }
+    }
+
+    public int size(){
+        return wordsToPhonesTable_.size();
+    }
+
+    @Override
+    public Iterator<Map.Entry<String, String>> iterator () {
+        return wordsToPhonesTable_.entrySet().iterator();
     }
 
     private final Hashtable<String, String> wordsToPhonesTable_;
