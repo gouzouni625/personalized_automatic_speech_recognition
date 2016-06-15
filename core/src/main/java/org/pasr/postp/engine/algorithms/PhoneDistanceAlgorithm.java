@@ -6,12 +6,10 @@ import org.pasr.corpus.Word;
 import org.pasr.corpus.WordSequence;
 import org.pasr.postp.dictionary.Dictionary;
 import org.pasr.postp.engine.Corrector.CorrectionAlgorithm;
-import org.pasr.postp.engine.POSTagger.Tags;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 
 import static org.apache.commons.collections4.ListUtils.longestCommonSubsequence;
@@ -23,13 +21,12 @@ public class PhoneDistanceAlgorithm implements CorrectionAlgorithm {
 
     @Override
     public String apply (String asrOutput, Corpus corpus, Dictionary dictionary) {
-        corpus_ = corpus;
         dictionary_ = dictionary;
 
         WordSequence asrOutputWS = new WordSequence(asrOutput.toLowerCase(), " ");
 
         List<WordSequence> matchingWordSequences = matchWordSequence(corpus, asrOutputWS);
-        matchPOSPatterns(matchingWordSequences);
+        WordSequence matchingSequence = matchingWordSequences.get(0);
 
         // If the whole asr output exists inside the corpus, consider it correct
         for (WordSequence matchingWordSequence : matchingWordSequences) {
@@ -39,100 +36,74 @@ public class PhoneDistanceAlgorithm implements CorrectionAlgorithm {
         }
 
         WordSequence chosenSequenceOnTheLeft = null;
-        WordSequence chosenMatchingSequence = null;
         WordSequence chosenSequenceOnTheRight = null;
 
-        double minDifference = Double.POSITIVE_INFINITY;
-        for(int i = 0, n = matchingWordSequences.size();i < n;i++){
-            WordSequence matchingWordSequence = matchingWordSequences.get(i);
-
-            double score = 0; // Lower score wins
-
-            WordSequence bestMatchOnTheLeft = null;
-            WordSequence bestMatchOnTheRight = null;
-
+        double minDifferenceOnTheLeft = Double.POSITIVE_INFINITY;
+        double minDifferenceOnTheRight = Double.POSITIVE_INFINITY;
+        for (WordSequence matchingWordSequence : matchingWordSequences){
             WordSequence[] errorWordSequences = asrOutputWS.split(matchingWordSequence);
             WordSequence errorSequenceOnTheLeft = errorWordSequences[0];
-            errorSequenceOnTheLeft.appendWord(matchingWordSequence.getFirstWord());
             WordSequence errorSequenceOnTheRight = errorWordSequences[1];
-            errorSequenceOnTheRight.prependWord(matchingWordSequence.getLastWord());
 
-            if(errorSequenceOnTheLeft.getWords().length > 1) {
+            if (errorSequenceOnTheLeft.getWords().length > 0) {
                 WordSequence candidateSequenceOnTheLeft = matchingWordSequence
                     .getWords()[0]
                     .getWordSequence().subSequence(0,
-                        matchingWordSequence.getFirstWord().getIndex() + 1);
+                        matchingWordSequence.getFirstWord().getIndex());
 
-                double tempScore = scoreCandidate(errorSequenceOnTheLeft,
+                double currentDifferenceOnTheLeft = scoreCandidate(errorSequenceOnTheLeft,
                     candidateSequenceOnTheLeft);
 
-                bestMatchOnTheLeft = bestMatch_;
+                if(currentDifferenceOnTheLeft < minDifferenceOnTheLeft){
+                    minDifferenceOnTheLeft = currentDifferenceOnTheLeft;
 
-                int counter = 0;
-                for(WordSequence wordSequence : pOSPatternsOnTheLeft_.get(i)){
-                    if(Tags.tagArrayToAbbreviatedString(wordSequence.getPOSPattern()).contains(
-                        Tags.tagArrayToAbbreviatedString(bestMatchOnTheLeft.getPOSPattern()))){
-                        counter++;
-                    }
+                    chosenSequenceOnTheLeft = bestMatch_;
                 }
-
-                score += tempScore * ((double)(counter)) / (pOSPatternsOnTheLeft_.get(i).size());
             }
 
-            if(errorSequenceOnTheRight.getWords().length > 1) {
+            if (errorSequenceOnTheRight.getWords().length > 0) {
                 WordSequence candidateSequenceOnTheRight = matchingWordSequence
                     .getWords()[matchingWordSequence.getWords().length - 1]
                     .getWordSequence().subSequence(
                         matchingWordSequence.getWords()[
                             matchingWordSequence.getWords().length - 1].getIndex());
 
-                double tempScore = scoreCandidate(errorSequenceOnTheRight,
+                double currentDifferenceOnTheRight = scoreCandidate(errorSequenceOnTheRight,
                     candidateSequenceOnTheRight);
 
-                bestMatchOnTheRight = bestMatch_;
+                if(currentDifferenceOnTheRight < minDifferenceOnTheRight){
+                    minDifferenceOnTheRight = currentDifferenceOnTheRight;
 
-                int counter = 0;
-                for(WordSequence wordSequence : pOSPatternsOnTheRight_.get(i)){
-                    if(Tags.tagArrayToAbbreviatedString(wordSequence.getPOSPattern()).contains(
-                        Tags.tagArrayToAbbreviatedString(bestMatchOnTheRight.getPOSPattern()))){
-                        counter++;
-                    }
+                    chosenSequenceOnTheRight = bestMatch_;
                 }
-
-                score += tempScore * ((double)(counter)) / (pOSPatternsOnTheRight_.get(i).size());
-            }
-
-            if(score < minDifference){
-                chosenSequenceOnTheLeft = bestMatchOnTheLeft;
-                chosenMatchingSequence = matchingWordSequence;
-                chosenSequenceOnTheRight = bestMatchOnTheRight;
             }
         }
 
         StringBuilder stringBuilder = new StringBuilder();
-        if(chosenSequenceOnTheLeft != null && chosenSequenceOnTheLeft.numberOfWords() > 0){
+        if (chosenSequenceOnTheLeft != null && chosenSequenceOnTheLeft.numberOfWords() > 0) {
             stringBuilder.append(chosenSequenceOnTheLeft).append(" ");
         }
 
         // Remove duplicate words in final string. This can occur because each chosen sequence
         // might contain a word from the matching sequence.
-        if(chosenSequenceOnTheLeft != null &&
-            chosenSequenceOnTheLeft.getLastWord().getText().equals(chosenMatchingSequence.getFirstWord().getText())){
-            stringBuilder.append(chosenMatchingSequence.subSequence(1));
+        if (chosenSequenceOnTheLeft != null && chosenSequenceOnTheLeft.numberOfWords() > 0 &&
+            chosenSequenceOnTheLeft.getLastWord().getText().equals(matchingSequence.getFirstWord().
+                getText())) {
+            stringBuilder.append(matchingSequence.subSequence(1));
         }
-        else{
-            stringBuilder.append(chosenMatchingSequence);
+        else {
+            stringBuilder.append(matchingSequence);
         }
 
-        if(chosenSequenceOnTheRight != null && chosenSequenceOnTheRight.numberOfWords() > 0){
-            if(chosenMatchingSequence.getLastWord().getText().equals(chosenSequenceOnTheRight.getFirstWord().getText())){
+        if (chosenSequenceOnTheRight != null && chosenSequenceOnTheRight.numberOfWords() > 0) {
+            if (matchingSequence.getLastWord().getText().equals(chosenSequenceOnTheRight.
+                getFirstWord().getText())) {
                 stringBuilder.append(" ").append(chosenSequenceOnTheRight.subSequence(1));
             }
-            else{
+            else {
                 stringBuilder.append(" ").append(chosenSequenceOnTheRight);
             }
         }
-
 
         return stringBuilder.toString();
     }
@@ -162,70 +133,76 @@ public class PhoneDistanceAlgorithm implements CorrectionAlgorithm {
                 wordSequence2.getWords().length).
             getWords().length;
 
-        HashMap<Integer, WordSequence> longestSubSequences = new HashMap<>();
+        ArrayList<WordSequence> longestSubSequences = new ArrayList<>();
 
-        for(WordSequence subSequence : subSequences){
-            if(subSequence.getWords().length == maximumLength){
-                longestSubSequences.put(subSequence.getText().hashCode(), subSequence);
-            }
-        }
+        subSequences.stream().filter(subSequence -> subSequence.getWords().length == maximumLength).
+            forEach(longestSubSequences:: add);
 
-        return new ArrayList<>(longestSubSequences.values());
+        return longestSubSequences;
     }
 
-    private double scoreCandidate (WordSequence reference, WordSequence candidate) {
+    private double scoreCandidate (WordSequence hypothesis, WordSequence candidate) {
         // If the words of the reference exist inside the candidate in the same sequence (even if
         // other words interject) return the part of the candidate that includes all the words of
-        // the reference, including the interjecting words. The score in that case will be the best
-        // possible.
+        // the reference, including the interjecting words.
         if(longestCommonSubsequence(
-            Arrays.asList(reference.getWords()),
+            Arrays.asList(hypothesis.getWords()),
             Arrays.asList(candidate.getWords()),
             Word.textEquator_
-        ).size() == reference.numberOfWords()){
+        ).size() == hypothesis.numberOfWords()){
             bestMatch_ = candidate.subSequence(
-                candidate.indexOf(reference.getFirstWord().getText()),
-                candidate.indexOf(reference.getLastWord().getText()) + 1
+                candidate.indexOf(hypothesis.getFirstWord().getText()),
+                candidate.indexOf(hypothesis.getLastWord().getText()) + 1
             );
 
-            return 0;
+            // Since every word of the hypothesis exists inside the best match, the distance is
+            // equal to the number of extra words of the best match.
+            return bestMatch_.numberOfWords() - hypothesis.numberOfWords();
+
         }
         else{
-            bestMatch_ = new WordSequence("", " ");
-            return 1;
-        }
-    }
+            // Do nothing case
+            // bestMatch_ = new WordSequence("", " ");
+            // return 1;
 
-    private void matchPOSPatterns(List<WordSequence> wordSequences){
-        pOSPatternsOnTheLeft_ = new ArrayList<>();
-        pOSPatternsOnTheRight_ = new ArrayList<>();
+            int numberOfHypothesisWords = hypothesis.getWords().length;
+            int numberOfCandidateWords = candidate.getWords().length;
 
-        for(WordSequence wordSequence : wordSequences){
-            ArrayList<WordSequence> left = new ArrayList<>();
-            ArrayList<WordSequence> right = new ArrayList<>();
+            String[] hypothesisPhones = dictionary_.getPhones(hypothesis);
+            String[] candidatePhones = dictionary_.getPhones(candidate);
 
-            String wordSequencePOSPattern = Tags.tagArrayToAbbreviatedString(wordSequence.getPOSPattern());
+            if(numberOfHypothesisWords >= numberOfCandidateWords){
+                bestMatch_ = candidate;
 
-            for(WordSequence sentence : corpus_){
-                int index = Tags.tagArrayToAbbreviatedString(sentence.getPOSPattern()).indexOf(wordSequencePOSPattern);
-
-                if(index != -1){
-                    left.add(sentence.subSequence(0, index));
-                    right.add(sentence.subSequence(index + wordSequencePOSPattern.length()));
-                }
+                return getLevenshteinDistance(
+                    String.join("", (CharSequence[]) hypothesisPhones),
+                    String.join("", (CharSequence[]) candidatePhones));
             }
 
-            pOSPatternsOnTheLeft_.add(left);
-            pOSPatternsOnTheRight_.add(right);
+            int minDistance = Integer.MAX_VALUE;
+            int index = -1;
+            for(int i = 0, n = numberOfCandidateWords - numberOfHypothesisWords;i <= n;i++){
+                int currentDistance = getLevenshteinDistance(
+                    String.join("", (CharSequence[]) hypothesisPhones),
+                    String.join("", (CharSequence[]) Arrays.copyOfRange(
+                        candidatePhones, i, i + numberOfHypothesisWords)
+                    ));
+
+                if (currentDistance < minDistance) {
+                    minDistance = currentDistance;
+                }
+
+                index = i;
+            }
+
+            bestMatch_ = candidate.subSequence(index, index + numberOfHypothesisWords);
+
+            return minDistance;
         }
     }
 
-    private Corpus corpus_;
     private Dictionary dictionary_;
 
     private WordSequence bestMatch_;
-
-    private List<List<WordSequence>> pOSPatternsOnTheLeft_;
-    private List<List<WordSequence>> pOSPatternsOnTheRight_;
 
 }
