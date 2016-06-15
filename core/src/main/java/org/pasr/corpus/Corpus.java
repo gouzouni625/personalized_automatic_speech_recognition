@@ -60,7 +60,7 @@ public class Corpus implements Iterable<WordSequence> {
             replaceAll("\\[", " ").
             replaceAll("]", " . ").
             replaceAll("[!?]", ".").                         // Remove punctuation or question marks
-            replaceAll("[_\\-',:/\"<>|#@\\\\=+$~*;]+", " "). // Remove special characters
+            replaceAll("[_\\-,:/\"<>|#@\\\\=+$~*;]+", " "). // Remove special characters
             replaceAll("\\r\\n", " ").                       // Remove end of line
             replaceAll("\\t", " ").                          // Remove tabs
             replaceAll(" +", " ").                           // Trim repeating spaces
