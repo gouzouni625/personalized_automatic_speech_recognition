@@ -63,10 +63,8 @@ public class PhoneDistanceAlgorithm implements CorrectionAlgorithm {
 
             if (errorSequenceOnTheRight.getWords().length > 0) {
                 WordSequence candidateSequenceOnTheRight = matchingWordSequence
-                    .getWords()[matchingWordSequence.getWords().length - 1]
-                    .getWordSequence().subSequence(
-                        matchingWordSequence.getWords()[
-                            matchingWordSequence.getWords().length - 1].getIndex());
+                    .getLastWord().getWordSequence().subSequence(
+                        matchingWordSequence.getLastWord().getIndex() + 1);
 
                 double currentDifferenceOnTheRight = scoreCandidate(errorSequenceOnTheRight,
                     candidateSequenceOnTheRight);
@@ -118,13 +116,16 @@ public class PhoneDistanceAlgorithm implements CorrectionAlgorithm {
         // means that the Words added in subSequences are the actual Words that exists inside this
         // Corpus.
         for(WordSequence sentence : corpus){
-            subSequences.add(new WordSequence(
+            WordSequence subSequence = new WordSequence(
                 longestCommonSubsequence(
                     Arrays.asList(sentence.getWords()),
                     Arrays.asList(words),
                     Word.textEquator_
-                ), " ").longestContinuousSubSequence()
-            );
+                ), " ").longestContinuousSubSequence();
+
+            if(subSequence.numberOfWords() > 0) {
+                subSequences.add(subSequence);
+            }
         }
 
         int maximumLength = Collections.max(
@@ -142,63 +143,46 @@ public class PhoneDistanceAlgorithm implements CorrectionAlgorithm {
     }
 
     private double scoreCandidate (WordSequence hypothesis, WordSequence candidate) {
-        // If the words of the reference exist inside the candidate in the same sequence (even if
-        // other words interject) return the part of the candidate that includes all the words of
-        // the reference, including the interjecting words.
-        if(longestCommonSubsequence(
-            Arrays.asList(hypothesis.getWords()),
-            Arrays.asList(candidate.getWords()),
-            Word.textEquator_
-        ).size() == hypothesis.numberOfWords()){
-            bestMatch_ = candidate.subSequence(
-                candidate.indexOf(hypothesis.getFirstWord().getText()),
-                candidate.indexOf(hypothesis.getLastWord().getText()) + 1
-            );
+        int numberOfHypothesisWords = hypothesis.getWords().length;
+        int numberOfCandidateWords = candidate.getWords().length;
 
-            // Since every word of the hypothesis exists inside the best match, the distance is
-            // equal to the number of extra words of the best match.
-            return bestMatch_.numberOfWords() - hypothesis.numberOfWords();
+        String[] hypothesisPhones = dictionary_.getPhones(hypothesis);
+        String[] candidatePhones = dictionary_.getPhones(candidate);
 
+        double wholeDistance = getLevenshteinDistance(
+            String.join("", (CharSequence[]) hypothesisPhones),
+            String.join("", (CharSequence[]) candidatePhones));
+
+        if (numberOfHypothesisWords >= numberOfCandidateWords) {
+            bestMatch_ = candidate;
+
+            return wholeDistance;
         }
-        else{
-            // Do nothing case
-            // bestMatch_ = new WordSequence("", " ");
-            // return 1;
 
-            int numberOfHypothesisWords = hypothesis.getWords().length;
-            int numberOfCandidateWords = candidate.getWords().length;
+        int minDistance = Integer.MAX_VALUE;
+        int index = - 1;
+        for (int i = 0, n = numberOfCandidateWords - numberOfHypothesisWords; i <= n; i++) {
+            int currentDistance = getLevenshteinDistance(
+                String.join("", (CharSequence[]) hypothesisPhones),
+                String.join("", (CharSequence[]) Arrays.copyOfRange(
+                    candidatePhones, i, i + numberOfHypothesisWords)
+                ));
 
-            String[] hypothesisPhones = dictionary_.getPhones(hypothesis);
-            String[] candidatePhones = dictionary_.getPhones(candidate);
-
-            if(numberOfHypothesisWords >= numberOfCandidateWords){
-                bestMatch_ = candidate;
-
-                return getLevenshteinDistance(
-                    String.join("", (CharSequence[]) hypothesisPhones),
-                    String.join("", (CharSequence[]) candidatePhones));
+            if (currentDistance < minDistance) {
+                minDistance = currentDistance;
             }
 
-            int minDistance = Integer.MAX_VALUE;
-            int index = -1;
-            for(int i = 0, n = numberOfCandidateWords - numberOfHypothesisWords;i <= n;i++){
-                int currentDistance = getLevenshteinDistance(
-                    String.join("", (CharSequence[]) hypothesisPhones),
-                    String.join("", (CharSequence[]) Arrays.copyOfRange(
-                        candidatePhones, i, i + numberOfHypothesisWords)
-                    ));
+            index = i;
+        }
 
-                if (currentDistance < minDistance) {
-                    minDistance = currentDistance;
-                }
-
-                index = i;
-            }
-
+        if(wholeDistance < minDistance){
+            bestMatch_ = candidate;
+        }
+        else {
             bestMatch_ = candidate.subSequence(index, index + numberOfHypothesisWords);
-
-            return minDistance;
         }
+
+        return minDistance;
     }
 
     private Dictionary dictionary_;
