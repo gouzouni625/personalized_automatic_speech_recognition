@@ -79,6 +79,14 @@ public class WordSequence implements Iterable<Word> {
             return new WordSequence("", wordSeparator_);
         }
 
+        if(words_.length == 0){
+            return new WordSequence("", wordSeparator_);
+        }
+
+        if(endIndex > words_.length){
+            endIndex = words_.length - 1;
+        }
+
         return new WordSequence(Arrays.copyOfRange(words_, beginIndex, endIndex), wordSeparator_);
     }
 
