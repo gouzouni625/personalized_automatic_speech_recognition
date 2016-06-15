@@ -7,15 +7,15 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Scanner;
 
 
 public class Dictionary implements Iterable<Map.Entry<String, String>>{
     public static Dictionary createFromStream (InputStream inputStream) throws FileNotFoundException {
-        Hashtable<String, String> wordsToPhonesTable = new Hashtable<String, String>();
+        LinkedHashMap<String, String> wordsToPhonesTable = new LinkedHashMap<>();
 
         Scanner scanner = new Scanner(inputStream);
         while(scanner.hasNextLine()){
@@ -31,7 +31,7 @@ public class Dictionary implements Iterable<Map.Entry<String, String>>{
         return new Dictionary(wordsToPhonesTable);
     }
 
-    private Dictionary(Hashtable<String, String> wordsToPhonesTable) {
+    private Dictionary(Map<String, String> wordsToPhonesTable) {
         wordsToPhonesTable_ = wordsToPhonesTable;
     }
 
@@ -131,6 +131,6 @@ public class Dictionary implements Iterable<Map.Entry<String, String>>{
         return wordsToPhonesTable_.entrySet().iterator();
     }
 
-    private final Hashtable<String, String> wordsToPhonesTable_;
+    private final Map<String, String> wordsToPhonesTable_;
 
 }
