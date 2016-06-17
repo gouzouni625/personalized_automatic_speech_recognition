@@ -7,11 +7,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -89,10 +85,17 @@ public class Dictionary implements Iterable<Map.Entry<String, String>>{
     }
 
     public void saveToFile(File file) throws FileNotFoundException {
+        // Sort the entries of the dictionary based on the key length. This will enusre that
+        // "the(1)" is below "the" when the dictionary is printed.
+        List<Map.Entry<String, String>> entries = new ArrayList<>();
+        entries.addAll(wordsToPhonesTable_.entrySet());
+
+        Collections.sort(entries, (e1, e2) -> e1.getKey().length() - e2.getKey().length());
+
         PrintWriter printWriter = new PrintWriter(file);
 
-        for (Map.Entry<String, String> item : wordsToPhonesTable_.entrySet()) {
-            printWriter.write(item.getKey() + " " + item.getValue() + "\n");
+        for (Map.Entry<String, String> entry : entries) {
+            printWriter.write(entry.getKey() + " " + entry.getValue() + "\n");
         }
 
         printWriter.close();
