@@ -2,12 +2,18 @@ package org.pasr.corpus;
 
 
 import org.pasr.utilities.ArrayIterable;
+import org.pasr.utilities.NumberSpeller;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Scanner;
+import java.util.Iterator;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 public class Corpus implements Iterable<WordSequence> {
@@ -24,11 +30,59 @@ public class Corpus implements Iterable<WordSequence> {
     }
 
     public void process() {
+        processNumbers();
         createSentences();
     }
 
     private void createSentences(){
         sentences_ = tokenize(text_);
+    }
+
+    /**
+     * @brief Replaces number with their literal representation
+     *        There are two ways that a number is pronounced. The first is for dates (e.g. 1942 ->
+     *        nineteen forty two) and the second is for amounts (e.g. 1942 dollars -> one thousand
+     *        nine hundred forty two dollars).
+     */
+    private void processNumbers() {
+        NumberSpeller speller = NumberSpeller.getInstance();
+
+        ArrayList<String> matches = new ArrayList<>();
+
+        Matcher matcher = Pattern.compile("([0-9]+) dollars").matcher(text_);
+        while(matcher.find()){
+            matches.add(matcher.group(1));
+        }
+        // Sort the matches by descending length so that longer numbers get spelled first. If the
+        // matches are sorted by ascending length, then a long number, say 1942 will be spelled as
+        // one nine four two instead of nineteen forty two.
+        Collections.sort(matches, (s1, s2) -> s2.length() - s1.length());
+        for(String match : matches){
+            String spelled = speller.spell(Integer.valueOf(match));
+            text_ = text_.replaceAll(spelled + " dollars", spelled + " dollars");
+        }
+        matches.clear();
+
+        matcher = Pattern.compile("([0-9]+)\\$").matcher(text_);
+        while(matcher.find()){
+            matches.add(matcher.group(1));
+        }
+        Collections.sort(matches, (s1, s2) -> s2.length() - s1.length());
+        for(String match : matches){
+            String spelled = speller.spell(Integer.valueOf(match));
+            text_ = text_.replaceAll(match + "\\$", spelled + " dollars");
+        }
+        matches.clear();
+
+        matcher = Pattern.compile("([0-9]+)").matcher(text_);
+        while(matcher.find()){
+            matches.add(matcher.group(1));
+        }
+        Collections.sort(matches, (s1, s2) -> s2.length() - s1.length());
+        for(String match : matches){
+            String spelled = speller.spell(Integer.valueOf(match), NumberSpeller.Types.DATE);
+            text_ = text_.replaceAll(match, spelled);
+        }
     }
 
     public static Corpus createFromStream(InputStream inputStream){
@@ -45,27 +99,17 @@ public class Corpus implements Iterable<WordSequence> {
 
     private WordSequence[] tokenize(String text){
         String[] sentences = text.
-            replaceAll("0", " zero ").
-            replaceAll("1", " one ").
-            replaceAll("2", " two ").
-            replaceAll("3", " three ").
-            replaceAll("4", " four ").
-            replaceAll("5", " five ").
-            replaceAll("6", " six ").
-            replaceAll("7", " seven ").
-            replaceAll("8", " eight ").
-            replaceAll("9", " nine ").
             replaceAll("\\(", " ").
             replaceAll("\\)", " . ").
             replaceAll("\\[", " ").
             replaceAll("]", " . ").
-            replaceAll("[!?]", ".").                         // Remove punctuation or question marks
-            replaceAll("[_\\-,:/\"<>|#@\\\\=+$~*;]+", " "). // Remove special characters
-            replaceAll("\\r\\n", " ").                       // Remove end of line
-            replaceAll("\\t", " ").                          // Remove tabs
-            replaceAll(" +", " ").                           // Trim repeating spaces
+            replaceAll("[!?;]", ".").
+            replaceAll("[_\\-,:/\"<>|#@\\\\=+~*]+", " ").
+            replaceAll("\\r\\n", " ").
+            replaceAll("\\t", " ").
+            replaceAll(" +", " ").
             toLowerCase().
-            split(" ?\\. ?");                                // Split based on full stops
+            split(" ?\\. ?");
 
         ArrayList<String> usefulSentences = new ArrayList<>();
         for(String sentence : sentences){
