@@ -35,7 +35,7 @@ public class Corpus implements Iterable<WordSequence> {
     }
 
     private void createSentences(){
-        sentences_ = tokenize(text_);
+        sentences_ = tokenize();
     }
 
     /**
@@ -97,8 +97,8 @@ public class Corpus implements Iterable<WordSequence> {
         return new Corpus(stringBuilder.toString());
     }
 
-    private WordSequence[] tokenize(String text){
-        String[] sentences = text.
+    private WordSequence[] tokenize(){
+        text_ = text_.
             replaceAll("\\(", " ").
             replaceAll("\\)", " . ").
             replaceAll("\\[", " ").
@@ -108,8 +108,9 @@ public class Corpus implements Iterable<WordSequence> {
             replaceAll("\\r\\n", " ").
             replaceAll("\\t", " ").
             replaceAll(" +", " ").
-            toLowerCase().
-            split(" ?\\. ?");
+            toLowerCase();
+
+        String[] sentences = text_.split(" ?\\. ?");
 
         ArrayList<String> usefulSentences = new ArrayList<>();
         for(String sentence : sentences){
