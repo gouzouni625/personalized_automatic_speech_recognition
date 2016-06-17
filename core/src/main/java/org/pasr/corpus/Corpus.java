@@ -1,6 +1,7 @@
 package org.pasr.corpus;
 
 
+import org.pasr.postp.dictionary.Dictionary;
 import org.pasr.utilities.ArrayIterable;
 import org.pasr.utilities.NumberSpeller;
 
@@ -10,6 +11,8 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.Iterator;
 import java.util.regex.Matcher;
@@ -29,9 +32,24 @@ public class Corpus implements Iterable<WordSequence> {
         text_ += text;
     }
 
-    public void process() {
+    public Dictionary process(Dictionary dictionary) {
         processNumbers();
         createSentences();
+
+        Dictionary reducedDictionary = new Dictionary();
+
+        for(String word : getWords()){
+            Map<String, String> entries = dictionary.getEntriesByKey(word);
+
+            if(entries.size() == 0){
+                reducedDictionary.addUnknownWord(word);
+            }
+            else{
+                reducedDictionary.addAll(entries);
+            }
+        }
+
+        return reducedDictionary;
     }
 
     private void createSentences(){
@@ -153,14 +171,14 @@ public class Corpus implements Iterable<WordSequence> {
         printWriter.close();
     }
 
-    public boolean containsText(String text){
-        for(WordSequence sequence_ : sentences_){
-            if(sequence_.containsText(text)){
-                return true;
-            }
+    private HashSet<String> getWords(){
+        HashSet<String> words = new HashSet<>();
+
+        for (WordSequence wordSequence : sentences_) {
+            Collections.addAll(words, wordSequence.getWordsText());
         }
 
-        return false;
+        return words;
     }
 
     public Iterator<WordSequence> iterator(){

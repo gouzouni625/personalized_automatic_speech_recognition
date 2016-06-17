@@ -7,10 +7,12 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 
 
 public class Dictionary implements Iterable<Map.Entry<String, String>>{
@@ -31,8 +33,16 @@ public class Dictionary implements Iterable<Map.Entry<String, String>>{
         return new Dictionary(wordsToPhonesTable);
     }
 
+    public Dictionary(){
+        wordsToPhonesTable_ = new LinkedHashMap<>();
+
+        unknownWords_ = new HashSet<>();
+    }
+
     private Dictionary(Map<String, String> wordsToPhonesTable) {
         wordsToPhonesTable_ = wordsToPhonesTable;
+
+        unknownWords_ = new HashSet<>();
     }
 
     public String getPhones(String word){
@@ -43,19 +53,11 @@ public class Dictionary implements Iterable<Map.Entry<String, String>>{
         return wordsToPhonesTable_.get(word);
     }
 
-    public String[] getPhones(String[] words){
-        if(words.length == 0){
-            return new String[] {};
-        }
-
-        int numberOfWords = words.length;
-
-        String[] phones = new String[numberOfWords];
-        for(int i = 0;i < numberOfWords;i++){
-            phones[i] = getPhones(words[i]);
-        }
-
-        return phones;
+    public Map<String, String> getEntriesByKey(String key){
+        return wordsToPhonesTable_.entrySet().stream().
+            filter(entry -> entry.getKey().equals(key) ||
+                entry.getKey().matches(key + "\\([0-9]+\\)")).
+            collect(Collectors.toMap(Map.Entry:: getKey, Map.Entry:: getValue));
     }
 
     public String[] getPhones(WordSequence wordSequence){
@@ -96,6 +98,10 @@ public class Dictionary implements Iterable<Map.Entry<String, String>>{
         printWriter.close();
     }
 
+    public void add(Map.Entry<String, String> entry){
+        add(entry.getKey(), entry.getValue());
+    }
+
     public void add(String key, String value){
         if(!wordsToPhonesTable_.containsKey(key)) {
             wordsToPhonesTable_.put(key, value);
@@ -122,6 +128,14 @@ public class Dictionary implements Iterable<Map.Entry<String, String>>{
         }
     }
 
+    public void addUnknownWord(String word){
+        unknownWords_.add(word);
+    }
+
+    public HashSet<String> getUnknownWords(){
+        return unknownWords_;
+    }
+
     public int size(){
         return wordsToPhonesTable_.size();
     }
@@ -132,5 +146,6 @@ public class Dictionary implements Iterable<Map.Entry<String, String>>{
     }
 
     private final Map<String, String> wordsToPhonesTable_;
+    private final HashSet<String> unknownWords_;
 
 }

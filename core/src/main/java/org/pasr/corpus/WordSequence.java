@@ -94,16 +94,6 @@ public class WordSequence implements Iterable<Word> {
         return subSequence(beginIndex, words_.length);
     }
 
-    public boolean containsText(String text){
-        return text_.contains(text);
-        // int startingPosition = Collections.indexOfSubList(
-        //         Arrays.asList(words_),
-        //         Arrays.asList(wordSequence.getWords())
-        // );
-        //
-        // return (startingPosition > -1);
-    }
-
     public WordSequence longestContinuousSubSequence(){
         int numberOfWords = words_.length;
 
