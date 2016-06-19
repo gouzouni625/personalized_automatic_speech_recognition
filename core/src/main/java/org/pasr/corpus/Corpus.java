@@ -77,7 +77,7 @@ public class Corpus implements Iterable<WordSequence> {
         Collections.sort(matches, (s1, s2) -> s2.length() - s1.length());
         for(String match : matches){
             String spelled = speller.spell(Integer.valueOf(match));
-            text_ = text_.replaceAll(spelled + " dollars", spelled + " dollars");
+            text_ = text_.replaceAll(spelled + " dollars", " " + spelled + " dollars ");
         }
         matches.clear();
 
@@ -88,7 +88,7 @@ public class Corpus implements Iterable<WordSequence> {
         Collections.sort(matches, (s1, s2) -> s2.length() - s1.length());
         for(String match : matches){
             String spelled = speller.spell(Integer.valueOf(match));
-            text_ = text_.replaceAll(match + "\\$", spelled + " dollars");
+            text_ = text_.replaceAll(match + "\\$", " " + spelled + " dollars ");
         }
         matches.clear();
 
@@ -99,7 +99,7 @@ public class Corpus implements Iterable<WordSequence> {
         Collections.sort(matches, (s1, s2) -> s2.length() - s1.length());
         for(String match : matches){
             String spelled = speller.spell(Integer.valueOf(match), NumberSpeller.Types.DATE);
-            text_ = text_.replaceAll(match, spelled);
+            text_ = text_.replaceAll(match, " " + spelled + " ");
         }
     }
 
