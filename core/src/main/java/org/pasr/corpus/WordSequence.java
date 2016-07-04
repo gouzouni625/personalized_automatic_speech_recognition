@@ -4,6 +4,7 @@ import org.pasr.postp.engine.POSTagger;
 import org.pasr.postp.engine.POSTagger.Tags;
 import org.pasr.utilities.ArrayIterable;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -94,40 +95,31 @@ public class WordSequence implements Iterable<Word> {
         return subSequence(beginIndex, words_.length);
     }
 
-    public WordSequence longestContinuousSubSequence(){
+    public List<WordSequence> continuousSubSequences(){
+        ArrayList<WordSequence> subSequences = new ArrayList<>();
+
         int numberOfWords = words_.length;
 
         if(numberOfWords <= 1){
-            return this;
+            subSequences.add(this);
+
+            return subSequences;
         }
 
-        int maxLength = 1;
-        int maxStartingIndex = 0;
-        int currentLength = 1;
         int startingIndex = 0;
         int previousIndex = words_[0].getIndex();
         for(int i = 1;i < numberOfWords;i++){
-            if(words_[i].getIndex() == previousIndex + 1){
-                currentLength++;
-            }
-            else{
-                if(currentLength > maxLength){
-                    maxLength = currentLength;
-                    maxStartingIndex = startingIndex;
-                }
+            if(words_[i].getIndex() != previousIndex + 1){
+                subSequences.add(subSequence(startingIndex, i));
 
                 startingIndex = i;
-                currentLength = 1;
             }
 
             previousIndex = words_[i].getIndex();
         }
-        if(currentLength > maxLength){
-            maxLength = currentLength;
-            maxStartingIndex = startingIndex;
-        }
+        subSequences.add(subSequence(startingIndex));
 
-        return subSequence(maxStartingIndex, maxStartingIndex + maxLength);
+        return subSequences;
     }
 
     public boolean equals(String text){

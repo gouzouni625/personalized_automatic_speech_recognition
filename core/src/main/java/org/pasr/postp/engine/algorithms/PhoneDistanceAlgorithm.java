@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.apache.commons.collections4.ListUtils.longestCommonSubsequence;
 import static org.apache.commons.lang3.StringUtils.getLevenshteinDistance;
@@ -25,11 +26,11 @@ public class PhoneDistanceAlgorithm implements CorrectionAlgorithm {
 
         WordSequence asrOutputWS = new WordSequence(asrOutput.toLowerCase(), " ");
 
-        List<WordSequence> matchingWordSequences = matchWordSequence(corpus, asrOutputWS);
+        List<MatchingWordSequence> matchingWordSequences = matchWordSequence(corpus, asrOutputWS);
         WordSequence matchingSequence = matchingWordSequences.get(0);
 
         // If the whole asr output exists inside the corpus, consider it correct
-        for (WordSequence matchingWordSequence : matchingWordSequences) {
+        for (MatchingWordSequence matchingWordSequence : matchingWordSequences) {
             if (matchingWordSequence.equals(asrOutputWS.getText())) {
                 return asrOutputWS.getText();
             }
@@ -40,16 +41,14 @@ public class PhoneDistanceAlgorithm implements CorrectionAlgorithm {
 
         double minDifferenceOnTheLeft = Double.POSITIVE_INFINITY;
         double minDifferenceOnTheRight = Double.POSITIVE_INFINITY;
-        for (WordSequence matchingWordSequence : matchingWordSequences){
+        for (MatchingWordSequence matchingWordSequence : matchingWordSequences){
             WordSequence[] errorWordSequences = asrOutputWS.split(matchingWordSequence);
             WordSequence errorSequenceOnTheLeft = errorWordSequences[0];
             WordSequence errorSequenceOnTheRight = errorWordSequences[1];
 
             if (errorSequenceOnTheLeft.getWords().length > 0) {
-                WordSequence candidateSequenceOnTheLeft = matchingWordSequence
-                    .getWords()[0]
-                    .getWordSequence().subSequence(0,
-                        matchingWordSequence.getFirstWord().getIndex());
+                WordSequence candidateSequenceOnTheLeft = matchingWordSequence.
+                    getCandidateOnTheLeft();
 
                 double currentDifferenceOnTheLeft = scoreCandidate(errorSequenceOnTheLeft,
                     candidateSequenceOnTheLeft);
@@ -62,9 +61,8 @@ public class PhoneDistanceAlgorithm implements CorrectionAlgorithm {
             }
 
             if (errorSequenceOnTheRight.getWords().length > 0) {
-                WordSequence candidateSequenceOnTheRight = matchingWordSequence
-                    .getLastWord().getWordSequence().subSequence(
-                        matchingWordSequence.getLastWord().getIndex() + 1);
+                WordSequence candidateSequenceOnTheRight = matchingWordSequence.
+                    getCandidateOnTheRight();
 
                 double currentDifferenceOnTheRight = scoreCandidate(errorSequenceOnTheRight,
                     candidateSequenceOnTheRight);
@@ -106,26 +104,24 @@ public class PhoneDistanceAlgorithm implements CorrectionAlgorithm {
         return stringBuilder.toString();
     }
 
-    private List<WordSequence> matchWordSequence(Corpus corpus, WordSequence wordSequence){
+    private List<MatchingWordSequence> matchWordSequence(Corpus corpus, WordSequence wordSequence){
         // Get the words of the given String
         Word[] words = wordSequence.getWords();
 
-        ArrayList<WordSequence> subSequences = new ArrayList<WordSequence>();
+        ArrayList<WordSequence> subSequences = new ArrayList<>();
 
         // Apache Commons longestCommonSubsequence returns the objects of its first argument. That
         // means that the Words added in subSequences are the actual Words that exists inside this
         // Corpus.
         for(WordSequence sentence : corpus){
-            WordSequence subSequence = new WordSequence(
+            List<WordSequence> candidateSubSequences = new WordSequence(
                 longestCommonSubsequence(
                     Arrays.asList(sentence.getWords()),
                     Arrays.asList(words),
                     Word.textEquator_
-                ), " ").longestContinuousSubSequence();
+                ), " ").continuousSubSequences();
 
-            if(subSequence.numberOfWords() > 0) {
-                subSequences.add(subSequence);
-            }
+            subSequences.addAll(candidateSubSequences.stream().filter(candidateSubSequence -> candidateSubSequence.numberOfWords() > 0).collect(Collectors.toList()));
         }
 
         int maximumLength = Collections.max(
@@ -134,12 +130,35 @@ public class PhoneDistanceAlgorithm implements CorrectionAlgorithm {
                 wordSequence2.getWords().length).
             getWords().length;
 
-        ArrayList<WordSequence> longestSubSequences = new ArrayList<>();
+        ArrayList<MatchingWordSequence> longestSubSequences = new ArrayList<>();
 
         subSequences.stream().filter(subSequence -> subSequence.getWords().length == maximumLength).
-            forEach(longestSubSequences:: add);
+            forEach(subSequence -> longestSubSequences.add(new MatchingWordSequence(subSequence)));
 
-        return longestSubSequences;
+        for(MatchingWordSequence longestSubSequence : longestSubSequences){
+            for(WordSequence subSequence : subSequences){
+                if(subSequence.getFirstWord().getWordSequence() != longestSubSequence.getFirstWord().getWordSequence()){
+                    continue;
+                }
+
+                if(subSequence.getFirstWord().getIndex() < longestSubSequence.getFirstWord().getIndex()){
+                    longestSubSequence.reduceLeftLimit(subSequence.getFirstWord().getIndex());
+                }
+
+                if(subSequence.getLastWord().getIndex() > longestSubSequence.getLastWord().getIndex()){
+                    longestSubSequence.increaseRightLimit(subSequence.getLastWord().getIndex());
+                }
+            }
+
+            longestSubSequence.finalizeLimits();
+        }
+
+        List<MatchingWordSequence> matchingWordSequences = new ArrayList<>();
+
+        int maxExtraWordsCount = longestSubSequences.stream().max((o1, o2) -> o1.getExtraWordsCounter() - o2.getExtraWordsCounter()).get().getExtraWordsCounter();
+        longestSubSequences.stream().filter(subSequence -> subSequence.getExtraWordsCounter() == maxExtraWordsCount).forEach(matchingWordSequences:: add);
+
+        return matchingWordSequences;
     }
 
     private double scoreCandidate (WordSequence hypothesis, WordSequence candidate) {
@@ -191,6 +210,72 @@ public class PhoneDistanceAlgorithm implements CorrectionAlgorithm {
         }
 
         return minDistance;
+    }
+
+    private class MatchingWordSequence extends WordSequence{
+        MatchingWordSequence(WordSequence wordSequence){
+            this(wordSequence.getWords(), wordSequence.getWordSeparator());
+        }
+
+        MatchingWordSequence(Word[] words, String wordSeparator){
+            super(words, wordSeparator);
+        }
+
+        WordSequence getCandidateOnTheLeft(){
+            return getFirstWord()
+                .getWordSequence()
+                .subSequence(leftLimit_, getFirstWord().getIndex());
+        }
+
+        WordSequence getCandidateOnTheRight (){
+            return getLastWord()
+                .getWordSequence()
+                .subSequence(getLastWord().getIndex() + 1, rightLimit_ + 1);
+        }
+
+        int getLeftLimit(){
+            return leftLimit_;
+        }
+
+        int getRightLimit(){
+            return rightLimit_;
+        }
+
+        int getExtraWordsCounter () {
+            return extraWordsCounter_;
+        }
+
+        void reduceLeftLimit(int leftLimit){
+            extraWordsCounter_++;
+
+            if(leftLimit < leftLimit_) {
+                leftLimit_ = leftLimit;
+            }
+        }
+
+        void increaseRightLimit (int rightLimit){
+            extraWordsCounter_++;
+
+            if(rightLimit > rightLimit_) {
+                rightLimit_ = rightLimit;
+            }
+        }
+
+        void finalizeLimits (){
+            if(leftLimit_ == Integer.MAX_VALUE){
+                leftLimit_ = 0;
+            }
+
+            if(rightLimit_ == Integer.MIN_VALUE){
+                rightLimit_ = getLastWord().getWordSequence().getLastWord().getIndex();
+            }
+        }
+
+        private int leftLimit_ = Integer.MAX_VALUE;
+        private int rightLimit_ = Integer.MIN_VALUE;
+
+        int extraWordsCounter_ = 0;
+
     }
 
     private Dictionary dictionary_;
