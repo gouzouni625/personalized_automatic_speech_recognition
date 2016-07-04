@@ -232,6 +232,10 @@ public class WordSequence implements Iterable<Word> {
         }
     }
 
+    public String getWordSeparator(){
+        return wordSeparator_;
+    }
+
     public Word getFirstWord(){
         return words_[0];
     }
