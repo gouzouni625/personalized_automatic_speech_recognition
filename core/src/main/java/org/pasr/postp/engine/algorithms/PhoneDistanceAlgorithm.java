@@ -159,10 +159,10 @@ public class PhoneDistanceAlgorithm implements CorrectionAlgorithm {
             return wholeDistance;
         }
 
-        int minDistance = Integer.MAX_VALUE;
+        double minDistance = Integer.MAX_VALUE;
         int index = - 1;
         for (int i = 0, n = numberOfCandidateWords - numberOfHypothesisWords; i <= n; i++) {
-            int currentDistance = getLevenshteinDistance(
+            double currentDistance = getLevenshteinDistance(
                 String.join("", (CharSequence[]) hypothesisPhones),
                 String.join("", (CharSequence[]) Arrays.copyOfRange(
                     candidatePhones, i, i + numberOfHypothesisWords)
@@ -175,7 +175,15 @@ public class PhoneDistanceAlgorithm implements CorrectionAlgorithm {
             index = i;
         }
 
-        if(wholeDistance < minDistance){
+        // About minDistance == 0:
+        //   If minDistance == 0, we known that the hypothesis exists inside the candidate and it
+        //   is also incorrect since it doesn't exist inside the corpus. This results in the case
+        //   that the candidate has some extra words that should also be included (e.g.
+        //   (and most members of)(correct part) (our (society)(hypothesis))(candidate)
+        //   )
+        //   In the above example, hypothesis (society) exists inside the candidate (our society)
+        //   but not inside the corpus. This means that "our" should be also included to the result.
+        if(wholeDistance < minDistance || minDistance == 0){
             bestMatch_ = candidate;
         }
         else {
