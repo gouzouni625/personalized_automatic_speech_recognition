@@ -27,7 +27,6 @@ public class PhoneDistanceAlgorithm implements CorrectionAlgorithm {
         WordSequence asrOutputWS = new WordSequence(asrOutput.toLowerCase(), " ");
 
         List<MatchingWordSequence> matchingWordSequences = matchWordSequence(corpus, asrOutputWS);
-        WordSequence matchingSequence = matchingWordSequences.get(0);
 
         // If the whole asr output exists inside the corpus, consider it correct
         for (MatchingWordSequence matchingWordSequence : matchingWordSequences) {
@@ -36,72 +35,68 @@ public class PhoneDistanceAlgorithm implements CorrectionAlgorithm {
             }
         }
 
-        WordSequence chosenSequenceOnTheLeft = null;
-        WordSequence chosenSequenceOnTheRight = null;
+        String result = "";
+        double bestScore = Double.POSITIVE_INFINITY;
 
-        double minDifferenceOnTheLeft = Double.POSITIVE_INFINITY;
-        double minDifferenceOnTheRight = Double.POSITIVE_INFINITY;
         for (MatchingWordSequence matchingWordSequence : matchingWordSequences){
             WordSequence[] errorWordSequences = asrOutputWS.split(matchingWordSequence);
             WordSequence errorSequenceOnTheLeft = errorWordSequences[0];
             WordSequence errorSequenceOnTheRight = errorWordSequences[1];
+            double currentScoreOnTheLeft = Double.POSITIVE_INFINITY;
+            double currentScoreOnTheRight = Double.POSITIVE_INFINITY;
+
+            String currentResult = "";
 
             if (errorSequenceOnTheLeft.getWords().length > 0) {
                 WordSequence candidateSequenceOnTheLeft = matchingWordSequence.
                     getCandidateOnTheLeft();
 
-                double currentDifferenceOnTheLeft = scoreCandidate(errorSequenceOnTheLeft,
+                currentScoreOnTheLeft = scoreCandidate(errorSequenceOnTheLeft,
                     candidateSequenceOnTheLeft);
 
-                if(currentDifferenceOnTheLeft < minDifferenceOnTheLeft){
-                    minDifferenceOnTheLeft = currentDifferenceOnTheLeft;
-
-                    chosenSequenceOnTheLeft = bestMatch_;
-                }
+                currentResult = bestMatch_ + " ";
             }
+
+            currentResult += matchingWordSequence;
 
             if (errorSequenceOnTheRight.getWords().length > 0) {
                 WordSequence candidateSequenceOnTheRight = matchingWordSequence.
                     getCandidateOnTheRight();
 
-                double currentDifferenceOnTheRight = scoreCandidate(errorSequenceOnTheRight,
+                currentScoreOnTheRight = scoreCandidate(errorSequenceOnTheRight,
                     candidateSequenceOnTheRight);
 
-                if(currentDifferenceOnTheRight < minDifferenceOnTheRight){
-                    minDifferenceOnTheRight = currentDifferenceOnTheRight;
+                currentResult += " " + bestMatch_;
+            }
 
-                    chosenSequenceOnTheRight = bestMatch_;
-                }
+            double currentScore;
+
+            if(currentScoreOnTheLeft != Double.POSITIVE_INFINITY &&
+                currentScoreOnTheRight != Double.POSITIVE_INFINITY){
+                currentScore = 0.5 * currentScoreOnTheLeft + 0.5 * currentScoreOnTheRight;
+            }
+            else if(currentScoreOnTheLeft == Double.POSITIVE_INFINITY){
+                currentScore = currentScoreOnTheRight;
+            }
+            else if(currentScoreOnTheRight == Double.POSITIVE_INFINITY){
+                currentScore = currentScoreOnTheLeft;
+            }
+            else{
+                currentScore = Double.POSITIVE_INFINITY;
+            }
+
+            if(currentScore < bestScore){
+                bestScore = currentScore;
+
+                result = currentResult;
             }
         }
 
-        StringBuilder stringBuilder = new StringBuilder();
-        if (chosenSequenceOnTheLeft != null && chosenSequenceOnTheLeft.numberOfWords() > 0) {
-            stringBuilder.append(chosenSequenceOnTheLeft).append(" ");
+        if(bestScore == Double.POSITIVE_INFINITY){
+            result = matchingWordSequences.get(0).getText();
         }
 
-        // Remove duplicate words in final string. This can occur because each chosen sequence
-        // might contain a word from the matching sequence.
-        if (chosenSequenceOnTheLeft != null && chosenSequenceOnTheLeft.numberOfWords() > 0 &&
-            chosenSequenceOnTheLeft.getLastWord().getText().equals(matchingSequence.getFirstWord().
-                getText())) {
-            stringBuilder.append(matchingSequence.subSequence(1));
-        }
-        else {
-            stringBuilder.append(matchingSequence);
-        }
-
-        if (chosenSequenceOnTheRight != null && chosenSequenceOnTheRight.numberOfWords() > 0) {
-            if (matchingSequence.getLastWord().getText().equals(chosenSequenceOnTheRight.
-                getFirstWord().getText())) {
-                stringBuilder.append(" ").append(chosenSequenceOnTheRight.subSequence(1));
-            }
-            else {
-                stringBuilder.append(" ").append(chosenSequenceOnTheRight);
-            }
-        }
-
-        return stringBuilder.toString();
+        return result;
     }
 
     private List<MatchingWordSequence> matchWordSequence(Corpus corpus, WordSequence wordSequence){
