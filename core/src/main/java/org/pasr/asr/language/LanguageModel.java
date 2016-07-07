@@ -1,4 +1,4 @@
-package org.pasr.postp.language;
+package org.pasr.asr.language;
 
 
 import org.pasr.corpus.WordSequence;

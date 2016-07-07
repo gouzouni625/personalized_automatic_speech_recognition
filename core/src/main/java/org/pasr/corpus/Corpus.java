@@ -1,7 +1,7 @@
 package org.pasr.corpus;
 
 
-import org.pasr.postp.dictionary.Dictionary;
+import org.pasr.asr.dictionary.Dictionary;
 import org.pasr.utilities.ArrayIterable;
 import org.pasr.utilities.NumberSpeller;
 

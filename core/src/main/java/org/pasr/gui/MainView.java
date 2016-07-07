@@ -16,7 +16,7 @@ import org.pasr.gui.controllers.LoginSceneController.Authenticator;
 import org.pasr.gui.controllers.EmailListSceneController.HasCorpus;
 import org.pasr.gui.controllers.VoiceRecordingSceneController;
 import org.pasr.gui.controllers.VoiceRecordingSceneController.HasASR;
-import org.pasr.postp.dictionary.Dictionary;
+import org.pasr.asr.dictionary.Dictionary;
 import org.pasr.utilities.Utilities;
 
 import java.io.File;

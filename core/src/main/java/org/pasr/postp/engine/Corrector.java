@@ -2,7 +2,7 @@ package org.pasr.postp.engine;
 
 
 import org.pasr.corpus.Corpus;
-import org.pasr.postp.dictionary.Dictionary;
+import org.pasr.asr.dictionary.Dictionary;
 
 import java.util.ArrayList;
 import java.util.List;
