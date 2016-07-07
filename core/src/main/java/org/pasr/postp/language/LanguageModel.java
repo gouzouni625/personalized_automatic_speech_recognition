@@ -26,16 +26,27 @@ public class LanguageModel {
         Hashtable<String, Double> backOffWeights = new Hashtable<>();
 
         Scanner scanner = new Scanner(inputStream);
+        while(scanner.hasNextLine()){
+            if(scanner.nextLine().equals("\\data\\")){
+                break;
+            }
+        }
+
         boolean save = false;
         while(scanner.hasNextLine()){
             String line = scanner.nextLine();
 
             if(line.equals("\\1-grams:")){
                 save = true;
+                continue;
             }
 
-            if(line.equals("")){
+            if(line.equals("") || line.equals("\\2-grams:") || line.equals("\\3-grams:")){
                 continue;
+            }
+
+            if(line.equals("\\end\\")){
+                save = false;
             }
 
             if(save){
@@ -136,18 +147,13 @@ public class LanguageModel {
         // p(wd3|wd1,wd2) = bo_wt_2(w1,w2)*p(wd3|wd2)
         if(probability == null){
             Double backOffWeight = backOffWeights_.get(String.join(" ", words[0], words[1]));
-            probability = probabilities_.get(String.join(" ", words[1], words[2]));
+            probability = p2(words[1], words[2]);
 
-            if(probability == null){
-                return 0;
+            if(backOffWeight == null){
+                return probability;
             }
             else{
-                if(backOffWeight == null){
-                    return probability;
-                }
-                else{
-                    return backOffWeight * probability;
-                }
+                return backOffWeight * probability;
             }
         }
         else{
