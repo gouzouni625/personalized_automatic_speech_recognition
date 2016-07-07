@@ -1,4 +1,4 @@
-package org.pasr.corpus;
+package org.pasr.prep.corpus;
 
 
 import org.pasr.asr.dictionary.Dictionary;

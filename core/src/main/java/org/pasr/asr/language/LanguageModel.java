@@ -1,7 +1,7 @@
 package org.pasr.asr.language;
 
 
-import org.pasr.corpus.WordSequence;
+import org.pasr.prep.corpus.WordSequence;
 
 import java.io.InputStream;
 import java.util.Hashtable;

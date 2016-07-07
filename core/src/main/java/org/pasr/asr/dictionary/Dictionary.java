@@ -1,7 +1,7 @@
 package org.pasr.asr.dictionary;
 
-import org.pasr.corpus.Word;
-import org.pasr.corpus.WordSequence;
+import org.pasr.prep.corpus.Word;
+import org.pasr.prep.corpus.WordSequence;
 
 import java.io.File;
 import java.io.FileNotFoundException;

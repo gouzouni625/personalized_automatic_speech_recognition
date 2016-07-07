@@ -1,9 +1,9 @@
 package org.pasr.postp.engine.algorithms;
 
 
-import org.pasr.corpus.Corpus;
-import org.pasr.corpus.Word;
-import org.pasr.corpus.WordSequence;
+import org.pasr.prep.corpus.Corpus;
+import org.pasr.prep.corpus.Word;
+import org.pasr.prep.corpus.WordSequence;
 import org.pasr.asr.dictionary.Dictionary;
 import org.pasr.postp.engine.Corrector.CorrectionAlgorithm;
 

@@ -1,4 +1,4 @@
-package org.pasr.corpus;
+package org.pasr.prep.corpus;
 
 import org.pasr.postp.engine.POSTagger;
 import org.pasr.postp.engine.POSTagger.Tags;

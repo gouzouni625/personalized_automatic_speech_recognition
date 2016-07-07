@@ -8,7 +8,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
-import org.pasr.corpus.Corpus;
+import org.pasr.prep.corpus.Corpus;
 import org.pasr.gui.controllers.ASRSceneController;
 import org.pasr.gui.controllers.EmailListSceneController;
 import org.pasr.gui.controllers.LoginSceneController;

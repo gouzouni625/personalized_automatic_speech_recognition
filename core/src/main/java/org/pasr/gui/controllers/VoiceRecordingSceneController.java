@@ -3,8 +3,8 @@ package org.pasr.gui.controllers;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.TextArea;
-import org.pasr.corpus.Corpus;
-import org.pasr.corpus.WordSequence;
+import org.pasr.prep.corpus.Corpus;
+import org.pasr.prep.corpus.WordSequence;
 import org.pasr.prep.record.Microphone;
 
 import javax.sound.sampled.LineUnavailableException;
