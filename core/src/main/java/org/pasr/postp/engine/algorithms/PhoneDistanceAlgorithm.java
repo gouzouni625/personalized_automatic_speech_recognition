@@ -1,6 +1,7 @@
 package org.pasr.postp.engine.algorithms;
 
 
+import org.pasr.asr.language.LanguageModel;
 import org.pasr.prep.corpus.Corpus;
 import org.pasr.prep.corpus.Word;
 import org.pasr.prep.corpus.WordSequence;
@@ -21,8 +22,10 @@ public class PhoneDistanceAlgorithm implements CorrectionAlgorithm {
     public PhoneDistanceAlgorithm (){}
 
     @Override
-    public String apply (String asrOutput, Corpus corpus, Dictionary dictionary) {
+    public String apply (String asrOutput, Corpus corpus, Dictionary dictionary,
+                         LanguageModel languageModel) {
         dictionary_ = dictionary;
+        languageModel_ = languageModel;
 
         WordSequence asrOutputWS = new WordSequence(asrOutput.toLowerCase(), " ");
 
@@ -54,6 +57,8 @@ public class PhoneDistanceAlgorithm implements CorrectionAlgorithm {
                 currentScoreOnTheLeft = scoreCandidate(errorSequenceOnTheLeft,
                     candidateSequenceOnTheLeft);
 
+              currentScoreOnTheLeft *= 1 - applyLanguageModel(bestMatch_, matchingWordSequence);
+
                 currentResult = bestMatch_ + " ";
             }
 
@@ -65,6 +70,8 @@ public class PhoneDistanceAlgorithm implements CorrectionAlgorithm {
 
                 currentScoreOnTheRight = scoreCandidate(errorSequenceOnTheRight,
                     candidateSequenceOnTheRight);
+
+               currentScoreOnTheRight *= 1 - applyLanguageModel(matchingWordSequence, bestMatch_);
 
                 currentResult += " " + bestMatch_;
             }
@@ -97,6 +104,38 @@ public class PhoneDistanceAlgorithm implements CorrectionAlgorithm {
         }
 
         return result;
+    }
+
+    private double applyLanguageModel(WordSequence left, WordSequence right){
+        if(left.numberOfWords() == 0 || right.numberOfWords() == 0){
+            return 1;
+        }
+
+        ArrayList<String> words = new ArrayList<>();
+
+        String[] leftWords = left.getWordsText();
+
+        if(leftWords.length >= 2){
+            words.add(leftWords[leftWords.length - 2]);
+            words.add(leftWords[leftWords.length - 1]);
+        }
+        else{
+            words.add(leftWords[0]);
+        }
+
+        String[] rightWords = right.getWordsText();
+
+        if(rightWords.length >= 2){
+            words.add(rightWords[0]);
+            words.add(rightWords[1]);
+        }
+        else{
+            words.add(rightWords[0]);
+        }
+
+        // Concatenate ArrayList data to a single string with space as the word delimiter
+        String string = String.join(" ", (CharSequence[]) words.toArray(new CharSequence[0]));
+        return languageModel_.getProbability(new WordSequence(string, " "));
     }
 
     private List<MatchingWordSequence> matchWordSequence(Corpus corpus, WordSequence wordSequence){
@@ -274,6 +313,8 @@ public class PhoneDistanceAlgorithm implements CorrectionAlgorithm {
     }
 
     private Dictionary dictionary_;
+
+    private LanguageModel languageModel_;
 
     private WordSequence bestMatch_;
 
