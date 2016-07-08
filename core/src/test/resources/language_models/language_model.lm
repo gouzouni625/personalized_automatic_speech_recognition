@@ -1,0 +1,42 @@
+\data\
+ngram 1=15
+ngram 2=10
+ngram 3=5
+
+\1-grams:
+-1 word1 0.0791
+-1 word2 0.1583
+-1 word3 0.3521
+-1 word4 -0.0655
+-1 word5 0.3856
+-1.3010 word6 -0.6989
+-1.3010 word7 -0.5528
+-1.3010 word8 -0.0043
+-1.3010 word9 -0.0861
+-1.3010 word10 -1.0
+-1.2218 word11 -0.9208
+-1.0969 word12 -0.1135
+-2 word13 0.3873
+-1.6020 word14 0.1139
+-1.1249 word15 0.1702
+
+\2-grams:
+-0.3565 word1 word2 0.3424
+-1.0457 word1 word5 0.0791
+-0.9208 word3 word4 0.4409
+-0.6197 word5 word6 0.1583
+-0.4685 word7 word8 0.0170
+-0.2596 word12 word14 -0.6989
+-0.2076 word9 word10 -0.3979
+-0.3665 word3 word13 -0.1870
+-1.5228 word11 word12 -0.0861
+-0.9586 word13 word15 -0.4948
+
+\3-grams:
+-0.6989 word1 word2 word3
+-0.3665 word7 word12 word15
+-0.9208 word8 word9 word4
+-0.2676 word15 word14 word13
+-0.3979 word3 word5 word6
+
+\end\
