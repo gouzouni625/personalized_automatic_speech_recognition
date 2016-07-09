@@ -55,9 +55,7 @@ public class PhoneDistanceAlgorithm implements CorrectionAlgorithm {
                     getCandidateOnTheLeft();
 
                 currentScoreOnTheLeft = scoreCandidate(errorSequenceOnTheLeft,
-                    candidateSequenceOnTheLeft);
-
-              currentScoreOnTheLeft *= 1 - applyLanguageModel(bestMatch_, matchingWordSequence);
+                    candidateSequenceOnTheLeft, matchingWordSequence, true);
 
                 currentResult = bestMatch_ + " ";
             }
@@ -69,9 +67,7 @@ public class PhoneDistanceAlgorithm implements CorrectionAlgorithm {
                     getCandidateOnTheRight();
 
                 currentScoreOnTheRight = scoreCandidate(errorSequenceOnTheRight,
-                    candidateSequenceOnTheRight);
-
-               currentScoreOnTheRight *= 1 - applyLanguageModel(matchingWordSequence, bestMatch_);
+                    candidateSequenceOnTheRight, matchingWordSequence, false);
 
                 currentResult += " " + bestMatch_;
             }
@@ -104,38 +100,6 @@ public class PhoneDistanceAlgorithm implements CorrectionAlgorithm {
         }
 
         return result;
-    }
-
-    private double applyLanguageModel(WordSequence left, WordSequence right){
-        if(left.numberOfWords() == 0 || right.numberOfWords() == 0){
-            return 1;
-        }
-
-        ArrayList<String> words = new ArrayList<>();
-
-        String[] leftWords = left.getWordsText();
-
-        if(leftWords.length >= 2){
-            words.add(leftWords[leftWords.length - 2]);
-            words.add(leftWords[leftWords.length - 1]);
-        }
-        else{
-            words.add(leftWords[0]);
-        }
-
-        String[] rightWords = right.getWordsText();
-
-        if(rightWords.length >= 2){
-            words.add(rightWords[0]);
-            words.add(rightWords[1]);
-        }
-        else{
-            words.add(rightWords[0]);
-        }
-
-        // Concatenate ArrayList data to a single string with space as the word delimiter
-        String string = String.join(" ", (CharSequence[]) words.toArray(new CharSequence[0]));
-        return languageModel_.getProbability(new WordSequence(string, " "));
     }
 
     private List<MatchingWordSequence> matchWordSequence(Corpus corpus, WordSequence wordSequence){
@@ -195,7 +159,9 @@ public class PhoneDistanceAlgorithm implements CorrectionAlgorithm {
         return matchingWordSequences;
     }
 
-    private double scoreCandidate (WordSequence hypothesis, WordSequence candidate) {
+    private double scoreCandidate (WordSequence hypothesis, WordSequence candidate,
+                                   MatchingWordSequence matchingWordSequence,
+                                   boolean candidateOnTheLeft) {
         int numberOfHypothesisWords = hypothesis.getWords().length;
         int numberOfCandidateWords = candidate.getWords().length;
 
@@ -220,6 +186,17 @@ public class PhoneDistanceAlgorithm implements CorrectionAlgorithm {
                 String.join("", (CharSequence[]) Arrays.copyOfRange(
                     candidatePhones, i, i + numberOfHypothesisWords)
                 ));
+
+            WordSequence connectingWS = candidate.subSequence(i, i + numberOfHypothesisWords);
+            if(!candidateOnTheLeft){
+                connectingWS.prependWord(matchingWordSequence.getLastWord());
+            }
+            else{
+                connectingWS.appendWord(matchingWordSequence.getLastWord());
+            }
+            double languageModelProbability = languageModel_.getProbability(connectingWS);
+
+            currentDistance = 0.90 * currentDistance + 0.10 * (1 - languageModelProbability);
 
             if (currentDistance < minDistance) {
                 minDistance = currentDistance;
