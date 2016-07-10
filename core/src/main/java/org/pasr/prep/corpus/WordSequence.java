@@ -76,16 +76,20 @@ public class WordSequence implements Iterable<Word> {
      * @return A new WordSequence that is a sub-sequence of this WordSequence
      */
     public WordSequence subSequence(int beginIndex, int endIndex){
+        if(endIndex > words_.length){
+            endIndex = words_.length - 1;
+        }
+
+        if(beginIndex < 0){
+            beginIndex = 0;
+        }
+
         if(beginIndex >= endIndex){
             return new WordSequence("", wordSeparator_);
         }
 
         if(words_.length == 0){
             return new WordSequence("", wordSeparator_);
-        }
-
-        if(endIndex > words_.length){
-            endIndex = words_.length - 1;
         }
 
         return new WordSequence(Arrays.copyOfRange(words_, beginIndex, endIndex), wordSeparator_);
@@ -127,36 +131,27 @@ public class WordSequence implements Iterable<Word> {
     }
 
     public WordSequence[] split(WordSequence wordSequence){
-        Word[] words = wordSequence.getWords();
+        // Not using text_ because this and wordSequence might have a different word separator.
+        String thisText = String.join(" ", (CharSequence[]) getWordsText());
+        String wordSequenceText = String.join(" ", (CharSequence[]) wordSequence.getWordsText());
 
-        Word firstWord = words[0];
-        Word lastWord = words[words.length - 1];
+        String[] tokens = thisText.split(wordSequenceText);
 
-        int firstWordIndex = -1;
-        int lastWordIndex = -1;
-
-        for(int i = 0, n = words_.length;i < n;i++){
-            if((firstWordIndex == -1) && words_[i].getText().equals(firstWord.getText())){
-                firstWordIndex = i;
-
-                if(lastWordIndex != -1){
-                    break;
-                }
+        // We know that there are going to be only 2 tokens
+        if(tokens.length == 2) {
+            return new WordSequence[] {new WordSequence(tokens[0], getWordSeparator()),
+                new WordSequence(tokens[1], getWordSeparator())};
+        }
+        else{
+            if(wordSequence.getFirstWord().getText().equals(getFirstWord().getText())){
+                return new WordSequence[] {new WordSequence("", getWordSeparator()),
+                    new WordSequence(tokens[0], getWordSeparator())};
             }
-
-            if((lastWordIndex == -1) && words_[i].getText().equals(lastWord.getText())){
-                lastWordIndex = i;
-
-                if(firstWordIndex != -1){
-                    break;
-                }
+            else{
+                return new WordSequence[] {new WordSequence(tokens[0], getWordSeparator()),
+                    new WordSequence("", getWordSeparator())};
             }
         }
-
-        WordSequence wordSequenceOnTheLeft = subSequence(0, firstWordIndex);
-        WordSequence wordSequenceOnTheRight = subSequence(lastWordIndex + 1);
-
-        return new WordSequence[] {wordSequenceOnTheLeft, wordSequenceOnTheRight};
     }
 
     @Override
