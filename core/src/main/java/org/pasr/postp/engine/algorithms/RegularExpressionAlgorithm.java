@@ -60,30 +60,29 @@ public class RegularExpressionAlgorithm implements Corrector.CorrectionAlgorithm
                 currentSore = matchOnTheLeft.getScore();
             }
 
-            if(subSequence.getHypothesisIntermediates().size() == 0) {
+            if(subSequence.getIntermediates().size() == 0) {
                 currentResult += " " + subSequence;
             }
             else{
-                List<WordSequence> intermediates = subSequence.getHypothesisIntermediates();
-                List<Integer> intermediatesIndices = subSequence.getIntermediatesIndices();
+                List<MatchingWordSequence.Intermediate> intermediates = subSequence.getIntermediates();
 
                 currentResult = subSequence.subSequence(0,
-                    intermediatesIndices.get(0) + 1).getText();
+                    intermediates.get(0).getIndex() + 1).getText();
 
                 for(int i = 0, n = intermediates.size();i < n;i++){
-                    Word wordOnTheLeft = subSequence.getWord(intermediatesIndices.get(i));
-                    int wordOnTheRightIndex = intermediatesIndices.get(i) + 1;
+                    Word wordOnTheLeft = subSequence.getWord(intermediates.get(i).getIndex());
+                    int wordOnTheRightIndex = intermediates.get(i).getIndex() + 1;
                     Word wordOnTheRight = subSequence.getWord(wordOnTheRightIndex);
 
                     Pattern pattern = Pattern.compile(wordOnTheLeft + "(\\s(.*)\\s|\\s)" +
                         wordOnTheRight);
 
-                    Match match = scoreOnCorpus(pattern, intermediates.get(i));
+                    Match match = scoreOnCorpus(pattern, intermediates.get(i).getWordSequence());
 
                     currentResult += " " + match.getMatch();
 
                     if(i < n - 1) {
-                        for (int j = wordOnTheRightIndex, m = intermediatesIndices.get(i + 1); j <= m; j++) {
+                        for (int j = wordOnTheRightIndex, m = intermediates.get(i + 1).getIndex(); j <= m; j++) {
                             currentResult += " " + subSequence.getWord(j);
                         }
                     }
@@ -91,7 +90,7 @@ public class RegularExpressionAlgorithm implements Corrector.CorrectionAlgorithm
                     currentSore += match.getScore();
                 }
 
-                for(int i = intermediatesIndices.get(intermediatesIndices.size() - 1) + 1;i < subSequence.numberOfWords();i++){
+                for(int i = intermediates.get(intermediates.size() - 1).getIndex() + 1;i < subSequence.numberOfWords();i++){
                         currentResult += " " + subSequence.getWord(i);
                 }
             }
@@ -264,7 +263,10 @@ public class RegularExpressionAlgorithm implements Corrector.CorrectionAlgorithm
 
     private List<MatchingWordSequence> matchOnCorpus (WordSequence wordSequence){
 
-        Set<MatchingWordSequence> longestCommonSubSequences = longestCommonSubSequenceOnCorpus(wordSequence);
+        HashSet<MatchingWordSequence> longestCommonSubSequences = longestCommonSubSequenceOnCorpus(
+            wordSequence).stream().
+            map(lCS -> new MatchingWordSequence(lCS, wordSequence)).
+            collect(Collectors.toCollection(HashSet:: new));
 
         // Find the sub-sequences with the 2 largest lengths (except if the largest length is
         // greater that the second largest by 3 or more.
@@ -302,10 +304,9 @@ public class RegularExpressionAlgorithm implements Corrector.CorrectionAlgorithm
         return subSequences;
     }
 
-    private Set<MatchingWordSequence> longestCommonSubSequenceOnCorpus(WordSequence wordSequence){
+    private Set<WordSequence> longestCommonSubSequenceOnCorpus(WordSequence wordSequence){
         return corpus_.longestCommonSubSequence(wordSequence).
             stream().
-            map(lCS -> new MatchingWordSequence(lCS, wordSequence)).
             collect(Collectors.toCollection(HashSet::new));
     }
 
@@ -325,8 +326,7 @@ public class RegularExpressionAlgorithm implements Corrector.CorrectionAlgorithm
         }
 
         private void process(WordSequence hypothesis){
-            hypothesisIntermediates_ = new ArrayList<>();
-            intermediatesIndices_ = new ArrayList<>();
+            intermediates_ = new ArrayList<>();
 
             if(getFirstWord().getIndex() != 0){
                 hypothesisOnTheLeft_ = hypothesis.subSequence(0, getFirstWord().getIndex());
@@ -337,8 +337,25 @@ public class RegularExpressionAlgorithm implements Corrector.CorrectionAlgorithm
                 int index = getWord(i).getIndex();
                 int nextIndex = getWord(i + 1).getIndex();
                 if(nextIndex != index + 1){
-                    hypothesisIntermediates_.add(hypothesis.subSequence(index + 1, nextIndex));
-                    intermediatesIndices_.add(i);
+                    addIntermediate(new Intermediate(
+                        hypothesis.subSequence(index + 1, nextIndex), i
+                    ));
+                }
+            }
+
+            // Search for this matching sequence inside the corpus. If it doesn't exist,
+            // add new custom intermediates where necessary.
+            if(!corpus_.contains(this)){
+                List<WordSequence> matches = corpus_.matchAsCommonSubSequence(this);
+
+                for(WordSequence match : matches){
+                    for(int i = 0, n = match.numberOfWords() - 1;i < n;i++){
+                        int index = match.getWord(i).getIndex();
+                        int nextIndex = match.getWord(i + 1).getIndex();
+                        if(nextIndex != index + 1){
+                            addIntermediate(new Intermediate(new WordSequence("", " "), i));
+                        }
+                    }
                 }
             }
 
@@ -351,22 +368,46 @@ public class RegularExpressionAlgorithm implements Corrector.CorrectionAlgorithm
             return hypothesisOnTheLeft_;
         }
 
-        List<WordSequence> getHypothesisIntermediates(){
-            return hypothesisIntermediates_;
-        }
-
-        List<Integer> getIntermediatesIndices(){
-            return intermediatesIndices_;
+        List<Intermediate> getIntermediates(){
+            return intermediates_;
         }
 
         WordSequence getHypothesisOnTheRight(){
             return hypothesisOnTheRight_;
         }
 
+        private void addIntermediate(Intermediate intermediate){
+            for(Intermediate intermediate_ : intermediates_){
+                if(intermediate_.getIndex() ==
+                    intermediate.getIndex()){
+                    return;
+                }
+            }
+
+            intermediates_.add(intermediate);
+        }
+
         private WordSequence hypothesisOnTheLeft_;
-        private List<WordSequence> hypothesisIntermediates_;
-        private List<Integer> intermediatesIndices_;
+        private List<Intermediate> intermediates_;
         private WordSequence hypothesisOnTheRight_;
+
+        private class Intermediate{
+            public Intermediate(WordSequence candidate, int index){
+                candidate_ = candidate;
+                index_ = index;
+            }
+
+            WordSequence getWordSequence (){
+                return candidate_;
+            }
+
+            int getIndex (){
+                return index_;
+            }
+
+            private WordSequence candidate_;
+            private int index_; // index on matching sequence
+        }
     }
 
     private class Match{

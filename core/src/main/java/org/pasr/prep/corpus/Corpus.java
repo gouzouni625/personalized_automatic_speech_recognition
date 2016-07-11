@@ -181,6 +181,26 @@ public class Corpus implements Iterable<WordSequence> {
         return lCSS;
     }
 
+    public List<WordSequence> matchAsCommonSubSequence(WordSequence wordSequence){
+        Word[] words = wordSequence.getWords();
+
+        ArrayList<WordSequence> matches = new ArrayList<>();
+
+        for(WordSequence sentence : sentences_) {
+            List<Word> candidate = longestCommonSubsequence(
+                Arrays.asList(sentence.getWords()),
+                Arrays.asList(words),
+                Word.textEquator_
+            );
+
+            if(candidate.size() == wordSequence.numberOfWords()){
+                matches.add(new WordSequence(candidate, " "));
+            }
+        }
+
+        return matches;
+    }
+
     public WordSequence[] getSentences() {
         return sentences_;
     }
