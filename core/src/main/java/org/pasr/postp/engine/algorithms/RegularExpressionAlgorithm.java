@@ -7,6 +7,7 @@ import org.pasr.postp.engine.Corrector;
 import org.pasr.prep.corpus.Corpus;
 import org.pasr.prep.corpus.Word;
 import org.pasr.prep.corpus.WordSequence;
+import org.pasr.utilities.LevenshteinMatrix;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -17,7 +18,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static org.apache.commons.collections4.ListUtils.longestCommonSubsequence;
-import static org.apache.commons.lang3.StringUtils.getLevenshteinDistance;
 
 
 public class RegularExpressionAlgorithm implements Corrector.CorrectionAlgorithm {
@@ -223,9 +223,7 @@ public class RegularExpressionAlgorithm implements Corrector.CorrectionAlgorithm
         String[] hypothesisPhones = dictionary_.getPhones(hypothesis);
         String[] candidatePhones = dictionary_.getPhones(candidate);
 
-        double wholeDistance = getLevenshteinDistance(
-            String.join("", (CharSequence[]) hypothesisPhones),
-            String.join("", (CharSequence[]) candidatePhones));
+        double wholeDistance = calculatePhoneDistance(hypothesisPhones, candidatePhones);
 
         if (numberOfHypothesisWords >= numberOfCandidateWords) {
             match.setMatch(candidate);
@@ -237,11 +235,10 @@ public class RegularExpressionAlgorithm implements Corrector.CorrectionAlgorithm
         double minDistance = Integer.MAX_VALUE;
         int index = - 1;
         for (int i = 0, n = numberOfCandidateWords - numberOfHypothesisWords; i <= n; i++) {
-            double currentDistance = getLevenshteinDistance(
-                String.join("", (CharSequence[]) hypothesisPhones),
-                String.join("", (CharSequence[]) Arrays.copyOfRange(
-                    candidatePhones, i, i + numberOfHypothesisWords)
-                ));
+            double currentDistance = calculatePhoneDistance(
+                hypothesisPhones,
+                Arrays.copyOfRange(candidatePhones, i, i + numberOfHypothesisWords)
+            );
 
             WordSequence connectingWS = candidate.subSequence(i, i + numberOfHypothesisWords);
             if(!wordOnTheLeft.isEmpty()){
@@ -280,6 +277,21 @@ public class RegularExpressionAlgorithm implements Corrector.CorrectionAlgorithm
         }
 
         return match;
+    }
+
+    private double calculatePhoneDistance(String[] sequence1, String[] sequence2){
+        if(sequence1.length == 0 && sequence2.length == 0){
+            return 0;
+        }
+        else if(sequence1.length == 0){
+            return sequence2.length;
+        }
+        else if(sequence2.length == 0){
+            return sequence1.length;
+        }
+        else {
+            return new LevenshteinMatrix<>(sequence1, sequence2).getDistance();
+        }
     }
 
     private class MatchingWordSequence extends WordSequence{

@@ -1,8 +1,9 @@
-package org.utilities;
+package org.pasr.utilities;
 
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.junit.Test;
+import org.pasr.utilities.LevenshteinMatrix;
 
 import static org.junit.Assert.assertEquals;
 
@@ -28,6 +29,13 @@ public class LevenshteinMatrixTest {
         levenshteinMatrix = new LevenshteinMatrix<>(
             ArrayUtils.toObject("Hello World".toCharArray()),
             ArrayUtils.toObject("Hello W1rld".toCharArray())
+        );
+
+        assertEquals(1, levenshteinMatrix.getDistance());
+
+        levenshteinMatrix = new LevenshteinMatrix<>(
+            new String[] {"Hello", "W0r1d"},
+            new String[] {"Hello", "World"}
         );
 
         assertEquals(1, levenshteinMatrix.getDistance());

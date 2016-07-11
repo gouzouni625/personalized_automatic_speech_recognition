@@ -41,12 +41,19 @@ public class Dictionary implements Iterable<Map.Entry<String, String>>{
         unknownWords_ = new HashSet<>();
     }
 
-    public String getPhones(String word){
+    public String[] getPhones(String word){
         if(word.equals("")){
-            return "";
+            return new String[] {};
         }
 
-        return wordsToPhonesTable_.get(word);
+        String phones = wordsToPhonesTable_.get(word);
+
+        if(phones == null){
+            return word.replaceAll(".(?!$)", "$0 ").trim().toUpperCase().split(" "); // return the characters of the word
+        }
+        else{
+            return phones.trim().split(" ");
+        }
     }
 
     public Map<String, String> getEntriesByKey(String key){
@@ -64,13 +71,24 @@ public class Dictionary implements Iterable<Map.Entry<String, String>>{
         }
 
         int numberOfWords = words.length;
+        String[][] phones = new String[numberOfWords][];
+        int numberOfPhones = 0;
 
-        String[] phones = new String[numberOfWords];
         for(int i = 0;i < numberOfWords;i++){
             phones[i] = getPhones(words[i].getText());
+            numberOfPhones += phones[i].length;
         }
 
-        return phones;
+        String[] allPhones = new String[numberOfPhones];
+        int index = 0;
+        for (String[] wordPhones : phones) {
+            for (String phone : wordPhones) {
+                allPhones[index] = phone;
+                index++;
+            }
+        }
+
+        return allPhones;
     }
 
     public void remove(String key){
