@@ -45,8 +45,8 @@ public class RegularExpressionAlgorithm implements Corrector.CorrectionAlgorithm
 
         for(WordSequence sentence : corpus){
             List<Word> candidate = longestCommonSubsequence(
-                Arrays.asList(sentence.getWords()),
                 Arrays.asList(asrOutputWords),
+                Arrays.asList(sentence.getWords()),
                 Word.textEquator_
             );
 
@@ -161,23 +161,31 @@ public class RegularExpressionAlgorithm implements Corrector.CorrectionAlgorithm
     private Match matchOnCorpus(Pattern pattern, WordSequence hypothesis){
         Match match = new Match(hypothesis, Double.POSITIVE_INFINITY);
 
-        String[] tokens = pattern.toString().split(" ");
-        String wordOnTheLeft;
-        String wordOnTheRight;
+        String wordOnTheLeft = "";
+        String wordOnTheRight = "";
 
-        if(tokens.length == 3){
+        // String split method documentation: "Trailing empty string are not included"
+        // This means that:
+        // "abc#".split("#") will return ["abc"]
+        // "#abc".split("#") will return ["", "abc"]
+        // that is why, in the third case, calling tokens[1] will throw an exception.
+        if(pattern.toString().contains("((.*)\\s|^)")){
+            String[] tokens = pattern.toString().split(Pattern.quote("((.*)\\s|^)"));
+
             wordOnTheLeft = tokens[0];
-            wordOnTheRight = tokens[2];
+            wordOnTheRight = tokens[1];
         }
-        else{
-            if(tokens[0].equals("(.*)")){
-                wordOnTheLeft = "";
-                wordOnTheRight = tokens[1];
-            }
-            else{
-                wordOnTheLeft = tokens[0];
-                wordOnTheRight = "";
-            }
+        else if(pattern.toString().contains("(\\s(.*)\\s|\\s)")){
+            String[] tokens = pattern.toString().split(Pattern.quote("(\\s(.*)\\s|\\s)"));
+
+            wordOnTheLeft = tokens[0];
+            wordOnTheRight = tokens[1];
+        }
+        else if(pattern.toString().contains("(\\s(.*)|$)")){
+            String[] tokens = pattern.toString().split(Pattern.quote("(\\s(.*)|$)"));
+
+            wordOnTheLeft = "";
+            wordOnTheRight = tokens[0];
         }
 
         for(WordSequence sentence : corpus_){
@@ -245,7 +253,7 @@ public class RegularExpressionAlgorithm implements Corrector.CorrectionAlgorithm
 
             double languageModelProbability = languageModel_.getProbability(connectingWS);
 
-            currentDistance = 0.90 * currentDistance + 0.10 * (1 - languageModelProbability);
+            currentDistance = 0.9 * currentDistance + 10 * (1 - languageModelProbability);
 
             if (currentDistance < minDistance) {
                 minDistance = currentDistance;
@@ -289,35 +297,21 @@ public class RegularExpressionAlgorithm implements Corrector.CorrectionAlgorithm
             hypothesisIntermediates_ = new ArrayList<>();
             intermediatesIndices_ = new ArrayList<>();
 
-            int lastMatchIndex = -1;
-            int currentWordIndex = 0;
+            if(getFirstWord().getIndex() != 0){
+                hypothesisOnTheLeft_ = hypothesis.subSequence(0, getFirstWord().getIndex());
+            }
 
-            for(Word hypothesisWord : hypothesis){
-                if(hypothesisWord.getText().equals(getWord(currentWordIndex).getText())){
-
-                    if(lastMatchIndex + 1 != hypothesisWord.getIndex()) {
-                        WordSequence subSequence = hypothesis.subSequence(
-                            lastMatchIndex + 1, hypothesisWord.getIndex()
-                        );
-
-                        if(lastMatchIndex == -1){
-                            hypothesisOnTheLeft_ = subSequence;
-                        }
-                        else{
-                            hypothesisIntermediates_.add(subSequence);
-                            intermediatesIndices_.add(currentWordIndex - 1);
-                        }
-                    }
-
-                    lastMatchIndex = hypothesisWord.getIndex();
-                    currentWordIndex++;
-                    if(currentWordIndex == numberOfWords()){
-                        break;
-                    }
+            for(int i = 0, n = numberOfWords() - 1;i < n;i++){
+                int index = getWord(i).getIndex();
+                int nextIndex = getWord(i + 1).getIndex();
+                if(nextIndex != index + 1){
+                    hypothesisIntermediates_.add(hypothesis.subSequence(index + 1, nextIndex));
+                    intermediatesIndices_.add(i);
                 }
             }
-            if(lastMatchIndex + 1 <= hypothesis.numberOfWords() - 1) {
-                hypothesisOnTheRight_ = hypothesis.subSequence(lastMatchIndex + 1);
+
+            if(getLastWord().getIndex() != hypothesis.numberOfWords() - 1){
+                hypothesisOnTheRight_ = hypothesis.subSequence(getLastWord().getIndex() + 1);
             }
         }
 
