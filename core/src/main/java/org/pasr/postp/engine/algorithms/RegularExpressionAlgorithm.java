@@ -14,10 +14,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static org.apache.commons.collections4.ListUtils.longestCommonSubsequence;
+import java.util.stream.Collectors;
 
 
 public class RegularExpressionAlgorithm implements Corrector.CorrectionAlgorithm {
@@ -29,55 +29,16 @@ public class RegularExpressionAlgorithm implements Corrector.CorrectionAlgorithm
         dictionary_ = dictionary;
         languageModel_ = languageModel;
 
-        // If the whole asr output exists inside the corpus, consider it correct
-        for(WordSequence sentence : corpus_){
-            if(sentence.getText().contains(asrOutput)){
-                return asrOutput;
-            }
-        }
-
         // Create a WordSequence from the asr output and get the words
         WordSequence asrOutputWS = new WordSequence(asrOutput.toLowerCase(), " ");
-        Word[] asrOutputWords = asrOutputWS.getWords();
+
+        // If the whole asr output exists inside the corpus, consider it correct
+        if(corpus_.contains(asrOutputWS)){
+            return asrOutput;
+        }
 
         // Find the longest common subsequence between each corpus line and the asr output.
-        HashSet<MatchingWordSequence> longestCommonSubSequences = new HashSet<>();
-
-        for(WordSequence sentence : corpus){
-            List<Word> candidate = longestCommonSubsequence(
-                Arrays.asList(asrOutputWords),
-                Arrays.asList(sentence.getWords()),
-                Word.textEquator_
-            );
-
-            if(candidate.size() > 0) {
-                longestCommonSubSequences.add(new MatchingWordSequence(candidate, asrOutputWS));
-            }
-        }
-
-        // Find the sub-sequences with the 2 largest lengths (except if the largest length is
-        // greater that the second largest by 3 or more.
-        HashSet<Integer> lengths = new HashSet<>();
-        longestCommonSubSequences.stream().forEach(matchingWordSequence -> lengths.add(matchingWordSequence.numberOfWords()));
-
-        List<Integer> sortedLengths = new ArrayList<>(lengths);
-        Collections.sort(sortedLengths);
-
-        ArrayList<MatchingWordSequence> subSequences = new ArrayList<>();
-        int maxLength = sortedLengths.get(sortedLengths.size() - 1);
-        // Avoid the case where there is only 1 sub-sequence.
-        if(sortedLengths.size() > 1) {
-            int secondMaxLength = sortedLengths.get(sortedLengths.size() - 2);
-            if (maxLength - secondMaxLength >= 2) {
-                longestCommonSubSequences.stream().filter(lcss -> lcss.numberOfWords() == maxLength).forEach(subSequences:: add);
-            }
-            else {
-                longestCommonSubSequences.stream().filter(lcss -> lcss.numberOfWords() >= secondMaxLength).forEach(subSequences:: add);
-            }
-        }
-        else{
-            longestCommonSubSequences.stream().filter(lcss -> lcss.numberOfWords() == maxLength).forEach(subSequences:: add);
-        }
+        List<MatchingWordSequence> subSequences = matchOnCorpus(asrOutputWS);
 
         // Create a candidate result from each matching word sequence.
         // Keep them in a Set instead of keeping only the best to be able to show different
@@ -93,7 +54,7 @@ public class RegularExpressionAlgorithm implements Corrector.CorrectionAlgorithm
             WordSequence hypothesisOnTheLeft = subSequence.getHypothesisOnTheLeft();
             if(hypothesisOnTheLeft != null && hypothesisOnTheLeft.numberOfWords() > 0){
                 Pattern pattern = Pattern.compile("((.*)\\s|^)" + subSequence.getFirstWord());
-                Match matchOnTheLeft = matchOnCorpus(pattern, hypothesisOnTheLeft);
+                Match matchOnTheLeft = scoreOnCorpus(pattern, hypothesisOnTheLeft);
 
                 currentResult = matchOnTheLeft.getMatch().getText();
                 currentSore = matchOnTheLeft.getScore();
@@ -117,7 +78,7 @@ public class RegularExpressionAlgorithm implements Corrector.CorrectionAlgorithm
                     Pattern pattern = Pattern.compile(wordOnTheLeft + "(\\s(.*)\\s|\\s)" +
                         wordOnTheRight);
 
-                    Match match = matchOnCorpus(pattern, intermediates.get(i));
+                    Match match = scoreOnCorpus(pattern, intermediates.get(i));
 
                     currentResult += " " + match.getMatch();
 
@@ -138,7 +99,7 @@ public class RegularExpressionAlgorithm implements Corrector.CorrectionAlgorithm
             WordSequence hypothesisOnTheRight = subSequence.getHypothesisOnTheRight();
             if(hypothesisOnTheRight != null && hypothesisOnTheRight.numberOfWords() > 0){
                 Pattern pattern = Pattern.compile(subSequence.getLastWord() + "(\\s(.*)|$)");
-                Match matchOnTheRight = matchOnCorpus(pattern, hypothesisOnTheRight);
+                Match matchOnTheRight = scoreOnCorpus(pattern, hypothesisOnTheRight);
 
                 currentResult += " " + matchOnTheRight.getMatch();
                 currentSore += matchOnTheRight.getScore();
@@ -163,7 +124,7 @@ public class RegularExpressionAlgorithm implements Corrector.CorrectionAlgorithm
         return resultCandidates.get(indexOfMinimum);
     }
 
-    private Match matchOnCorpus(Pattern pattern, WordSequence hypothesis){
+    private Match scoreOnCorpus (Pattern pattern, WordSequence hypothesis){
         Match match = new Match(hypothesis, Double.POSITIVE_INFINITY);
 
         String wordOnTheLeft = "";
@@ -301,7 +262,58 @@ public class RegularExpressionAlgorithm implements Corrector.CorrectionAlgorithm
         }
     }
 
+    private List<MatchingWordSequence> matchOnCorpus (WordSequence wordSequence){
+
+        Set<MatchingWordSequence> longestCommonSubSequences = longestCommonSubSequenceOnCorpus(wordSequence);
+
+        // Find the sub-sequences with the 2 largest lengths (except if the largest length is
+        // greater that the second largest by 3 or more.
+        HashSet<Integer> lengths = new HashSet<>();
+        longestCommonSubSequences.stream().
+            forEach(matchingWordSequence -> lengths.add(matchingWordSequence.numberOfWords()));
+
+        List<Integer> sortedLengths = new ArrayList<>(lengths);
+        Collections.sort(sortedLengths);
+
+        ArrayList<MatchingWordSequence> subSequences = new ArrayList<>();
+        int maxLength = sortedLengths.get(sortedLengths.size() - 1);
+        // Avoid the case where there is only 1 sub-sequence.
+        if(sortedLengths.size() > 1) {
+            int secondMaxLength = sortedLengths.get(sortedLengths.size() - 2);
+            if (maxLength - secondMaxLength >= 2) {
+                longestCommonSubSequences.
+                    stream().
+                    filter(lCSS -> lCSS.numberOfWords() == maxLength).
+                    forEach(subSequences:: add);
+            }
+            else {
+                longestCommonSubSequences.
+                    stream().
+                    filter(lCSS -> lCSS.numberOfWords() >= secondMaxLength).
+                    forEach(subSequences:: add);
+            }
+        }
+        else{
+            longestCommonSubSequences.stream().
+                filter(lCSS -> lCSS.numberOfWords() == maxLength).
+                forEach(subSequences:: add);
+        }
+
+        return subSequences;
+    }
+
+    private Set<MatchingWordSequence> longestCommonSubSequenceOnCorpus(WordSequence wordSequence){
+        return corpus_.longestCommonSubSequence(wordSequence).
+            stream().
+            map(lCS -> new MatchingWordSequence(lCS, wordSequence)).
+            collect(Collectors.toCollection(HashSet::new));
+    }
+
     private class MatchingWordSequence extends WordSequence{
+        MatchingWordSequence(WordSequence wordSequence, WordSequence hypothesis){
+            this(wordSequence.getWords(), hypothesis);
+        }
+
         MatchingWordSequence(List<Word> words, WordSequence hypothesis){
             this(words.toArray(new Word[words.size()]), hypothesis);
         }
@@ -320,6 +332,7 @@ public class RegularExpressionAlgorithm implements Corrector.CorrectionAlgorithm
                 hypothesisOnTheLeft_ = hypothesis.subSequence(0, getFirstWord().getIndex());
             }
 
+            // Find intermediates
             for(int i = 0, n = numberOfWords() - 1;i < n;i++){
                 int index = getWord(i).getIndex();
                 int nextIndex = getWord(i + 1).getIndex();
@@ -332,24 +345,6 @@ public class RegularExpressionAlgorithm implements Corrector.CorrectionAlgorithm
             if(getLastWord().getIndex() != hypothesis.numberOfWords() - 1){
                 hypothesisOnTheRight_ = hypothesis.subSequence(getLastWord().getIndex() + 1);
             }
-        }
-
-        @Override
-        public boolean equals(Object o){
-            if(o instanceof MatchingWordSequence){
-                String thisText = getText();
-                String objectText = ((MatchingWordSequence) o).getText();
-
-                return thisText.equals(objectText);
-            }
-            else{
-                return false;
-            }
-        }
-
-        @Override
-        public int hashCode(){
-            return getText().hashCode();
         }
 
         WordSequence getHypothesisOnTheLeft(){
