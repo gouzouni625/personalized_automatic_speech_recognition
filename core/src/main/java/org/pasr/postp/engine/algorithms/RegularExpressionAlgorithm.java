@@ -106,27 +106,32 @@ public class RegularExpressionAlgorithm implements Corrector.CorrectionAlgorithm
                 List<WordSequence> intermediates = subSequence.getHypothesisIntermediates();
                 List<Integer> intermediatesIndices = subSequence.getIntermediatesIndices();
 
-                int currentWord = intermediatesIndices.get(0);
-                currentResult = subSequence.subSequence(0, currentWord + 1).getText();
-                currentWord++;
+                currentResult = subSequence.subSequence(0,
+                    intermediatesIndices.get(0) + 1).getText();
 
                 for(int i = 0, n = intermediates.size();i < n;i++){
-                    Pattern pattern = Pattern.compile(
-                        subSequence.getWord(intermediatesIndices.get(i)) + "(\\s(.*)\\s|\\s)" +
-                            subSequence.getWord(intermediatesIndices.get(i) + 1));
+                    Word wordOnTheLeft = subSequence.getWord(intermediatesIndices.get(i));
+                    int wordOnTheRightIndex = intermediatesIndices.get(i) + 1;
+                    Word wordOnTheRight = subSequence.getWord(wordOnTheRightIndex);
+
+                    Pattern pattern = Pattern.compile(wordOnTheLeft + "(\\s(.*)\\s|\\s)" +
+                        wordOnTheRight);
 
                     Match match = matchOnCorpus(pattern, intermediates.get(i));
 
-                    currentResult += " " + match.getMatch() + " " + subSequence.getWord(currentWord);
-                    currentSore += match.getScore();
+                    currentResult += " " + match.getMatch();
 
-                    currentWord++;
+                    if(i < n - 1) {
+                        for (int j = wordOnTheRightIndex, m = intermediatesIndices.get(i + 1); j <= m; j++) {
+                            currentResult += " " + subSequence.getWord(j);
+                        }
+                    }
+
+                    currentSore += match.getScore();
                 }
 
-                if(currentWord < subSequence.numberOfWords()){
-                    for(int i = currentWord;i < subSequence.numberOfWords();i++){
+                for(int i = intermediatesIndices.get(intermediatesIndices.size() - 1) + 1;i < subSequence.numberOfWords();i++){
                         currentResult += " " + subSequence.getWord(i);
-                    }
                 }
             }
 
@@ -223,14 +228,16 @@ public class RegularExpressionAlgorithm implements Corrector.CorrectionAlgorithm
         String[] hypothesisPhones = dictionary_.getPhones(hypothesis);
         String[] candidatePhones = dictionary_.getPhones(candidate);
 
-        double wholeDistance = calculatePhoneDistance(hypothesisPhones, candidatePhones);
-
-        if (numberOfHypothesisWords >= numberOfCandidateWords) {
-            match.setMatch(candidate);
-            match.setScore(wholeDistance);
-
-            return match;
+        WordSequence candidateCopy = candidate.subSequence(0);
+        if(!wordOnTheLeft.isEmpty()){
+            candidateCopy.prependWord(new Word(wordOnTheLeft, null, 0));
         }
+        if(!wordOnTheRight.isEmpty()){
+            candidateCopy.appendWord(new Word(wordOnTheRight, null, 0));
+        }
+
+        double wholeDistance = 0.9 * calculatePhoneDistance(hypothesisPhones, candidatePhones) +
+            10 * (1 - languageModel_.getProbability(candidateCopy));
 
         double minDistance = Integer.MAX_VALUE;
         int index = - 1;
