@@ -10,13 +10,17 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Iterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static org.apache.commons.collections4.ListUtils.longestCommonSubsequence;
 
 
 public class Corpus implements Iterable<WordSequence> {
@@ -144,6 +148,37 @@ public class Corpus implements Iterable<WordSequence> {
         }
 
         return wordSequences;
+    }
+
+    public boolean contains(WordSequence wordSequence){
+        for(WordSequence sentence : sentences_){
+            if(sentence.getText().contains(wordSequence.getText())){
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public List<WordSequence> longestCommonSubSequence(WordSequence wordSequence){
+        Word[] words = wordSequence.getWords();
+
+        // longest common sub sequences list
+        ArrayList<WordSequence> lCSS = new ArrayList<>();
+
+        for(WordSequence sentence : sentences_){
+            List<Word> candidate = longestCommonSubsequence(
+                Arrays.asList(words),
+                Arrays.asList(sentence.getWords()),
+                Word.textEquator_
+            );
+
+            if(candidate.size() > 0) {
+                lCSS.add(new WordSequence(candidate, " "));
+            }
+        }
+
+        return lCSS;
     }
 
     public WordSequence[] getSentences() {
