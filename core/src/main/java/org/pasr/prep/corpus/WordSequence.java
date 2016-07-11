@@ -155,6 +155,24 @@ public class WordSequence implements Iterable<Word> {
     }
 
     @Override
+    public boolean equals(Object o){
+        if(o instanceof WordSequence){
+            String thisText = getText();
+            String objectText = ((WordSequence) o).getText();
+
+            return thisText.equals(objectText);
+        }
+        else{
+            return false;
+        }
+    }
+
+    @Override
+    public int hashCode(){
+        return getText().hashCode();
+    }
+
+    @Override
     public String toString() {
         return getText();
     }
