@@ -19,6 +19,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static java.lang.Math.max;
+import static org.pasr.utilities.Utilities.reduceDimensions;
+
 
 public class RegularExpressionAlgorithm implements Corrector.CorrectionAlgorithm {
 
@@ -192,6 +195,10 @@ public class RegularExpressionAlgorithm implements Corrector.CorrectionAlgorithm
         return match;
     }
 
+    private double calculateDistance(double phoneDistance, int maxNumberOfWords, double languageModelProbability){
+        return phoneDistance / maxNumberOfWords + 1 - languageModelProbability;
+    }
+
     private Match score (WordSequence candidate, WordSequence hypothesis,
                          String wordOnTheLeft, String wordOnTheRight) {
         Match match = new Match();
@@ -199,8 +206,8 @@ public class RegularExpressionAlgorithm implements Corrector.CorrectionAlgorithm
         int numberOfHypothesisWords = hypothesis.getWords().length;
         int numberOfCandidateWords = candidate.getWords().length;
 
-        String[] hypothesisPhones = dictionary_.getPhones(hypothesis);
-        String[] candidatePhones = dictionary_.getPhones(candidate);
+        String[][] hypothesisPhones = dictionary_.getPhones(hypothesis);
+        String[][] candidatePhones = dictionary_.getPhones(candidate);
 
         WordSequence candidateCopy = candidate.subSequence(0);
         if(!wordOnTheLeft.isEmpty()){
@@ -210,8 +217,11 @@ public class RegularExpressionAlgorithm implements Corrector.CorrectionAlgorithm
             candidateCopy.appendWord(new Word(wordOnTheRight, null, 0));
         }
 
-        double wholeDistance = 0.9 * calculatePhoneDistance(hypothesisPhones, candidatePhones) +
-            10 * (1 - languageModel_.getProbability(candidateCopy));
+        double wholeDistance = calculateDistance(
+            calculatePhoneDistance(hypothesisPhones, candidatePhones),
+            max(numberOfHypothesisWords, numberOfCandidateWords),
+            languageModel_.getProbability(candidateCopy)
+        );
 
         double minDistance = Integer.MAX_VALUE;
         int index = - 1;
@@ -231,7 +241,8 @@ public class RegularExpressionAlgorithm implements Corrector.CorrectionAlgorithm
 
             double languageModelProbability = languageModel_.getProbability(connectingWS);
 
-            currentDistance = 0.9 * currentDistance + 10 * (1 - languageModelProbability);
+            currentDistance = calculateDistance(
+                currentDistance, numberOfHypothesisWords, languageModelProbability);
 
             if (currentDistance < minDistance) {
                 minDistance = currentDistance;
@@ -260,7 +271,7 @@ public class RegularExpressionAlgorithm implements Corrector.CorrectionAlgorithm
         return match;
     }
 
-    private double calculatePhoneDistance(String[] sequence1, String[] sequence2){
+    private double calculatePhoneDistance(String[][] sequence1, String[][] sequence2){
         if(sequence1.length == 0 && sequence2.length == 0){
             return 0;
         }
@@ -271,7 +282,10 @@ public class RegularExpressionAlgorithm implements Corrector.CorrectionAlgorithm
             return sequence1.length;
         }
         else {
-            return new LevenshteinMatrix<>(sequence1, sequence2).getDistance();
+            String[] sequence1Joined = reduceDimensions(sequence1);
+            String[] sequence2Joined = reduceDimensions(sequence2);
+
+            return new LevenshteinMatrix<>(sequence1Joined, sequence2Joined).getDistance();
         }
     }
 

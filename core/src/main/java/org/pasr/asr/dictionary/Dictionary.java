@@ -63,29 +63,18 @@ public class Dictionary implements Iterable<Map.Entry<String, String>>{
             collect(Collectors.toMap(Map.Entry:: getKey, Map.Entry:: getValue));
     }
 
-    public String[] getPhones(WordSequence wordSequence){
+    public String[][] getPhones(WordSequence wordSequence){
         Word[] words = wordSequence.getWords();
 
-        if(words.length == 0){
-            return new String[] {};
-        }
-
         int numberOfWords = words.length;
-        String[][] phones = new String[numberOfWords][];
-        int numberOfPhones = 0;
 
-        for(int i = 0;i < numberOfWords;i++){
-            phones[i] = getPhones(words[i].getText());
-            numberOfPhones += phones[i].length;
+        if(numberOfWords == 0){
+            return new String[0][];
         }
 
-        String[] allPhones = new String[numberOfPhones];
-        int index = 0;
-        for (String[] wordPhones : phones) {
-            for (String phone : wordPhones) {
-                allPhones[index] = phone;
-                index++;
-            }
+        String[][] allPhones = new String[numberOfWords][];
+        for(int i = 0;i < numberOfWords;i++){
+            allPhones[i] = getPhones(words[i].getText());
         }
 
         return allPhones;

@@ -20,4 +20,22 @@ public class Utilities {
         return new File(Utilities.class.getResource(filename).getPath());
     }
 
+    public static String[] reduceDimensions(String[][] array){
+        int numberOfStrings = 0;
+        for(String[] subArray : array){
+            numberOfStrings += subArray.length;
+        }
+
+        String[] newArray = new String[numberOfStrings];
+
+        int index = 0;
+        for(String[] subArray : array){
+            for(String string : subArray){
+                newArray[index] = string;
+                index++;
+            }
+        }
+
+        return newArray;
+    }
 }
