@@ -77,7 +77,7 @@ public class RegularExpressionAlgorithm implements Corrector.CorrectionAlgorithm
                     Pattern pattern = Pattern.compile(wordOnTheLeft + "(\\s(.*)\\s|\\s)" +
                         wordOnTheRight);
 
-                    Match match = scoreOnCorpus(pattern, intermediates.get(i).getWordSequence());
+                    Match match = scoreIntermediateOnCorpus(pattern, intermediates.get(i));
 
                     currentResult += " " + match.getMatch();
 
@@ -121,6 +121,20 @@ public class RegularExpressionAlgorithm implements Corrector.CorrectionAlgorithm
         }
 
         return resultCandidates.get(indexOfMinimum);
+    }
+
+    private Match scoreIntermediateOnCorpus(Pattern pattern, MatchingWordSequence.Intermediate intermediate){
+        Match bestMatch = scoreOnCorpus(pattern, intermediate.getCandidate(0));
+
+        for(int i = 1, n = intermediate.getNumberOfCandidates();i < n;i++){
+            Match currentMatch =scoreOnCorpus(pattern, intermediate.getCandidate(i));
+
+            if(currentMatch.getScore() < bestMatch.getScore()){
+                bestMatch = currentMatch;
+            }
+        }
+
+        return bestMatch;
     }
 
     private Match scoreOnCorpus (Pattern pattern, WordSequence hypothesis){
@@ -338,7 +352,7 @@ public class RegularExpressionAlgorithm implements Corrector.CorrectionAlgorithm
                 int nextIndex = getWord(i + 1).getIndex();
                 if(nextIndex != index + 1){
                     addIntermediate(new Intermediate(
-                        hypothesis.subSequence(index + 1, nextIndex), i
+                        i, hypothesis.subSequence(index + 1, nextIndex)
                     ));
                 }
             }
@@ -353,7 +367,8 @@ public class RegularExpressionAlgorithm implements Corrector.CorrectionAlgorithm
                         int index = match.getWord(i).getIndex();
                         int nextIndex = match.getWord(i + 1).getIndex();
                         if(nextIndex != index + 1){
-                            addIntermediate(new Intermediate(new WordSequence("", " "), i));
+                            addIntermediate(new Intermediate(
+                                i, match.getFirstWord().getWordSequence().subSequence(index + 1, nextIndex)));
                         }
                     }
                 }
@@ -378,8 +393,8 @@ public class RegularExpressionAlgorithm implements Corrector.CorrectionAlgorithm
 
         private void addIntermediate(Intermediate intermediate){
             for(Intermediate intermediate_ : intermediates_){
-                if(intermediate_.getIndex() ==
-                    intermediate.getIndex()){
+                if(intermediate_.getIndex() == intermediate.getIndex()){
+                    intermediate.getCandidates().forEach(intermediate_:: addCandidate);
                     return;
                 }
             }
@@ -392,20 +407,34 @@ public class RegularExpressionAlgorithm implements Corrector.CorrectionAlgorithm
         private WordSequence hypothesisOnTheRight_;
 
         private class Intermediate{
-            public Intermediate(WordSequence candidate, int index){
-                candidate_ = candidate;
+            public Intermediate(int index, WordSequence... candidates){
                 index_ = index;
+
+                candidates_ = new ArrayList<>();
+                Collections.addAll(candidates_, candidates);
             }
 
-            WordSequence getWordSequence (){
-                return candidate_;
+            void addCandidate(WordSequence candidate){
+                candidates_.add(candidate);
+            }
+
+            WordSequence getCandidate(int index){
+                return candidates_.get(index);
+            }
+
+            public List<WordSequence> getCandidates(){
+                return candidates_;
+            }
+
+            int getNumberOfCandidates(){
+                return candidates_.size();
             }
 
             int getIndex (){
                 return index_;
             }
 
-            private WordSequence candidate_;
+            private List<WordSequence> candidates_;
             private int index_; // index on matching sequence
         }
     }
