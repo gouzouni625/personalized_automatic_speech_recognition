@@ -8,6 +8,8 @@ git submodule update
 
 ## ===== Install sphinxbase ===== ##
 cd sphinxbase
+
+# autogen script will run configure with the given arguments
 ./autogen.sh --prefix=$PWD
 
 make
@@ -18,7 +20,21 @@ cd ..
 
 ## ===== Install sphinxtrain ===== ##
 cd sphinxtrain
+
+# autogen script will run configure with the given arguments
 ./autogen.sh --prefix=$PWD
+
+make
+make check
+make install
+
+cd ..
+
+## ===== Install pocketsphinx ===== ##
+cd pocketsphinx
+
+# autogen script will run configure with the given arguments
+./autogen.sh  --prefix=$PWD
 
 make
 make check

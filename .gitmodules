@@ -7,3 +7,6 @@
 [submodule "sphinxtrain"]
 	path = sphinxtrain
 	url = https://github.com/cmusphinx/sphinxtrain.git
+[submodule "pocketsphinx"]
+	path = pocketsphinx
+	url = https://github.com/cmusphinx/pocketsphinx.git
