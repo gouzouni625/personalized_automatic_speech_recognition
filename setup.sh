@@ -10,7 +10,7 @@ git submodule update
 cd sphinxbase
 
 # autogen script will run configure with the given arguments
-./autogen.sh --prefix=$PWD
+./autogen.sh --prefix=$PWD/installation
 
 make
 make check
@@ -22,7 +22,7 @@ cd ..
 cd sphinxtrain
 
 # autogen script will run configure with the given arguments
-./autogen.sh --prefix=$PWD
+./autogen.sh --prefix=$PWD/installation
 
 make
 make check
@@ -34,7 +34,7 @@ cd ..
 cd pocketsphinx
 
 # autogen script will run configure with the given arguments
-./autogen.sh  --prefix=$PWD
+./autogen.sh  --prefix=$PWD/installation
 
 make
 make check
