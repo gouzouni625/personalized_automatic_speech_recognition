@@ -6,9 +6,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.control.Button?>
 <VBox xmlns:fx="http://javafx.com/fxml" alignment="CENTER">
-    <TreeView fx:id="treeView">
-
-    </TreeView>
+    <TreeView fx:id="treeView"/>
 
     <HBox alignment="CENTER">
         <Button fx:id="submitButton" text="go" onAction="#submitButtonClicked"/>

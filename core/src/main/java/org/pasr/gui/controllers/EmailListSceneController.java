@@ -6,7 +6,8 @@ import javafx.fxml.FXML;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
-import org.pasr.corpus.Corpus;
+import org.pasr.asr.dictionary.Dictionary;
+import org.pasr.prep.corpus.Corpus;
 import org.pasr.prep.email.EmailFetcher.RecentFolder.Email;
 import org.pasr.prep.email.EmailFetcher.RecentFolder;
 import org.pasr.prep.email.EmailFetcher;
@@ -20,7 +21,8 @@ import java.util.Observer;
 
 public class EmailListSceneController implements Observer{
 
-    public EmailListSceneController(HasCorpus hasCorpus, String username, String password) throws IOException, MessagingException {
+    public EmailListSceneController(HasCorpus hasCorpus, String username, String password)
+        throws IOException, MessagingException {
         hasCorpus_ = hasCorpus;
 
         emailFetcher_ = new GMailFetcher(username, password);
@@ -46,7 +48,7 @@ public class EmailListSceneController implements Observer{
             }
         });
 
-        corpus.process();
+        corpus.process(Dictionary.getDefaultDictionary());
         hasCorpus_.setCorpus(corpus);
     }
 

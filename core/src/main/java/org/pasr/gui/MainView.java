@@ -21,6 +21,8 @@ import org.pasr.utilities.Utilities;
 
 import java.io.File;
 
+import static org.pasr.utilities.Utilities.getResource;
+
 
 public class MainView extends Application implements Authenticator, HasCorpus, HasASR {
 
@@ -45,24 +47,28 @@ public class MainView extends Application implements Authenticator, HasCorpus, H
 
         primaryStage_.setTitle("Personalized Automatic Speech Recognition");
 
-        FXMLLoader loginNodeLoader = new FXMLLoader(getClass().getResource("/fxml/login_scene.fxml"));
+        FXMLLoader loginNodeLoader = new FXMLLoader(getResource("/fxml/login_scene.fxml"));
         loginSceneController_ = new LoginSceneController(this);
         loginNodeLoader.setController(loginSceneController_);
         Parent loginNode = loginNodeLoader.load();
 
-        primaryStage_.setScene(new Scene(loginNode, screenSize_.getWidth(), screenSize_.getHeight()));
+        primaryStage_.setScene(
+            new Scene(loginNode, screenSize_.getWidth(), screenSize_.getHeight())
+        );
 
         primaryStage_.show();
     }
 
     @Override
     public void authenticate (String username, String password) throws Exception {
-        FXMLLoader emailListNodeLoader = new FXMLLoader(getClass().getResource("/fxml/email_list_scene.fxml"));
+        FXMLLoader emailListNodeLoader = new FXMLLoader(getResource("/fxml/email_list_scene.fxml"));
         emailListSceneController_ = new EmailListSceneController(this, username, password);
         emailListNodeLoader.setController(emailListSceneController_);
         Parent emailListNode = emailListNodeLoader.load();
 
-        primaryStage_.setScene(new Scene(emailListNode, screenSize_.getWidth(), screenSize_.getHeight()));
+        primaryStage_.setScene(
+            new Scene(emailListNode, screenSize_.getWidth(), screenSize_.getHeight())
+        );
     }
 
     @Override
@@ -80,7 +86,7 @@ public class MainView extends Application implements Authenticator, HasCorpus, H
             "language_model.lm", "3").start();
 
         // Move to recording scene
-        FXMLLoader voiceRecordingNodeLoader = new FXMLLoader(getClass().getResource("/fxml/voice_recording_scene.fxml"));
+        FXMLLoader voiceRecordingNodeLoader = new FXMLLoader(getResource("/fxml/voice_recording_scene.fxml"));
         voiceRecordingSceneController_ = new VoiceRecordingSceneController(this, corpus_);
         voiceRecordingNodeLoader.setController(voiceRecordingSceneController_);
         Parent voiceRecordingNode = voiceRecordingNodeLoader.load();
@@ -101,7 +107,7 @@ public class MainView extends Application implements Authenticator, HasCorpus, H
 
     @Override
     public void startASR () throws Exception {
-        FXMLLoader asrNodeLoader = new FXMLLoader(getClass().getResource("/fxml/asr_scene.fxml"));
+        FXMLLoader asrNodeLoader = new FXMLLoader(getResource("/fxml/asr_scene.fxml"));
         asrSceneController_ = new ASRSceneController(corpus_, Dictionary.createFromStream(Utilities.getResourceStream("/edu/cmu/sphinx/models/en-us/cmudict-en-us.dict")));
         asrNodeLoader.setController(asrSceneController_);
         primaryStage_.setScene(new Scene(asrNodeLoader.load(), screenSize_.getWidth(), screenSize_.getHeight()));

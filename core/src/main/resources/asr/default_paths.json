@@ -1,0 +1,4 @@
+{
+  "defaultAcousticModelPath": "pocketsphinx/model/en-us/en-us",
+  "defaultDictionaryPath": "pocketsphinx/model/en-us/cmudict-en-us.dict"
+}

@@ -1,9 +1,11 @@
 package org.pasr.asr.dictionary;
 
+import org.pasr.asr.Configuration;
 import org.pasr.prep.corpus.Word;
 import org.pasr.prep.corpus.WordSequence;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.PrintWriter;
@@ -153,6 +155,13 @@ public class Dictionary implements Iterable<Map.Entry<String, String>>{
     @Override
     public Iterator<Map.Entry<String, String>> iterator () {
         return wordsToPhonesTable_.entrySet().iterator();
+    }
+
+    public static Dictionary getDefaultDictionary() throws FileNotFoundException {
+        System.out.println(Configuration.getInstance().getDefaultDictionaryPath());
+        return Dictionary.createFromStream(new FileInputStream(
+            Configuration.getInstance().getDefaultDictionaryPath()
+        ));
     }
 
     private final Map<String, String> wordsToPhonesTable_;

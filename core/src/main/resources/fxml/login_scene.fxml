@@ -7,8 +7,10 @@
 <?import javafx.scene.layout.HBox?>
 
 <GridPane hgap="10" vgap="10" xmlns:fx="http://javafx.com/fxml" alignment="CENTER">
-    <TextField fx:id="emailAddress" promptText="E-mail address" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
-    <PasswordField fx:id="password" promptText="Password" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+    <TextField fx:id="emailAddress" promptText="E-mail address" GridPane.rowIndex="0"
+               GridPane.columnIndex="0"/>
+    <PasswordField fx:id="password" promptText="Password" GridPane.rowIndex="1"
+                   GridPane.columnIndex="0"/>
 
     <HBox alignment="CENTER" GridPane.rowIndex="2" GridPane.columnIndex="0">
         <Button fx:id="submitButton" text="go" onAction="#submitButtonClicked"/>
