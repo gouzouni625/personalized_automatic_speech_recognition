@@ -16,6 +16,8 @@ make
 make check
 make install
 
+export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$PWD
+
 cd ..
 
 ## ===== Install sphinxtrain ===== ##
@@ -40,7 +42,25 @@ make
 make check
 make install
 
-cd ..
+# If no first argument is supplied
+if [ -z "$1" ]
+  then
+    export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+else
+    export JAVA_HOME=$1
+fi
+
+export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$PWD
+
+cd swig/java
+make
+javac test/*.java edu/cmu/pocketsphinx/*.java
+jar -cf pocketsphinx.jar edu libpocketsphinx_jni.so
+
+mkdir ../../../libs
+cp pocketsphinx.jar ../../../libs
+
+cd ../../../
 
 ## ===== Download and Install cmuclmtk ===== ##
 wget https://sourceforge.net/projects/cmusphinx/files/cmuclmtk/0.7/cmuclmtk-0.7.tar.gz/download -O cmuclmtk-0.7.tar.gz
