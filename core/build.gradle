@@ -14,9 +14,12 @@ jar {
 
 repositories() {
     mavenCentral()
+    maven { url "https://jitpack.io" }
 }
 
 dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+
     compile project(':sphinx4-core')
     compile project(':sphinx4-data')
 
@@ -28,4 +31,5 @@ dependencies {
     // compile group: 'org.apache.lucene' , name: 'lucene-core'            , version: '5.5.0'
     // compile group: 'org.apache.lucene' , name: 'lucene-queryparser'     , version: '5.5.0'
     // compile group: 'org.apache.lucene' , name: 'lucene-analyzers-common', version: '5.5.0'
+    compile group: 'com.github.gouzouni625', name: 'native-utils', version: '-SNAPSHOT'
 }

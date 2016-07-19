@@ -57,8 +57,7 @@ make
 javac test/*.java edu/cmu/pocketsphinx/*.java
 jar -cf pocketsphinx.jar edu libpocketsphinx_jni.so
 
-mkdir ../../../libs
-cp pocketsphinx.jar ../../../libs
+cp pocketsphinx.jar ../../../core/libs
 
 cd ../../../
 
