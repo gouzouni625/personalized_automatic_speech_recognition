@@ -158,9 +158,8 @@ public class Dictionary implements Iterable<Map.Entry<String, String>>{
     }
 
     public static Dictionary getDefaultDictionary() throws FileNotFoundException {
-        System.out.println(Configuration.getInstance().getDefaultDictionaryPath());
         return Dictionary.createFromStream(new FileInputStream(
-            Configuration.getInstance().getDefaultDictionaryPath()
+            Configuration.getDefaultConfiguration().getDictionaryPath()
         ));
     }
 

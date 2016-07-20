@@ -7,27 +7,51 @@ import java.io.InputStreamReader;
 import static org.pasr.utilities.Utilities.getResourceStream;
 
 public class Configuration {
-
-    private Configuration () {
+    static{
+        DEFAULT_CONFIGURATION = new Gson().fromJson(
+            new InputStreamReader(getResourceStream("/asr/default_paths.json")),
+            Configuration.class
+        );
     }
 
-    public static Configuration getInstance () {
-        return instance;
+    public Configuration () {
+        acousticModelPath = "";
+        dictionaryPath = "";
+        languageModelPath = "";
     }
 
-    public String getDefaultAcousticModelPath () {
-        return defaultAcousticModelPath;
+    public String getAcousticModelPath(){
+        return acousticModelPath;
     }
 
-    public String getDefaultDictionaryPath () {
-        return defaultDictionaryPath;
+    public String getDictionaryPath(){
+        return dictionaryPath;
     }
 
-    private static Configuration instance = new Gson().fromJson(
-        new InputStreamReader(getResourceStream("/asr/default_paths.json")), Configuration.class
-    );
+    public String getLanguageModelPath(){
+        return languageModelPath;
+    }
 
-    private String defaultAcousticModelPath;
-    private String defaultDictionaryPath;
+    public void setAcousticModelPath(String acousticModelPath){
+        this.acousticModelPath = acousticModelPath;
+    }
+
+    public void setDictionaryPath(String dictionaryPath){
+        this.dictionaryPath = dictionaryPath;
+    }
+
+    public void setLanguageModelPath(String languageModelPath){
+        this.languageModelPath = languageModelPath;
+    }
+
+    public static Configuration getDefaultConfiguration(){
+        return DEFAULT_CONFIGURATION;
+    }
+
+    private String acousticModelPath;
+    private String dictionaryPath;
+    private String languageModelPath;
+
+    private static final Configuration DEFAULT_CONFIGURATION;
 
 }
