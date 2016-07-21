@@ -1,4 +1,4 @@
-package org.pasr.asr.recognizer;
+package org.pasr.asr.recognizers;
 
 
 import cz.adamh.utils.NativeUtils;
