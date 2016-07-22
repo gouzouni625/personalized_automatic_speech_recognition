@@ -36,7 +36,7 @@ public class FileSpeechRecognizer {
         FileInputStream fileInputStream = new FileInputStream(file);
 
         decoder_.startUtt();
-        short[] buffer = new short[2048];
+        short[] buffer = new short[1024];
         int read;
 
         while((read = read(fileInputStream, buffer)) > 0){
