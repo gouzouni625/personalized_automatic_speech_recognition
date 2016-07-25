@@ -1,4 +1,4 @@
-package org.pasr.prep.email;
+package org.pasr.prep.email.fetchers;
 
 import java.util.Observable;
 

@@ -1,4 +1,4 @@
-package org.pasr.prep.email;
+package org.pasr.prep.email.fetchers;
 
 
 import org.pasr.utilities.Utilities;
