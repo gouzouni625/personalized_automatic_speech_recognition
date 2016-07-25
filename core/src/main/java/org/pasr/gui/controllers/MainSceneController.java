@@ -2,6 +2,7 @@ package org.pasr.gui.controllers;
 
 
 import javafx.application.Platform;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -14,8 +15,10 @@ import java.io.File;
 import java.io.IOException;
 
 
-public class MainSceneController {
-    public MainSceneController(){}
+public class MainSceneController extends Controller{
+    public MainSceneController(org.pasr.gui.controllers.Controller.API api){
+        super(api);
+    }
 
     @FXML
     public void initialize() throws IOException {
@@ -23,6 +26,9 @@ public class MainSceneController {
         // the views are not yet ready to handle
         // focus so runLater is used.
         Platform.runLater(() -> emailAddress.requestFocus());
+
+        newCorpusButton.setOnAction(this:: newCorpusButtonClicked);
+        dictateButton.setOnAction(this:: dictateButtonClicked);
 
         File corpusDirectory = new File("corpora");
         File acousticModelDirectory = new File("acoustic_models");
@@ -53,7 +59,7 @@ public class MainSceneController {
     }
 
     @FXML
-    public void newCorpusButtonClicked(){
+    private void newCorpusButtonClicked(ActionEvent actionEvent){
         String emailAddressText = emailAddress.getText();
         String passwordText = password.getText();
 
@@ -74,13 +80,18 @@ public class MainSceneController {
                 newCorpusButtonLabel.setVisible(false);
             }
 
-            // TODO move on with e-mail listing
+            ((API) api_).newCorpus(emailAddressText, passwordText);
         }
     }
 
     @FXML
-    public void dictateButtonClicked(){
-        // TODO move on with dictation
+    private void dictateButtonClicked(ActionEvent actionEvent){
+        ((API) api_).dictate();
+    }
+
+    public interface API extends org.pasr.gui.controllers.Controller.API{
+        void newCorpus(String emailAddress, String password);
+        void dictate(); // TODO probably will pass the chosen corpus and acoustic model
     }
 
     @FXML

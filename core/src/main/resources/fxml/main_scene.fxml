@@ -10,8 +10,7 @@
 <?import javafx.scene.text.Font?>
 
 <SplitPane dividerPositions="0.45" prefHeight="800.0" prefWidth="1280.0"
-           xmlns:fx="http://javafx.com/fxml"
-           fx:controller="org.pasr.gui.controllers.MainSceneController">
+           xmlns:fx="http://javafx.com/fxml">
     <SplitPane dividerPositions="0.5" orientation="VERTICAL" prefHeight="798.0"
                prefWidth="342.0">
         <items>
@@ -25,8 +24,7 @@
         <PasswordField fx:id="password" layoutX="264.0" layoutY="183.0"
                        promptText="Password"/>
         <Button fx:id="newCorpusButton" layoutX="310.0" layoutY="238.0"
-                mnemonicParsing="false" text="new coprus" textAlignment="CENTER"
-                onAction="#newCorpusButtonClicked">
+                mnemonicParsing="false" text="new coprus" textAlignment="CENTER">
             <font>
                 <Font name="Carlito" size="13.0"/>
             </font>
@@ -34,8 +32,7 @@
         <Label fx:id="newCorpusButtonLabel" layoutX="225.0" layoutY="279.0"
                textAlignment="CENTER" visible="false" wrapText="true"/>
         <Button fx:id="dictateButton" layoutX="322.0" layoutY="557.0"
-                mnemonicParsing="false" text="dictate" textAlignment="CENTER"
-                onAction="#dictateButtonClicked">
+                mnemonicParsing="false" text="dictate" textAlignment="CENTER">
             <font>
                 <Font name="Carlito" size="13.0"/>
             </font>
