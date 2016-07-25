@@ -45,7 +45,7 @@ make install
 # If no first argument is supplied
 if [ -z "$1" ]
   then
-    export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+    export JAVA_HOME=/usr/lib/jvm/default_java
 else
     export JAVA_HOME=$1
 fi
