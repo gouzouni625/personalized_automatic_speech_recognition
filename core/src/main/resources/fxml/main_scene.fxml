@@ -13,10 +13,8 @@
            xmlns:fx="http://javafx.com/fxml">
     <SplitPane dividerPositions="0.5" orientation="VERTICAL" prefHeight="798.0"
                prefWidth="342.0">
-        <items>
-            <ListView fx:id="corpusList" prefHeight="200.0" prefWidth="200.0"/>
-            <ListView fx:id="acousticModelList" prefHeight="200.0" prefWidth="200.0"/>
-        </items>
+        <ListView fx:id="corpusList" prefHeight="200.0" prefWidth="200.0"/>
+        <ListView fx:id="acousticModelList" prefHeight="200.0" prefWidth="200.0"/>
     </SplitPane>
     <AnchorPane>
         <TextField fx:id="emailAddress" layoutX="264.0" layoutY="157.0"
