@@ -27,8 +27,8 @@ public class MainSceneController extends Controller{
         // focus so runLater is used.
         Platform.runLater(() -> emailAddress.requestFocus());
 
-        newCorpusButton.setOnAction(this:: newCorpusButtonClicked);
-        dictateButton.setOnAction(this:: dictateButtonClicked);
+        newCorpusButton.setOnAction(this:: newCorpusButtonOnAction);
+        dictateButton.setOnAction(this:: dictateButtonOnAction);
 
         File corpusDirectory = new File("corpora");
         File acousticModelDirectory = new File("acoustic_models");
@@ -58,8 +58,7 @@ public class MainSceneController extends Controller{
         newCorpusButton.setTooltip(new Tooltip(NewCorpusButtonMessages.TOOLTIP.getMessage()));
     }
 
-    @FXML
-    private void newCorpusButtonClicked(ActionEvent actionEvent){
+    private void newCorpusButtonOnAction (ActionEvent actionEvent){
         String emailAddressText = emailAddress.getText();
         String passwordText = password.getText();
 
@@ -84,8 +83,7 @@ public class MainSceneController extends Controller{
         }
     }
 
-    @FXML
-    private void dictateButtonClicked(ActionEvent actionEvent){
+    private void dictateButtonOnAction (ActionEvent actionEvent){
         ((API) api_).dictate();
     }
 

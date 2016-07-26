@@ -1,6 +1,7 @@
 package org.pasr.gui.controllers;
 
 
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.SelectionMode;
@@ -58,6 +59,9 @@ public class EmailListSceneController extends Controller implements Observer{
                 }
             }
         );
+
+        backButton.setOnAction(this :: backButtonOnAction);
+        doneButton.setOnAction(this :: doneButtonOnAction);
     }
 
     private void updateSubjectTextArea(Email email){
@@ -121,6 +125,14 @@ public class EmailListSceneController extends Controller implements Observer{
     //     // hasCorpus_.setCorpus(corpus);
     // }
 
+    private void backButtonOnAction(ActionEvent actionEvent){
+        ((API) api_).back();
+    }
+
+    private void doneButtonOnAction(ActionEvent actionEvent){
+
+    }
+
 
     @Override
     public void update (Observable o, Object arg) {
@@ -135,6 +147,7 @@ public class EmailListSceneController extends Controller implements Observer{
     public interface API extends org.pasr.gui.controllers.Controller.API{
         String getEmailAddress();
         String getPassword();
+        void back();
     }
 
     @FXML
