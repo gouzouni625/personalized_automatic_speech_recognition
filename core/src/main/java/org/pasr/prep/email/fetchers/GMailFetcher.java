@@ -1,6 +1,7 @@
 package org.pasr.prep.email.fetchers;
 
 
+import org.pasr.prep.email.Email;
 import org.pasr.utilities.Utilities;
 
 import javax.mail.Folder;
@@ -27,64 +28,77 @@ public class GMailFetcher extends EmailFetcher{
     }
 
     public void fetch(){
-        fetcherRunning_ = true;
-        new Thread(this :: fetchMessages).start();
+        fetchingThreadRunning_ = true;
+        fetchingThread_ = new Thread(this :: fetchMessages);
+        fetchingThread_.start();
     }
 
     private void fetchMessages() {
         for(Folder folder : folders_){
-            if (!fetcherRunning_){
+            if (! fetchingThreadRunning_){
                 return;
             }
 
+            String folderName;
+            Email[] emails;
+
+            if(notUsableFolder(folder)){
+                continue;
+            }
+
+            folderName = folder.getFullName();
+
             try {
-                if(checkFolder(folder)){
-                    continue;
-                }
-
-                String folderName = folder.getFullName();
-
                 folder.open(Folder.READ_ONLY);
 
                 Message[] messages = folder.getMessages();
 
                 int numberOfMessages = messages.length;
-                RecentFolder.Email[] emails = new RecentFolder.Email[numberOfMessages];
+                emails = new Email[numberOfMessages];
 
                 for(int i = 0;i < numberOfMessages;i++){
-                    emails[i] = new RecentFolder.Email(messages[i].getSubject(),
-                        ((Multipart)(messages[i].getContent())).getBodyPart(0).getContent().toString());
-                }
+                    String messageSubject = messages[i].getSubject();
 
-                setChanged();
-                notifyObservers(new RecentFolder(folderName, emails));
+                    Object messageContent = messages[i].getContent();
+                    String messageBody;
+                    if(messageContent instanceof String){
+                        messageBody = (String) messageContent;
+                    }
+                    else{
+                        messageBody = ((Multipart)(messages[i].getContent())).
+                            getBodyPart(0).getContent().toString();
+                    }
+
+                    emails[i] = new Email(messageSubject, messageBody);
+                }
 
                 folder.close(false);
             } catch (MessagingException | IOException e) {
-                e.printStackTrace();
+                emails = new Email[0];
             }
-        }
 
-        try {
-            store_.close();
-        } catch (MessagingException e) {
-            e.printStackTrace();
+            setChanged();
+            notifyObservers(new org.pasr.prep.email.Folder(folderName, emails));
         }
     }
 
-    private boolean checkFolder(Folder folder){
+    private boolean notUsableFolder (Folder folder){
         return folder.getFullName().equals("[Gmail]");
     }
 
     @Override
-    public void close() {
-        fetcherRunning_ = false;
+    public void close() throws InterruptedException, MessagingException {
+        fetchingThreadRunning_ = false;
+
+        fetchingThread_.join();
+
+        store_.close();
     }
 
+    private Thread fetchingThread_;
+    private volatile boolean fetchingThreadRunning_ = false;
+
     private volatile Store store_;
-
     private Folder[] folders_;
-
-    private volatile boolean fetcherRunning_ = false;
 
 }

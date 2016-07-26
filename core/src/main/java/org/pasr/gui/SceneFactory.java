@@ -3,7 +3,9 @@ package org.pasr.gui;
 
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import org.pasr.gui.controllers.Controller;
 import org.pasr.gui.controllers.Controller.API;
+import org.pasr.gui.controllers.EmailListSceneController;
 import org.pasr.gui.controllers.MainSceneController;
 
 import java.io.IOException;
@@ -19,10 +21,16 @@ class SceneFactory {
     }
 
     Scene create(Scenes scene, API api) throws IOException {
-        FXMLLoader loader = new FXMLLoader(getResource(scene.getfXMLResource()));
+        FXMLLoader loader = new FXMLLoader(getResource(scene.getFXMLResource()));
+        Controller controller;
+
         switch(scene){
             case MAIN_SCENE:
-                MainSceneController controller = new MainSceneController(api);
+                controller = new MainSceneController(api);
+                loader.setController(controller);
+                break;
+            case EMAIL_LIST_SCENE:
+                controller = new EmailListSceneController(api);
                 loader.setController(controller);
                 break;
         }
@@ -31,13 +39,14 @@ class SceneFactory {
     }
 
     enum Scenes{
-        MAIN_SCENE("/fxml/main_scene.fxml");
+        MAIN_SCENE("/fxml/main_scene.fxml"),
+        EMAIL_LIST_SCENE("/fxml/email_list_scene.fxml");
 
         Scenes(String fXMLResource){
             fXMLResource_ = fXMLResource;
         }
 
-        public String getfXMLResource(){
+        public String getFXMLResource(){
             return fXMLResource_;
         }
 
