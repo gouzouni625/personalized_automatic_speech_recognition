@@ -1,9 +1,9 @@
 package org.pasr.prep.email.fetchers;
 
 
-import org.pasr.prep.email.Email;
 import org.pasr.utilities.Utilities;
 
+import javax.mail.Address;
 import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -39,47 +39,170 @@ public class GMailFetcher extends EmailFetcher{
                 return;
             }
 
-            String folderName;
-            Email[] emails;
-
             if(notUsableFolder(folder)){
                 continue;
             }
 
-            folderName = folder.getFullName();
+            String folderFullName = folder.getFullName();
+            Message[] messages;
 
             try {
                 folder.open(Folder.READ_ONLY);
+                messages = folder.getMessages();
+            } catch (MessagingException e) {
+                // TODO debug information: could not get folder messages
+                continue;
+            }
 
-                Message[] messages = folder.getMessages();
+            int numberOfMessages = messages.length;
+            Email[] emails = new Email[numberOfMessages];
 
-                int numberOfMessages = messages.length;
-                emails = new Email[numberOfMessages];
+            for(int i = 0;i < numberOfMessages;i++){
+                String messageSubject;
+                try {
+                    messageSubject = messages[i].getSubject();
+                } catch (MessagingException e) {
+                    // TODO debug information: could not get message subject
+                    emails[i] = null;
+                    continue;
+                }
 
-                for(int i = 0;i < numberOfMessages;i++){
-                    String messageSubject = messages[i].getSubject();
+                String[] senders;
+                try {
+                    Address[] addresses = messages[i].getFrom();
+                    if(addresses == null){
+                        senders = new String[0];
+                    }
+                    else {
+                        int numberOfSenders = addresses.length;
 
-                    Object messageContent = messages[i].getContent();
-                    String messageBody;
+                        senders = new String[numberOfSenders];
+                        for (int j = 0; j < numberOfSenders; j++) {
+                            senders[j] = addresses[j].toString();
+                        }
+                    }
+                } catch (MessagingException e) {
+                    // TODO debug information: could not get message senders
+                    emails[i] = null;
+                    continue;
+                }
+
+                String[] tORecipients;
+                try {
+                    Address[] addresses = messages[i].getRecipients(Message.RecipientType.TO);
+                    if(addresses == null){
+                        tORecipients = new String[0];
+                    }
+                    else {
+                        int numberOfRecipients = addresses.length;
+
+                        tORecipients = new String[numberOfRecipients];
+                        for (int j = 0; j < numberOfRecipients; j++) {
+                            tORecipients[j] = addresses[j].toString();
+                        }
+                    }
+                } catch (MessagingException e) {
+                    // TODO debug information: could not get message "TO" recipients
+                    emails[i] = null;
+                    continue;
+                }
+
+                String[] cCRecipients;
+                try {
+                    Address[] addresses = messages[i].getRecipients(Message.RecipientType.CC);
+                    if(addresses == null){
+                        cCRecipients = new String[0];
+                    }
+                    else {
+                        int numberOfRecipients = addresses.length;
+
+                        cCRecipients = new String[numberOfRecipients];
+                        for (int j = 0; j < numberOfRecipients; j++) {
+                            cCRecipients[j] = addresses[j].toString();
+                        }
+                    }
+                } catch (MessagingException e) {
+                    // TODO debug information: could not get message "CC" recipients
+                    emails[i] = null;
+                    continue;
+                }
+
+                String[] bCCRecipients;
+                try {
+                    Address[] addresses = messages[i].getRecipients(Message.RecipientType.BCC);
+                    if(addresses == null){
+                        bCCRecipients = new String[0];
+                    }
+                    else {
+                        int numberOfRecipients = addresses.length;
+
+                        bCCRecipients = new String[numberOfRecipients];
+                        for (int j = 0; j < numberOfRecipients; j++) {
+                            bCCRecipients[j] = addresses[j].toString();
+                        }
+                    }
+                } catch (MessagingException e) {
+                    // TODO debug information: could not get message "BCC" recipients
+                    emails[i] = null;
+                    continue;
+                }
+
+                String messageReceivedDate;
+                try {
+                    messageReceivedDate = messages[i].getSentDate().toString();
+                } catch (MessagingException e) {
+                    // TODO debug information: could not get message received date
+                    emails[i] = null;
+                    continue;
+                }
+
+                Object messageContent;
+                String messageBody;
+                try {
+                    messageContent = messages[i].getContent();
+
                     if(messageContent instanceof String){
                         messageBody = (String) messageContent;
                     }
-                    else{
-                        messageBody = ((Multipart)(messages[i].getContent())).
-                            getBodyPart(0).getContent().toString();
+                    else if(messageContent instanceof Multipart){
+                        messageBody = getBodyFromMultiPart((Multipart) messageContent);
                     }
-
-                    emails[i] = new Email(messageSubject, messageBody);
+                    else{
+                        messageBody = "";
+                    }
+                } catch (IOException | MessagingException e) {
+                    // TODO debug information: could not get message content
+                    emails[i] = null;
+                    continue;
                 }
 
+                emails[i] = new Email(senders, tORecipients, cCRecipients, bCCRecipients,
+                    messageReceivedDate, messageSubject, messageBody);
+            }
+
+            try {
                 folder.close(false);
-            } catch (MessagingException | IOException e) {
-                emails = new Email[0];
+            } catch (MessagingException e) {
+                // TODO debug information: could not close the folder normally
             }
 
             setChanged();
-            notifyObservers(new org.pasr.prep.email.Folder(folderName, emails));
+            notifyObservers(new org.pasr.prep.email.fetchers.Folder(folderFullName, emails));
         }
+    }
+
+    private String getBodyFromMultiPart(Multipart multipart) throws MessagingException, IOException {
+        StringBuilder stringBuilder = new StringBuilder();
+
+        Object content = multipart.getBodyPart(0).getContent();
+        if(content instanceof String){
+            stringBuilder.append(content);
+        }
+        else if(content instanceof Multipart){
+            stringBuilder.append(getBodyFromMultiPart((Multipart) content));
+        }
+
+        return stringBuilder.toString();
     }
 
     private boolean notUsableFolder (Folder folder){

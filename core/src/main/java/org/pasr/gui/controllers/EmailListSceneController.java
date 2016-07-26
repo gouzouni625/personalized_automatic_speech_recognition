@@ -2,11 +2,13 @@ package org.pasr.gui.controllers;
 
 
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.SelectionMode;
-import javafx.scene.control.TreeItem;
-import org.pasr.prep.email.EmailTree;
-import org.pasr.prep.email.EmailTreeItem;
-import org.pasr.prep.email.Folder;
+import javafx.scene.control.TextArea;
+import org.pasr.gui.email.tree.EmailTree;
+import org.pasr.gui.email.tree.EmailTreeItem;
+import org.pasr.prep.email.fetchers.Email;
+import org.pasr.prep.email.fetchers.Folder;
 import org.pasr.prep.email.fetchers.EmailFetcher;
 import org.pasr.prep.email.fetchers.GMailFetcher;
 
@@ -40,10 +42,64 @@ public class EmailListSceneController extends Controller implements Observer{
 
     @FXML
     public void initialize() {
-        TreeItem<String> root = EmailTreeItem.createFolder("E-mails");
+        EmailTreeItem root = new EmailTreeItem(new Folder("/E-mails", new Email[0]));
 
         emailTree.setRoot(root);
         emailTree.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+
+        emailTree.getSelectionModel().selectedItemProperty().addListener(
+            (observable, oldValue, newValue) -> {
+                EmailTreeItem selectedEmailTreeItem = (EmailTreeItem) observable.getValue();
+
+                if (! selectedEmailTreeItem.isFolder()) {
+                    updateSubjectTextArea(selectedEmailTreeItem.getEmail());
+                    updateBodyTextArea(selectedEmailTreeItem.getEmail());
+
+                }
+            }
+        );
+    }
+
+    private void updateSubjectTextArea(Email email){
+        StringBuilder stringBuilder = new StringBuilder();
+
+        stringBuilder.append("Subject: ").append(email.getSubject()).append("\n");
+
+        String[] senders = email.getSenders();
+        if(senders.length != 0){
+            stringBuilder.append("From: ")
+                .append(String.join(", ", (CharSequence[]) senders))
+                .append("\n");
+        }
+
+        String[] tORecipients = email.getRecipients(Email.RecipientType.TO);
+        if(tORecipients.length != 0){
+            stringBuilder.append("To: ")
+                .append(String.join(", ", (CharSequence[]) tORecipients))
+                .append("\n");
+        }
+
+        String[] cCRecipients = email.getRecipients(Email.RecipientType.CC);
+        if(cCRecipients.length != 0){
+            stringBuilder.append("CC: ")
+                .append(String.join(", ", (CharSequence[]) cCRecipients))
+                .append("\n");
+        }
+
+        String[] bCCRecipients = email.getRecipients(Email.RecipientType.BCC);
+        if(bCCRecipients.length != 0){
+            stringBuilder.append("BCC: ")
+                .append(String.join(", ", (CharSequence[]) bCCRecipients))
+                .append("\n");
+        }
+
+        stringBuilder.append("On: ").append(email.getReceivedDate()).append("\n");
+
+        subjectTextArea.setText(stringBuilder.toString());
+    }
+
+    private void updateBodyTextArea(Email email){
+        bodyTextArea.setText(email.getBody());
     }
 
     // @FXML
@@ -82,6 +138,18 @@ public class EmailListSceneController extends Controller implements Observer{
 
     @FXML
     private EmailTree emailTree;
+
+    @FXML
+    private TextArea subjectTextArea;
+
+    @FXML
+    private TextArea bodyTextArea;
+
+    @FXML
+    private Button backButton;
+
+    @FXML
+    private Button doneButton;
 
     private EmailFetcher emailFetcher_;
 

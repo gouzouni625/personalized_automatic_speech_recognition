@@ -1,19 +1,20 @@
-package org.pasr.prep.email;
+package org.pasr.gui.email.tree;
 
 
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
+import org.pasr.prep.email.fetchers.Email;
+import org.pasr.prep.email.fetchers.Folder;
+
+import java.util.Arrays;
 
 
 public class EmailTree extends TreeView<String> {
     public void add(Folder folder){
+        EmailTreeItem treeItem = new EmailTreeItem(folder);
+
         String[] folders = folder.getPath().split("/");
         int numberOfFolders = folders.length;
-
-        EmailTreeItem newFolder = EmailTreeItem.createFolder(folders[numberOfFolders - 1]);
-        for(Email email : folder.getEmails()){
-            newFolder.getChildren().add(EmailTreeItem.createEmail(email.getSubject(), email.getBody()));
-        }
 
         int depth = 0;
         TreeItem<String> currentFolder = getRoot();
@@ -24,7 +25,7 @@ public class EmailTree extends TreeView<String> {
                 depth++;
 
                 if(depth == numberOfFolders - 1){
-                    currentFolder.getChildren().add(newFolder);
+                    currentFolder.getChildren().add(treeItem);
                     break;
                 }
             }
@@ -34,13 +35,17 @@ public class EmailTree extends TreeView<String> {
         }
         if(depth < numberOfFolders - 1 || depth == 0){
             for(int i = depth, n = numberOfFolders - 1;i < n;i++){
-                EmailTreeItem parentFolder = EmailTreeItem.createFolder(folders[i]);
+                EmailTreeItem parentFolder = new EmailTreeItem(new Folder(
+                    String.join("/", (CharSequence[]) Arrays.copyOfRange(folders, 0, i + 1)),
+                    new Email[0]
+                ));
+
                 currentFolder.getChildren().add(parentFolder);
 
                 currentFolder = parentFolder;
             }
 
-            currentFolder.getChildren().add(newFolder);
+            currentFolder.getChildren().add(treeItem);
         }
     }
 
