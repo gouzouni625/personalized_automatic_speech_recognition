@@ -22,16 +22,14 @@ class SceneFactory {
 
     Scene create(Scenes scene, API api) throws IOException {
         FXMLLoader loader = new FXMLLoader(getResource(scene.getFXMLResource()));
-        Controller controller;
-
         switch(scene){
             case MAIN_SCENE:
-                controller = new MainSceneController(api);
-                loader.setController(controller);
+                currentController_ = new MainSceneController(api);
+                loader.setController(currentController_);
                 break;
             case EMAIL_LIST_SCENE:
-                controller = new EmailListSceneController(api);
-                loader.setController(controller);
+                currentController_ = new EmailListSceneController(api);
+                loader.setController(currentController_);
                 break;
         }
 
@@ -53,6 +51,12 @@ class SceneFactory {
         private String fXMLResource_;
     }
 
+    public Controller getCurrentController(){
+        return currentController_;
+    }
+
     private static SceneFactory instance_ = new SceneFactory();
+
+    private Controller currentController_;
 
 }
