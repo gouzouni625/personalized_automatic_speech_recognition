@@ -10,4 +10,6 @@ public abstract class Controller {
 
     API api_;
 
+    public void terminate() throws Exception {}
+
 }

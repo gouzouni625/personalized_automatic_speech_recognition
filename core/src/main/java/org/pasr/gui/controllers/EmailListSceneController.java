@@ -127,7 +127,8 @@ public class EmailListSceneController extends Controller implements Observer{
         emailTree.add((Folder) arg);
     }
 
-    public void close() throws Exception {
+    @Override
+    public void terminate() throws Exception {
         emailFetcher_.close();
     }
 
