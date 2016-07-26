@@ -14,26 +14,33 @@
               prefWidth="379.0"/>
     <SplitPane dividerPositions="0.5" layoutX="354.0" layoutY="152.0" orientation="VERTICAL"
                prefHeight="798.0" prefWidth="891.0">
-        <TextArea editable="false" layoutX="196.0" layoutY="-45.0" prefHeight="155.0"
-                  prefWidth="889.0">
-            <font>
-                <Font name="Carlito" size="13.0"/>
-            </font>
-        </TextArea>
         <AnchorPane>
-            <TextArea editable="false" prefHeight="633.0" prefWidth="889.0">
+            <TextArea editable="false" layoutX="196.0" layoutY="-45.0" prefHeight="155.0"
+                      prefWidth="889.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                      AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                <font>
+                    <Font name="Carlito" size="13.0"/>
+                </font>
+            </TextArea>
+        </AnchorPane>
+        <AnchorPane>
+            <TextArea editable="false" prefHeight="633.0" prefWidth="889.0"
+                      AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                      AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                 <font>
                     <Font name="Carlito" size="13.0"/>
                 </font>
             </TextArea>
             <Button layoutX="815.0" layoutY="593.0" mnemonicParsing="false" prefHeight="30.0"
-                    prefWidth="60.0" text="done">
+                    prefWidth="60.0" text="done" AnchorPane.bottomAnchor="10.0"
+                    AnchorPane.rightAnchor="72.0">
                 <font>
                     <Font name="Carlito" size="13.0"/>
                 </font>
             </Button>
             <Button layoutX="753.0" layoutY="593.0" mnemonicParsing="false" prefHeight="30.0"
-                    prefWidth="60.0" text="back">
+                    prefWidth="60.0" text="back" AnchorPane.bottomAnchor="10.0"
+                    AnchorPane.rightAnchor="10.0">
                 <font>
                     <Font name="Carlito" size="13.0"/>
                 </font>
