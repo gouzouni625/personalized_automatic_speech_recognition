@@ -4,15 +4,11 @@ package org.pasr.gui.controllers;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.DialogPane;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TextArea;
-import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.TreeItem;
 import org.pasr.gui.email.tree.EmailTree;
 import org.pasr.gui.email.tree.EmailTreeItem;
-import org.pasr.prep.corpus.Corpus;
 import org.pasr.prep.email.fetchers.Email;
 import org.pasr.prep.email.fetchers.Folder;
 import org.pasr.prep.email.fetchers.EmailFetcher;
@@ -24,7 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
-import java.util.Optional;
 
 
 public class EmailListSceneController extends Controller implements Observer{
@@ -35,8 +30,10 @@ public class EmailListSceneController extends Controller implements Observer{
             emailFetcher_ = new GMailFetcher(((API) api_).getEmailAddress(),
                 ((API) api_).getPassword());
         } catch (IOException e) {
+            // TODO Act appropriately
             e.printStackTrace();
         } catch (MessagingException e) {
+            // TODO Act appropriately
             e.printStackTrace();
         }
 
@@ -119,9 +116,7 @@ public class EmailListSceneController extends Controller implements Observer{
     }
 
     private void doneButtonOnAction(ActionEvent actionEvent){
-        String newCorpusName = showCorpusNameDialog();
-
-        ((API) api_).setCorpus(new Corpus(newCorpusName, getChosenEmails()));
+        ((API) api_).processEmail(getChosenEmails());
     }
 
     private List<Email> getChosenEmails () {
@@ -135,26 +130,6 @@ public class EmailListSceneController extends Controller implements Observer{
 
         return emails;
     }
-
-    private String showCorpusNameDialog(){
-        TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle("New corpus name");
-
-        DialogPane dialogPane = dialog.getDialogPane();
-        dialogPane.getButtonTypes().remove(ButtonType.CANCEL);
-        dialogPane.setHeaderText("Please enter a name for the new corpus");
-        dialogPane.setContentText("Name: ");
-
-        Optional<String> result = dialog.showAndWait();
-        String name;
-        if(result.isPresent() && !((name = result.get()).isEmpty())){
-            return name;
-        }
-        else{
-            return "corpus";
-        }
-    }
-
 
     @Override
     public void update (Observable o, Object arg) {
@@ -170,7 +145,7 @@ public class EmailListSceneController extends Controller implements Observer{
         String getEmailAddress();
         String getPassword();
         void back();
-        void setCorpus(Corpus corpus);
+        void processEmail(List<Email> corpus);
     }
 
     @FXML
