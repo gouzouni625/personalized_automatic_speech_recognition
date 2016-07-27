@@ -6,6 +6,7 @@ import javafx.scene.Scene;
 import org.pasr.gui.controllers.Controller;
 import org.pasr.gui.controllers.Controller.API;
 import org.pasr.gui.controllers.EmailListSceneController;
+import org.pasr.gui.controllers.LDASceneController;
 import org.pasr.gui.controllers.MainSceneController;
 
 import java.io.IOException;
@@ -31,6 +32,10 @@ class SceneFactory {
                 currentController_ = new EmailListSceneController(api);
                 loader.setController(currentController_);
                 break;
+            case LDA_SCENE:
+                currentController_ = new LDASceneController(api);
+                loader.setController(currentController_);
+                break;
         }
 
         return new Scene(loader.load());
@@ -38,7 +43,8 @@ class SceneFactory {
 
     enum Scenes{
         MAIN_SCENE("/fxml/main_scene.fxml"),
-        EMAIL_LIST_SCENE("/fxml/email_list_scene.fxml");
+        EMAIL_LIST_SCENE("/fxml/email_list_scene.fxml"),
+        LDA_SCENE("/fxml/lda_scene.fxml");
 
         Scenes(String fXMLResource){
             fXMLResource_ = fXMLResource;
