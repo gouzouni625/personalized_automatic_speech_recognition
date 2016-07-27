@@ -10,8 +10,8 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.text.Font?>
 
-<HBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
-      prefHeight="800.0" prefWidth="1280.0" xmlns:fx="http://javafx.com/fxml">
+<HBox prefHeight="800.0" prefWidth="1280.0" xmlns="http://javafx.com/javafx/8.0.91"
+      xmlns:fx="http://javafx.com/fxml/1">
     <AnchorPane prefHeight="800.0" prefWidth="640.0" HBox.hgrow="ALWAYS">
         <Label layoutX="228.0" layoutY="14.0" text="Unknown Words" textAlignment="CENTER">
             <font>
@@ -21,68 +21,72 @@
         <SplitPane dividerPositions="0.5" layoutX="190.0" layoutY="230.0" prefHeight="800.0"
                    prefWidth="640.0" AnchorPane.bottomAnchor="50.0" AnchorPane.leftAnchor="10.0"
                    AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="50.0">
-            <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
-                <Label layoutX="126.0" layoutY="14.0" text="Words"
-                       textAlignment="CENTER">
+            <AnchorPane prefHeight="160.0" prefWidth="100.0">
+                <Label layoutX="126.0" layoutY="14.0" text="Words" textAlignment="CENTER">
                     <font>
                         <Font name="System Bold" size="15.0"/>
                     </font>
                 </Label>
-                <Button fx:id="pronounceButton" layoutX="109.0" layoutY="658.0"
-                        mnemonicParsing="false" text="pronounce"/>
                 <ListView fx:id="wordsListView" layoutX="17.0" layoutY="45.0" prefHeight="599.0"
                           prefWidth="274.0" AnchorPane.bottomAnchor="60.0"
                           AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0"
                           AnchorPane.topAnchor="60.0"/>
+                <Button fx:id="removeButton" layoutX="24.5" layoutY="662.0" mnemonicParsing="false"
+                        prefHeight="30.0" prefWidth="90.0" text="remove"
+                        AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0"/>
+                <Button fx:id="pronounceButton" layoutX="193.0" layoutY="659.0"
+                        mnemonicParsing="false" prefHeight="30.0" prefWidth="90.0" text="pronounce"
+                        AnchorPane.bottomAnchor="10.0" AnchorPane.rightAnchor="10.0"/>
             </AnchorPane>
-            <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
-                <Label layoutX="105.0" layoutY="14.0" text="Candidates"
-                       textAlignment="CENTER">
+            <AnchorPane prefHeight="160.0" prefWidth="100.0">
+                <Label layoutX="105.0" layoutY="14.0" text="Candidates" textAlignment="CENTER">
                     <font>
                         <Font name="System Bold" size="15.0"/>
                     </font>
                 </Label>
-                <Button fx:id="chooseButton" layoutX="120.0" layoutY="658.0" mnemonicParsing="false"
-                        prefHeight="26.0" prefWidth="88.0" text="choose"
-                        AnchorPane.bottomAnchor="14.0"/>
                 <ListView fx:id="candidatesListView" layoutX="16.0" layoutY="50.0"
                           prefHeight="599.0" prefWidth="274.0" AnchorPane.bottomAnchor="60.0"
                           AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0"
                           AnchorPane.topAnchor="60.0"/>
+                <Button fx:id="chooseButton" layoutX="109.0" layoutY="650.0" mnemonicParsing="false"
+                        prefHeight="30.0" prefWidth="90.0" text="choose"
+                        AnchorPane.bottomAnchor="10.0" AnchorPane.rightAnchor="10.0"/>
             </AnchorPane>
         </SplitPane>
     </AnchorPane>
     <AnchorPane prefHeight="800.0" prefWidth="640.0" HBox.hgrow="ALWAYS">
-        <AnchorPane fx:id="lDAPane" layoutX="10.0" layoutY="50.0" prefHeight="900.0"
-                    prefWidth="660.0" AnchorPane.bottomAnchor="50.0" AnchorPane.leftAnchor="10.0"
-                    AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="50.0">
-            <TextArea fx:id="resultsTextArea" editable="false" prefHeight="800.0" prefWidth="640.0"
-                      AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
-                      AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
-            <Button fx:id="runAgainButton" layoutX="530.0" layoutY="10.0" mnemonicParsing="false"
-                    text="run again" AnchorPane.bottomAnchor="664.0" AnchorPane.leftAnchor="530.0"
-                    AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0"/>
-            <TextField fx:id="classesTextField" layoutX="10.0" layoutY="664.0" maxHeight="-Infinity"
-                       maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
-                       prefHeight="26.0" prefWidth="140.0"
-                       promptText="classes (default: 3)"/>
-            <Button fx:id="declineButton" layoutX="240.0" layoutY="664.0" mnemonicParsing="false"
-                    prefHeight="26.0" prefWidth="80.0" text="decline"
-                    AnchorPane.rightAnchor="300.0"/>
-            <Button fx:id="acceptButton" layoutX="322.0" layoutY="664.0" mnemonicParsing="false"
-                    prefHeight="26.0" prefWidth="80.0" text="accept"
-                    AnchorPane.rightAnchor="218.0"/>
-        </AnchorPane>
         <Label layoutX="241.0" layoutY="14.0" text="L.D.A. Results" textAlignment="CENTER">
             <font>
                 <Font name="System Bold" size="20.0"/>
             </font>
         </Label>
+        <AnchorPane fx:id="lDAPane" layoutX="10.0" layoutY="50.0" prefHeight="900.0"
+                    prefWidth="660.0" AnchorPane.bottomAnchor="50.0" AnchorPane.leftAnchor="10.0"
+                    AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="50.0">
+            <TextField fx:id="iterationsTextField" layoutX="10.0" layoutY="46.0" prefHeight="30.0"
+                       prefWidth="180.0" promptText="iterations (default: 1000)"
+                       AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="10.0"/>
+            <TextField fx:id="classesTextField" layoutX="10.0" layoutY="664.0" prefHeight="30.0"
+                       prefWidth="180.0" promptText="classes (default: 3)"
+                       AnchorPane.leftAnchor="190.0" AnchorPane.topAnchor="10.0"/>
+            <Button fx:id="runAgainButton" layoutX="530.0" layoutY="10.0" mnemonicParsing="false"
+                    prefHeight="30.0" prefWidth="80.0" text="run again"
+                    AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0"/>
+            <TextArea fx:id="resultsTextArea" editable="false" prefHeight="800.0" prefWidth="640.0"
+                      AnchorPane.bottomAnchor="50.0" AnchorPane.leftAnchor="0.0"
+                      AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="50.0"/>
+            <Button fx:id="declineButton" layoutX="207.0" layoutY="663.0" mnemonicParsing="false"
+                    prefHeight="30.0" prefWidth="90.0" text="decline" AnchorPane.bottomAnchor="10.0"
+                    AnchorPane.leftAnchor="215.0"/>
+            <Button fx:id="acceptButton" layoutX="337.0" layoutY="661.0" mnemonicParsing="false"
+                    prefHeight="30.0" prefWidth="90.0" text="accept" AnchorPane.bottomAnchor="10.0"
+                    AnchorPane.leftAnchor="315.0"/>
+        </AnchorPane>
         <Button fx:id="backButton" layoutX="502.0" layoutY="760.0" mnemonicParsing="false"
-                prefHeight="30.0" prefWidth="60.0" text="back" AnchorPane.bottomAnchor="15.0"
-                AnchorPane.rightAnchor="82.0"/>
+                prefHeight="30.0" prefWidth="60.0" text="back" AnchorPane.bottomAnchor="10.0"
+                AnchorPane.rightAnchor="80.0"/>
         <Button fx:id="doneButton" layoutX="564.0" layoutY="760.0" mnemonicParsing="false"
-                prefHeight="30.0" prefWidth="60.0" text="done" AnchorPane.bottomAnchor="15.0"
-                AnchorPane.rightAnchor="20.0"/>
+                prefHeight="30.0" prefWidth="60.0" text="done" AnchorPane.bottomAnchor="10.0"
+                AnchorPane.rightAnchor="10.0"/>
     </AnchorPane>
 </HBox>
