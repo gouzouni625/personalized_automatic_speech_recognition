@@ -12,10 +12,20 @@ import java.io.PrintWriter;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.apache.commons.lang3.StringUtils.getLevenshteinDistance;
+
 
 public class Dictionary implements Iterable<Map.Entry<String, String>>{
-    public static Dictionary createFromStream (InputStream inputStream) throws FileNotFoundException {
-        LinkedHashMap<String, String> wordsToPhonesTable = new LinkedHashMap<>();
+    public Dictionary(){
+        wordsToPhonesTable_ = new LinkedHashMap<>();
+
+        unknownWords_ = new HashSet<>();
+    }
+
+    public static Dictionary createFromStream (InputStream inputStream)
+        throws FileNotFoundException {
+
+        Dictionary dictionary = new Dictionary();
 
         Scanner scanner = new Scanner(inputStream);
         while(scanner.hasNextLine()){
@@ -23,39 +33,34 @@ public class Dictionary implements Iterable<Map.Entry<String, String>>{
 
             int indexOfSeparation = line.indexOf(" ");
 
-            wordsToPhonesTable.put(line.substring(0, indexOfSeparation),
+            dictionary.add(line.substring(0, indexOfSeparation),
                     line.substring(indexOfSeparation + 1));
         }
         scanner.close();
 
-        return new Dictionary(wordsToPhonesTable);
+        return dictionary;
     }
 
-    public Dictionary(){
-        wordsToPhonesTable_ = new LinkedHashMap<>();
+    @SuppressWarnings ("WeakerAccess")
+    public List<String> getPhones(String string){
+        String phones = wordsToPhonesTable_.get(string);
 
-        unknownWords_ = new HashSet<>();
+        return phones == null ? null : Arrays.asList(phones.trim().split(" "));
     }
 
-    private Dictionary(Map<String, String> wordsToPhonesTable) {
-        wordsToPhonesTable_ = wordsToPhonesTable;
-
-        unknownWords_ = new HashSet<>();
+    @SuppressWarnings ("WeakerAccess")
+    public List<String> getPhones(Word word){
+        return getPhones(word.getText());
     }
 
-    public String[] getPhones(String word){
-        if(word.equals("")){
-            return new String[] {};
+    public List<List<String>> getPhones(WordSequence wordSequence){
+        ArrayList<List<String>> phones = new ArrayList<>();
+
+        for(Word word : wordSequence){
+            phones.add(getPhones(word));
         }
 
-        String phones = wordsToPhonesTable_.get(word);
-
-        if(phones == null){
-            return word.replaceAll(".(?!$)", "$0 ").trim().toUpperCase().split(" "); // return the characters of the word
-        }
-        else{
-            return phones.trim().split(" ");
-        }
+        return phones;
     }
 
     public Map<String, String> getEntriesByKey(String key){
@@ -65,21 +70,81 @@ public class Dictionary implements Iterable<Map.Entry<String, String>>{
             collect(Collectors.toMap(Map.Entry:: getKey, Map.Entry:: getValue));
     }
 
-    public String[][] getPhones(WordSequence wordSequence){
-        Word[] words = wordSequence.getWords();
+    public Set<String> getUnknownWords(){
+        return unknownWords_;
+    }
 
-        int numberOfWords = words.length;
+    public Set<String> getUniqueWords(){
+        return wordsToPhonesTable_.keySet().stream().
+            filter(entry -> !entry.contains("(")).
+            collect(Collectors.toSet());
+    }
 
-        if(numberOfWords == 0){
-            return new String[0][];
+    /**
+     *
+     * @param string
+     * @param count
+     *     The number of words to return
+     * @return
+     */
+    public List<String> fuzzyMatch(String string, int count){
+        String[] bestMatches = new String[count];
+        double[] bestDistances = new double[count];
+        for(int i = 0;i < count;i++){
+            bestDistances[i] = Double.POSITIVE_INFINITY;
         }
 
-        String[][] allPhones = new String[numberOfWords][];
-        for(int i = 0;i < numberOfWords;i++){
-            allPhones[i] = getPhones(words[i].getText());
+        for(String word : getUniqueWords()){
+            double distance = getLevenshteinDistance(string, word);
+
+            for(int i = 0;i < count;i++){
+                if(distance < bestDistances[i]){
+                    bestDistances[i] = distance;
+                    bestMatches[i] = word;
+                }
+            }
         }
 
-        return allPhones;
+        return Arrays.asList(bestMatches);
+    }
+
+    public List<String> fuzzyMatch(String string){
+        return fuzzyMatch(string, 5);
+    }
+
+    public void add(String key, String value){
+        if(!wordsToPhonesTable_.containsKey(key)) {
+            wordsToPhonesTable_.put(key, value);
+            return;
+        }
+
+        int index = 1;
+        String currentKey = key + "(" + index + ")";
+        while(wordsToPhonesTable_.containsKey(currentKey)){
+            // if the given value already exists inside the dictionary, don't add it again
+            if(wordsToPhonesTable_.get(currentKey).equals(value)){
+                return;
+            }
+
+            index++;
+            currentKey = key + "(" + index + ")";
+        }
+
+        wordsToPhonesTable_.put(currentKey, value);
+    }
+
+    public void add(Map.Entry<String, String> entry){
+        add(entry.getKey(), entry.getValue());
+    }
+
+    public void addAll(Map<String, String> entries){
+        for(Map.Entry<String, String> entry : entries.entrySet()){
+            add(entry.getKey(), entry.getValue());
+        }
+    }
+
+    public void addUnknownWord(String word){
+        unknownWords_.add(word);
     }
 
     public void remove(String key){
@@ -93,63 +158,24 @@ public class Dictionary implements Iterable<Map.Entry<String, String>>{
         }
     }
 
+    public static Dictionary getDefaultDictionary() throws FileNotFoundException {
+        return Dictionary.createFromStream(new FileInputStream(
+            Configuration.getDefaultConfiguration().getDictionaryPath()
+        ));
+    }
+
     public void saveToFile(File file) throws FileNotFoundException {
-        // Sort the entries of the dictionary based on the key length. This will enusre that
-        // "the(1)" is below "the" when the dictionary is printed.
-        List<Map.Entry<String, String>> entries = new ArrayList<>();
-        entries.addAll(wordsToPhonesTable_.entrySet());
+        // Sort the entries of the dictionary based on the key length. This will ensure that
+        // "the(1)" is below "the" when the dictionary is saved to the file.
+        List<Map.Entry<String, String>> entries = new ArrayList<>(wordsToPhonesTable_.entrySet());
 
         Collections.sort(entries, (e1, e2) -> e1.getKey().length() - e2.getKey().length());
 
         PrintWriter printWriter = new PrintWriter(file);
-
         for (Map.Entry<String, String> entry : entries) {
             printWriter.write(entry.getKey() + " " + entry.getValue() + "\n");
         }
-
         printWriter.close();
-    }
-
-    public void add(Map.Entry<String, String> entry){
-        add(entry.getKey(), entry.getValue());
-    }
-
-    public void add(String key, String value){
-        if(!wordsToPhonesTable_.containsKey(key)) {
-            wordsToPhonesTable_.put(key, value);
-
-            return;
-        }
-
-        int index = 1;
-        while(wordsToPhonesTable_.containsKey(key + "(" + index + ")")){
-            // if the given value already exists inside the dictionary, don't add it again
-            if(wordsToPhonesTable_.get(key + "(" + index + ")").equals(value)){
-                return;
-            }
-
-            index++;
-        }
-
-        wordsToPhonesTable_.put(key + "(" + index + ")", value);
-    }
-
-    public void addAll(Map<String, String> entries){
-        for(Map.Entry<String, String> entry : entries.entrySet()){
-            this.add(entry.getKey(), entry.getValue());
-        }
-    }
-
-    public void addUnknownWord(String word){
-        unknownWords_.add(word);
-    }
-
-    public HashSet<String> getUnknownWords(){
-        return unknownWords_;
-    }
-
-    public int size(){
-        return wordsToPhonesTable_.size();
     }
 
     @Override
@@ -157,13 +183,7 @@ public class Dictionary implements Iterable<Map.Entry<String, String>>{
         return wordsToPhonesTable_.entrySet().iterator();
     }
 
-    public static Dictionary getDefaultDictionary() throws FileNotFoundException {
-        return Dictionary.createFromStream(new FileInputStream(
-            Configuration.getDefaultConfiguration().getDictionaryPath()
-        ));
-    }
-
     private final Map<String, String> wordsToPhonesTable_;
-    private final HashSet<String> unknownWords_;
+    private final Set<String> unknownWords_;
 
 }
