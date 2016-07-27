@@ -11,6 +11,7 @@ import javax.mail.Multipart;
 import javax.mail.Session;
 import javax.mail.Store;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Properties;
 
 
@@ -55,7 +56,7 @@ public class GMailFetcher extends EmailFetcher{
             }
 
             int numberOfMessages = messages.length;
-            Email[] emails = new Email[numberOfMessages];
+            ArrayList<Email> emails = new ArrayList<>();
 
             for(int i = 0;i < numberOfMessages;i++){
                 String messageSubject;
@@ -63,7 +64,6 @@ public class GMailFetcher extends EmailFetcher{
                     messageSubject = messages[i].getSubject();
                 } catch (MessagingException e) {
                     // TODO debug information: could not get message subject
-                    emails[i] = null;
                     continue;
                 }
 
@@ -83,7 +83,6 @@ public class GMailFetcher extends EmailFetcher{
                     }
                 } catch (MessagingException e) {
                     // TODO debug information: could not get message senders
-                    emails[i] = null;
                     continue;
                 }
 
@@ -103,7 +102,6 @@ public class GMailFetcher extends EmailFetcher{
                     }
                 } catch (MessagingException e) {
                     // TODO debug information: could not get message "TO" recipients
-                    emails[i] = null;
                     continue;
                 }
 
@@ -123,7 +121,6 @@ public class GMailFetcher extends EmailFetcher{
                     }
                 } catch (MessagingException e) {
                     // TODO debug information: could not get message "CC" recipients
-                    emails[i] = null;
                     continue;
                 }
 
@@ -143,7 +140,6 @@ public class GMailFetcher extends EmailFetcher{
                     }
                 } catch (MessagingException e) {
                     // TODO debug information: could not get message "BCC" recipients
-                    emails[i] = null;
                     continue;
                 }
 
@@ -152,7 +148,6 @@ public class GMailFetcher extends EmailFetcher{
                     messageReceivedDate = messages[i].getSentDate().toString();
                 } catch (MessagingException e) {
                     // TODO debug information: could not get message received date
-                    emails[i] = null;
                     continue;
                 }
 
@@ -172,12 +167,11 @@ public class GMailFetcher extends EmailFetcher{
                     }
                 } catch (IOException | MessagingException e) {
                     // TODO debug information: could not get message content
-                    emails[i] = null;
                     continue;
                 }
 
-                emails[i] = new Email(senders, tORecipients, cCRecipients, bCCRecipients,
-                    messageReceivedDate, messageSubject, messageBody);
+                emails.add(new Email(senders, tORecipients, cCRecipients, bCCRecipients,
+                    messageReceivedDate, messageSubject, messageBody));
             }
 
             try {

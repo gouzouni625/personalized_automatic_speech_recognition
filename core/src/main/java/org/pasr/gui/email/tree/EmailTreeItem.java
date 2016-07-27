@@ -1,10 +1,13 @@
 package org.pasr.gui.email.tree;
 
 
-import javafx.collections.ObservableList;
 import javafx.scene.control.TreeItem;
 import org.pasr.prep.email.fetchers.Email;
 import org.pasr.prep.email.fetchers.Folder;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 
 public class EmailTreeItem extends TreeItem<String> {
@@ -16,10 +19,9 @@ public class EmailTreeItem extends TreeItem<String> {
 
         email_ = null;
 
-        ObservableList<TreeItem<String>> children = getChildren();
-        for(Email email : folder.getEmails()){
-            children.add(new EmailTreeItem(email));
-        }
+        getChildren().addAll(
+            folder.getEmails().stream().map(EmailTreeItem::new).collect(Collectors.toList())
+        );
     }
 
     public EmailTreeItem(Email email){
@@ -39,6 +41,19 @@ public class EmailTreeItem extends TreeItem<String> {
         else{
             return email_.getSubject();
         }
+    }
+
+    public List<Email> getEmails(){
+        ArrayList<Email> emails = new ArrayList<>();
+
+        if(isFolder()){
+            emails.addAll(folder_.getEmails());
+        }
+        else{
+            emails.add(email_);
+        }
+
+        return emails;
     }
 
     public Folder getFolder(){

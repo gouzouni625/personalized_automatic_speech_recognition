@@ -3,9 +3,9 @@ package org.pasr.gui.email.tree;
 
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
-import org.pasr.prep.email.fetchers.Email;
 import org.pasr.prep.email.fetchers.Folder;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 
@@ -17,9 +17,9 @@ public class EmailTree extends TreeView<String> {
         int numberOfFolders = folders.length;
 
         int depth = 0;
-        TreeItem<String> currentFolder = getRoot();
+        EmailTreeItem currentFolder = (EmailTreeItem) getRoot();
         while(depth < numberOfFolders){
-            TreeItem<String> existingSubFolder = containsAsFolder(currentFolder, folders[depth]);
+            EmailTreeItem existingSubFolder = containsAsFolder(currentFolder, folders[depth]);
             if (existingSubFolder != null){
                 currentFolder = existingSubFolder;
                 depth++;
@@ -37,7 +37,7 @@ public class EmailTree extends TreeView<String> {
             for(int i = depth, n = numberOfFolders - 1;i < n;i++){
                 EmailTreeItem parentFolder = new EmailTreeItem(new Folder(
                     String.join("/", (CharSequence[]) Arrays.copyOfRange(folders, 0, i + 1)),
-                    new Email[0]
+                    new ArrayList<>()
                 ));
 
                 currentFolder.getChildren().add(parentFolder);
@@ -49,11 +49,11 @@ public class EmailTree extends TreeView<String> {
         }
     }
 
-    private TreeItem<String> containsAsFolder(TreeItem<String> item, String value){
+    private EmailTreeItem containsAsFolder(EmailTreeItem item, String value){
         for(TreeItem<String> child : item.getChildren()){
             if(child.getValue().equals(value) &&
                 ((EmailTreeItem)(child)).isFolder()){
-                return child;
+                return (EmailTreeItem) child;
             }
         }
 

@@ -4,10 +4,15 @@ package org.pasr.gui.controllers;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.DialogPane;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextInputDialog;
+import javafx.scene.control.TreeItem;
 import org.pasr.gui.email.tree.EmailTree;
 import org.pasr.gui.email.tree.EmailTreeItem;
+import org.pasr.prep.corpus.Corpus;
 import org.pasr.prep.email.fetchers.Email;
 import org.pasr.prep.email.fetchers.Folder;
 import org.pasr.prep.email.fetchers.EmailFetcher;
@@ -15,8 +20,11 @@ import org.pasr.prep.email.fetchers.GMailFetcher;
 
 import javax.mail.MessagingException;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.Optional;
 
 
 public class EmailListSceneController extends Controller implements Observer{
@@ -43,7 +51,7 @@ public class EmailListSceneController extends Controller implements Observer{
 
     @FXML
     public void initialize() {
-        EmailTreeItem root = new EmailTreeItem(new Folder("/E-mails", new Email[0]));
+        EmailTreeItem root = new EmailTreeItem(new Folder("/E-mails", new ArrayList<>()));
 
         emailTree.setRoot(root);
         emailTree.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
@@ -52,7 +60,7 @@ public class EmailListSceneController extends Controller implements Observer{
             (observable, oldValue, newValue) -> {
                 EmailTreeItem selectedEmailTreeItem = (EmailTreeItem) observable.getValue();
 
-                if (! selectedEmailTreeItem.isFolder()) {
+                if (selectedEmailTreeItem != null && !selectedEmailTreeItem.isFolder()) {
                     updateSubjectTextArea(selectedEmailTreeItem.getEmail());
                     updateBodyTextArea(selectedEmailTreeItem.getEmail());
 
@@ -106,31 +114,45 @@ public class EmailListSceneController extends Controller implements Observer{
         bodyTextArea.setText(email.getBody());
     }
 
-    // @FXML
-    // private void submitButtonClicked() throws Exception{
-    //     // // Create corpus.
-    //     // ObservableList<TreeItem<String>> list = treeView.getSelectionModel().getSelectedItems();
-    //     //
-    //     // Corpus corpus = new Corpus();
-    //     //
-    //     // list.forEach(item -> {
-    //     //     EmailTreeItem emailTreeItem = (EmailTreeItem) item;
-    //     //
-    //     //     if(!emailTreeItem.isFolder()){
-    //     //         corpus.append(emailTreeItem.getBody());
-    //     //     }
-    //     // });
-    //     //
-    //     // corpus.process(Dictionary.getDefaultDictionary());
-    //     // hasCorpus_.setCorpus(corpus);
-    // }
-
     private void backButtonOnAction(ActionEvent actionEvent){
         ((API) api_).back();
     }
 
     private void doneButtonOnAction(ActionEvent actionEvent){
+        String newCorpusName = showCorpusNameDialog();
 
+        ((API) api_).setCorpus(new Corpus(newCorpusName, getChosenEmails()));
+    }
+
+    private List<Email> getChosenEmails () {
+        ArrayList<Email> emails = new ArrayList<>();
+
+        for(TreeItem<String> treeItem : emailTree.getSelectionModel().getSelectedItems()){
+            EmailTreeItem emailTreeItem = (EmailTreeItem) treeItem;
+
+            emails.addAll(emailTreeItem.getEmails());
+        }
+
+        return emails;
+    }
+
+    private String showCorpusNameDialog(){
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("New corpus name");
+
+        DialogPane dialogPane = dialog.getDialogPane();
+        dialogPane.getButtonTypes().remove(ButtonType.CANCEL);
+        dialogPane.setHeaderText("Please enter a name for the new corpus");
+        dialogPane.setContentText("Name: ");
+
+        Optional<String> result = dialog.showAndWait();
+        String name;
+        if(result.isPresent() && !((name = result.get()).isEmpty())){
+            return name;
+        }
+        else{
+            return "corpus";
+        }
     }
 
 
@@ -148,6 +170,7 @@ public class EmailListSceneController extends Controller implements Observer{
         String getEmailAddress();
         String getPassword();
         void back();
+        void setCorpus(Corpus corpus);
     }
 
     @FXML
