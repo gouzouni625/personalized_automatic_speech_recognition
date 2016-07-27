@@ -2,7 +2,8 @@ package org.pasr.prep.corpus;
 
 
 import org.pasr.asr.dictionary.Dictionary;
-import org.pasr.utilities.ArrayIterable;
+import org.pasr.prep.email.fetchers.Email;
+
 import org.pasr.utilities.NumberSpeller;
 
 import java.io.File;
@@ -10,15 +11,14 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Iterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static org.apache.commons.collections4.ListUtils.longestCommonSubsequence;
 
@@ -26,13 +26,70 @@ import static org.apache.commons.collections4.ListUtils.longestCommonSubsequence
 public class Corpus implements Iterable<WordSequence> {
     public Corpus(){
         text_ = "";
+        sentences_ = new ArrayList<>();
+        name_ = "";
     }
 
     public Corpus(String text){
         text_ = text;
+        sentences_ = new ArrayList<>();
+        name_ = "";
+    }
+
+    public Corpus(List<Email> emails){
+        StringBuilder stringBuilder = new StringBuilder();
+
+        for(Email email : emails){
+            stringBuilder.append(email.getBody()).append(" ");
+        }
+
+        text_ = stringBuilder.toString().trim();
+        sentences_ = new ArrayList<>();
+        name_ = "";
+    }
+
+    public static Corpus createFromStream(InputStream inputStream){
+        StringBuilder stringBuilder = new StringBuilder();
+
+        Scanner scanner = new Scanner(inputStream);
+        while(scanner.hasNextLine()){
+            stringBuilder.append(scanner.nextLine());
+        }
+        scanner.close();
+
+        return new Corpus(stringBuilder.toString());
+    }
+
+    public String getText(){
+        return text_;
+    }
+
+    public List<WordSequence> getSentences() {
+        return sentences_;
+    }
+
+    public String getName(){
+        return name_;
+    }
+
+    private List<Word> getWords(){
+        ArrayList<Word> words = new ArrayList<>();
+
+        for (WordSequence sentence : sentences_) {
+            words.addAll(sentence.getWords());
+        }
+
+        return words;
+    }
+
+    public void setName(String name){
+        name_ = name;
     }
 
     public synchronized void append(String text){
+        if(!text_.isEmpty()){
+            text_ += " ";
+        }
         text_ += text;
     }
 
@@ -42,11 +99,13 @@ public class Corpus implements Iterable<WordSequence> {
 
         Dictionary reducedDictionary = new Dictionary();
 
-        for(String word : getWords()){
-            Map<String, String> entries = dictionary.getEntriesByKey(word);
+        for(Word word : getWords()){
+            String wordText = word.getText();
+
+            Map<String, String> entries = dictionary.getEntriesByKey(wordText);
 
             if(entries.size() == 0){
-                reducedDictionary.addUnknownWord(word);
+                reducedDictionary.addUnknownWord(wordText);
             }
             else{
                 reducedDictionary.addAll(entries);
@@ -54,10 +113,6 @@ public class Corpus implements Iterable<WordSequence> {
         }
 
         return reducedDictionary;
-    }
-
-    private void createSentences(){
-        sentences_ = tokenize();
     }
 
     /**
@@ -107,19 +162,7 @@ public class Corpus implements Iterable<WordSequence> {
         }
     }
 
-    public static Corpus createFromStream(InputStream inputStream){
-        StringBuilder stringBuilder = new StringBuilder();
-
-        Scanner scanner = new Scanner(inputStream);
-        while(scanner.hasNextLine()){
-            stringBuilder.append(scanner.nextLine());
-        }
-        scanner.close();
-
-        return new Corpus(stringBuilder.toString());
-    }
-
-    private WordSequence[] tokenize(){
+    private void createSentences(){
         text_ = text_.
             replaceAll("\\(", " ").
             replaceAll("\\)", " . ").
@@ -132,22 +175,11 @@ public class Corpus implements Iterable<WordSequence> {
             replaceAll(" +", " ").
             toLowerCase();
 
-        String[] sentences = text_.split(" ?\\. ?");
+        String[] sentencesText = text_.split(" ?\\. ?");
 
-        ArrayList<String> usefulSentences = new ArrayList<>();
-        for(String sentence : sentences){
-            if(sentence.length() >= 4){
-                usefulSentences.add(sentence);
-            }
+        for(String sentenceText : sentencesText){
+            sentences_.add(new WordSequence(sentenceText, " "));
         }
-
-        int numberOfSentences = usefulSentences.size();
-        WordSequence[] wordSequences = new WordSequence[numberOfSentences];
-        for(int i = 0;i < numberOfSentences;i++){
-            wordSequences[i] = new WordSequence(usefulSentences.get(i), " ");
-        }
-
-        return wordSequences;
     }
 
     public boolean contains(WordSequence wordSequence){
@@ -160,18 +192,12 @@ public class Corpus implements Iterable<WordSequence> {
         return false;
     }
 
-    public List<WordSequence> longestCommonSubSequence(WordSequence wordSequence){
-        Word[] words = wordSequence.getWords();
-
-        // longest common sub sequences list
+    public List<WordSequence> longestCommonSubSequences (WordSequence wordSequence){
         ArrayList<WordSequence> lCSS = new ArrayList<>();
 
+        List<Word> words = wordSequence.getWords();
         for(WordSequence sentence : sentences_){
-            List<Word> candidate = longestCommonSubsequence(
-                Arrays.asList(words),
-                Arrays.asList(sentence.getWords()),
-                Word.textEquator_
-            );
+            List<Word> candidate = longestCommonSubsequence(sentence.getWords(), words);
 
             if(candidate.size() > 0) {
                 lCSS.add(new WordSequence(candidate, " "));
@@ -182,65 +208,28 @@ public class Corpus implements Iterable<WordSequence> {
     }
 
     public List<WordSequence> matchAsCommonSubSequence(WordSequence wordSequence){
-        Word[] words = wordSequence.getWords();
+        int size = wordSequence.size();
 
-        ArrayList<WordSequence> matches = new ArrayList<>();
-
-        for(WordSequence sentence : sentences_) {
-            List<Word> candidate = longestCommonSubsequence(
-                Arrays.asList(sentence.getWords()),
-                Arrays.asList(words),
-                Word.textEquator_
-            );
-
-            if(candidate.size() == wordSequence.numberOfWords()){
-                matches.add(new WordSequence(candidate, " "));
-            }
-        }
-
-        return matches;
-    }
-
-    public WordSequence[] getSentences() {
-        return sentences_;
-    }
-
-    public String getText(){
-        return text_;
-    }
-
-    public static Corpus merge(Corpus corpus1, Corpus corpus2){
-        String text = corpus1.getText();
-        text += " " + corpus2.getText();
-
-        return new Corpus(text);
+        return longestCommonSubSequences(wordSequence).stream()
+            .filter(subSequence -> subSequence.size() == size)
+            .collect(Collectors.toList());
     }
 
     public void saveToFile(File file) throws FileNotFoundException {
         PrintWriter printWriter = new PrintWriter(file);
 
-        for(WordSequence sentence : sentences_){
-            printWriter.write("<s> " + sentence + " </s>\n");
-        }
+        sentences_.forEach(printWriter:: println);
 
         printWriter.close();
     }
 
-    private HashSet<String> getWords(){
-        HashSet<String> words = new HashSet<>();
-
-        for (WordSequence wordSequence : sentences_) {
-            Collections.addAll(words, wordSequence.getWordsText());
-        }
-
-        return words;
-    }
-
     public Iterator<WordSequence> iterator(){
-        return (new ArrayIterable<>(sentences_).iterator());
+        return sentences_.iterator();
     }
 
     private String text_;
-    private WordSequence[] sentences_;
+    private List<WordSequence> sentences_;
+
+    private String name_;
 
 }
