@@ -19,7 +19,7 @@ public class Dictionary implements Iterable<Map.Entry<String, String>>{
     public Dictionary(){
         wordsToPhonesTable_ = new LinkedHashMap<>();
 
-        unknownWords_ = new HashSet<>();
+        unknownWords_ = new ArrayList<>();
     }
 
     public static Dictionary createFromStream (InputStream inputStream)
@@ -70,7 +70,7 @@ public class Dictionary implements Iterable<Map.Entry<String, String>>{
             collect(Collectors.toMap(Map.Entry:: getKey, Map.Entry:: getValue));
     }
 
-    public Set<String> getUnknownWords(){
+    public List<String> getUnknownWords(){
         return unknownWords_;
     }
 
@@ -110,6 +110,12 @@ public class Dictionary implements Iterable<Map.Entry<String, String>>{
 
     public List<String> fuzzyMatch(String string){
         return fuzzyMatch(string, 5);
+    }
+
+    public List<List<String>> getUnknownWordsFuzzyMatch(){
+        return unknownWords_.stream()
+            .map(this :: fuzzyMatch)
+            .collect(Collectors.toCollection(ArrayList::new));
     }
 
     public void add(String key, String value){
@@ -184,6 +190,6 @@ public class Dictionary implements Iterable<Map.Entry<String, String>>{
     }
 
     private final Map<String, String> wordsToPhonesTable_;
-    private final Set<String> unknownWords_;
+    private final List<String> unknownWords_;
 
 }
