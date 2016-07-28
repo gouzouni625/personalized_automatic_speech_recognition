@@ -101,6 +101,7 @@ public class Dictionary implements Iterable<Map.Entry<String, String>>{
                 if(distance < bestDistances[i]){
                     bestDistances[i] = distance;
                     bestMatches[i] = word;
+                    break;
                 }
             }
         }
@@ -150,7 +151,9 @@ public class Dictionary implements Iterable<Map.Entry<String, String>>{
     }
 
     public void addUnknownWord(String word){
-        unknownWords_.add(word);
+        if(!unknownWords_.contains(word)) {
+            unknownWords_.add(word);
+        }
     }
 
     public void remove(String key){
