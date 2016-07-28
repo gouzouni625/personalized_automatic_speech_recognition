@@ -42,6 +42,7 @@ public class LDASceneController extends Controller {
         startLDAThread();
 
         removeButton.setOnAction(this :: removeButtonOnAction);
+        chooseButton.setOnAction(this :: chooseButtonOnAction);
 
         iterationsSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(
             100, 10000, 1000, 100
@@ -92,6 +93,26 @@ public class LDASceneController extends Controller {
 
             dictionary_.removeUnknownWord(selectedWord);
             corpus_.removeWordByText(selectedWord);
+        }
+    }
+
+    private void chooseButtonOnAction(ActionEvent actionEvent){
+        int selectedIndex = candidatesListView.getSelectionModel().getSelectedIndex();
+
+        if(selectedIndex != -1){
+            // Note that wrongWordIndex is guaranteed not equal to -1 because if the wordsListView
+            // selection had been clear cleared, then the candidateListView items would have been
+            // set to null and thus, selectedIndex would be equal to -1.
+            int wrongWordIndex = wordsListView.getSelectionModel().getSelectedIndex();
+
+            String wrongWord = wordsListView.getSelectionModel().getSelectedItem();
+            String selectedWord = candidatesListView.getSelectionModel().getSelectedItem();
+
+            unknownWords_.remove(wrongWordIndex);
+            candidateWords_.remove(wrongWordIndex);
+
+            dictionary_.removeUnknownWord(wrongWord);
+            corpus_.replaceWordText(wrongWord, selectedWord);
 
             System.out.println(corpus_.getText());
         }

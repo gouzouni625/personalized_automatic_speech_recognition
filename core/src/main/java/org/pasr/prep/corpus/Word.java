@@ -24,6 +24,10 @@ public class Word {
         return text_.equals(text.toLowerCase());
     }
 
+    public void setText(String text){
+        text_ = text.toLowerCase();
+    }
+
     @Override
     public boolean equals(Object o) {
         return o instanceof Word && text_.equals(((Word) o).getText());
@@ -39,7 +43,7 @@ public class Word {
         return text_;
     }
 
-    private final String text_;
+    private String text_;
     private final WordSequence parent_;
     private final int index_;
 

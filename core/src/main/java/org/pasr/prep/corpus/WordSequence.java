@@ -187,6 +187,12 @@ public class WordSequence implements Iterable<Word> {
         return text_.equals(text.toLowerCase());
     }
 
+    public void replaceWordText(String oldText, String newText){
+        words_.stream().filter(word -> word.equals(oldText)).forEach(word -> word.setText(newText));
+
+        rebuildText();
+    }
+
     public void remove(Word word){
         words_.remove(word);
 

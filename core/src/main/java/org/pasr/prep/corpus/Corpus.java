@@ -218,6 +218,14 @@ public class Corpus implements Iterable<WordSequence> {
             .collect(Collectors.toList());
     }
 
+    public void replaceWordText(String oldText, String newText){
+        for(WordSequence sentence : sentences_){
+            sentence.replaceWordText(oldText, newText);
+        }
+
+        rebuildText();
+    }
+
     public void removeWordByText(String text){
         for(WordSequence sentence : sentences_){
             sentence.removeByText(text);
