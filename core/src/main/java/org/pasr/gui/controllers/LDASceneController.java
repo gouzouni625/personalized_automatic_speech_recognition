@@ -256,9 +256,6 @@ public class LDASceneController extends Controller {
     private TextArea resultsTextArea;
 
     @FXML
-    private Button declineButton;
-
-    @FXML
     private Button acceptButton;
 
     @FXML

@@ -91,12 +91,9 @@
             <TextArea fx:id="resultsTextArea" editable="false" prefHeight="800.0" prefWidth="640.0"
                       AnchorPane.bottomAnchor="50.0" AnchorPane.leftAnchor="0.0"
                       AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="90.0"/>
-            <Button fx:id="declineButton" layoutX="207.0" layoutY="663.0" mnemonicParsing="false"
-                    prefHeight="30.0" prefWidth="90.0" text="decline" AnchorPane.bottomAnchor="10.0"
-                    AnchorPane.leftAnchor="215.0"/>
             <Button fx:id="acceptButton" layoutX="337.0" layoutY="661.0" mnemonicParsing="false"
                     prefHeight="30.0" prefWidth="90.0" text="accept" AnchorPane.bottomAnchor="10.0"
-                    AnchorPane.leftAnchor="315.0"/>
+                    AnchorPane.leftAnchor="265.0"/>
         </AnchorPane>
         <Button fx:id="backButton" layoutX="502.0" layoutY="760.0" mnemonicParsing="false"
                 prefHeight="30.0" prefWidth="60.0" text="back" AnchorPane.bottomAnchor="10.0"
