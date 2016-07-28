@@ -9,22 +9,20 @@ import java.util.stream.Collectors;
 
 
 public class WordSequence implements Iterable<Word> {
-    public WordSequence(String text, String wordSeparator) {
+    public WordSequence(String text) {
         text_ = text.toLowerCase();
-
-        wordSeparator_ = wordSeparator.toLowerCase();
 
         tokenize();
     }
 
-    public WordSequence(List<Word> words, String wordSeparator){
-        this(StringUtils.join(words, wordSeparator), wordSeparator);
+    public WordSequence(List<Word> words){
+        this(StringUtils.join(words, " "));
     }
 
     private void tokenize() {
         words_ = new ArrayList<>();
 
-        String[] words = text_.split(wordSeparator_);
+        String[] words = text_.split(" ");
         int index = 0;
         for(String word : words){
             if(!word.isEmpty()){
@@ -40,10 +38,6 @@ public class WordSequence implements Iterable<Word> {
 
     public List<Word> getWords(){
         return words_;
-    }
-
-    public String getWordSeparator(){
-        return wordSeparator_;
     }
 
     public int size (){
@@ -89,7 +83,7 @@ public class WordSequence implements Iterable<Word> {
             throw new IndexOutOfBoundsException("beginIndex should not be greater than endIndex");
         }
 
-        return new WordSequence(words_.subList(beginIndex, endIndex), wordSeparator_);
+        return new WordSequence(words_.subList(beginIndex, endIndex));
     }
 
     public WordSequence subSequence (int beginIndex){
@@ -106,7 +100,7 @@ public class WordSequence implements Iterable<Word> {
         ArrayList<WordSequence> tokens = new ArrayList<>();
         for(String token : tokensText){
             if(!token.isEmpty()){
-                tokens.add(new WordSequence(token, wordSeparator_));
+                tokens.add(new WordSequence(token));
             }
         }
 
@@ -159,7 +153,7 @@ public class WordSequence implements Iterable<Word> {
         words_.add(word);
 
         if (! text_.isEmpty()) {
-            text_ += wordSeparator_;
+            text_ += " ";
         }
         text_ += word.getText();
     }
@@ -168,7 +162,7 @@ public class WordSequence implements Iterable<Word> {
         words_.add(0, word);
 
         if(! text_.isEmpty()){
-            text_ = word.getText() + wordSeparator_ + text_;
+            text_ = word.getText() + " " + text_;
         }
         else{
             text_ = word.getText();
@@ -193,6 +187,30 @@ public class WordSequence implements Iterable<Word> {
         return text_.equals(text.toLowerCase());
     }
 
+    public void remove(Word word){
+        words_.remove(word);
+
+        rebuildText();
+    }
+
+    private void rebuildText(){
+        StringBuilder stringBuilder = new StringBuilder();
+
+        for(Word word : words_){
+            stringBuilder.append(word).append(" ");
+        }
+
+        text_ = stringBuilder.toString().trim();
+    }
+
+    public void remove(List<Word> words){
+        words.forEach(this :: remove);
+    }
+
+    public void removeByText(String text){
+        remove(words_.stream().filter(word -> word.equals(text)).collect(Collectors.toList()));
+    }
+
     @Override
     public boolean equals(Object o) {
         return o instanceof WordSequence && text_.equals(((WordSequence) o).getText());
@@ -214,7 +232,5 @@ public class WordSequence implements Iterable<Word> {
 
     private String text_;
     private List<Word> words_;
-
-    private final String wordSeparator_;
 
 }

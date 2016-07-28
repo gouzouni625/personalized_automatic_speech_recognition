@@ -12,6 +12,7 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
@@ -72,14 +73,14 @@ public class Corpus implements Iterable<WordSequence> {
         return name_;
     }
 
-    private List<Word> getWords(){
-        ArrayList<Word> words = new ArrayList<>();
+    private List<Word> getUniqueWords (){
+        HashSet<Word> uniqueWords = new HashSet<>();
 
         for (WordSequence sentence : sentences_) {
-            words.addAll(sentence.getWords());
+            uniqueWords.addAll(sentence.getWords());
         }
 
-        return words;
+        return new ArrayList<>(uniqueWords);
     }
 
     public void setName(String name){
@@ -99,7 +100,7 @@ public class Corpus implements Iterable<WordSequence> {
 
         Dictionary reducedDictionary = new Dictionary();
 
-        for(Word word : getWords()){
+        for(Word word : getUniqueWords()){
             String wordText = word.getText();
 
             Map<String, String> entries = dictionary.getEntriesByKey(wordText);
@@ -178,7 +179,9 @@ public class Corpus implements Iterable<WordSequence> {
         String[] sentencesText = text_.split(" ?\\. ?");
 
         for(String sentenceText : sentencesText){
-            sentences_.add(new WordSequence(sentenceText, " "));
+            if(!sentenceText.isEmpty()) {
+                sentences_.add(new WordSequence(sentenceText));
+            }
         }
     }
 
@@ -200,7 +203,7 @@ public class Corpus implements Iterable<WordSequence> {
             List<Word> candidate = longestCommonSubsequence(sentence.getWords(), words);
 
             if(candidate.size() > 0) {
-                lCSS.add(new WordSequence(candidate, " "));
+                lCSS.add(new WordSequence(candidate));
             }
         }
 
@@ -213,6 +216,24 @@ public class Corpus implements Iterable<WordSequence> {
         return longestCommonSubSequences(wordSequence).stream()
             .filter(subSequence -> subSequence.size() == size)
             .collect(Collectors.toList());
+    }
+
+    public void removeWordByText(String text){
+        for(WordSequence sentence : sentences_){
+            sentence.removeByText(text);
+        }
+
+        rebuildText();
+    }
+
+    private void rebuildText(){
+        StringBuilder stringBuilder = new StringBuilder();
+
+        for(WordSequence sentence : sentences_){
+            stringBuilder.append(sentence).append(".");
+        }
+
+        text_ = stringBuilder.toString();
     }
 
     public void saveToFile(File file) throws FileNotFoundException {

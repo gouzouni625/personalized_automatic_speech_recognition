@@ -20,6 +20,10 @@ public class Word {
         return index_;
     }
 
+    public boolean equals(String text){
+        return text_.equals(text.toLowerCase());
+    }
+
     @Override
     public boolean equals(Object o) {
         return o instanceof Word && text_.equals(((Word) o).getText());

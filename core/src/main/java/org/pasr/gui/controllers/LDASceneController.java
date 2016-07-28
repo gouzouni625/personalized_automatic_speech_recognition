@@ -3,6 +3,7 @@ package org.pasr.gui.controllers;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -40,6 +41,8 @@ public class LDASceneController extends Controller {
         startDictionaryThread();
         startLDAThread();
 
+        removeButton.setOnAction(this :: removeButtonOnAction);
+
         iterationsSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(
             100, 10000, 1000, 100
         ));
@@ -51,10 +54,47 @@ public class LDASceneController extends Controller {
         wordsListView.setItems(unknownWords_);
         wordsListView.getSelectionModel().selectedItemProperty().addListener(
             (observable, oldValue, newValue) -> {
-                candidatesListView.setItems(
-                    candidateWords_.get(wordsListView.getSelectionModel().getSelectedIndex())
-                );
+                int selectedIndex = wordsListView.getSelectionModel().getSelectedIndex();
+                if(selectedIndex != -1) {
+                    candidatesListView.setItems(candidateWords_.get(selectedIndex));
+                }
+                else{
+                    candidatesListView.setItems(null);
+                }
         });
+
+    }
+
+    private void startDictionaryThread(){
+        if(dictionaryThread_ == null || !dictionaryThread_.isAlive()){
+            dictionaryThread_ = new DictionaryThread();
+
+            dictionaryThread_.start();
+        }
+    }
+
+    private void startLDAThread(){
+        if(lDAThread_ == null || !lDAThread_.isAlive()){
+            lDAThread_ = new LDAThread();
+
+            lDAThread_.start();
+        }
+    }
+
+    private void removeButtonOnAction(ActionEvent actionEvent){
+        int selectedIndex = wordsListView.getSelectionModel().getSelectedIndex();
+
+        if(selectedIndex != -1){
+            unknownWords_.remove(selectedIndex);
+            candidateWords_.remove(selectedIndex);
+
+            String selectedWord = wordsListView.getSelectionModel().getSelectedItem();
+
+            dictionary_.removeUnknownWord(selectedWord);
+            corpus_.removeWordByText(selectedWord);
+
+            System.out.println(corpus_.getText());
+        }
     }
 
     public interface API extends org.pasr.gui.controllers.Controller.API{
@@ -153,23 +193,6 @@ public class LDASceneController extends Controller {
         private final Node progressNode_;
 
         private Timer timer_;
-    }
-
-
-    private void startDictionaryThread(){
-        if(dictionaryThread_ == null || !dictionaryThread_.isAlive()){
-            dictionaryThread_ = new DictionaryThread();
-
-            dictionaryThread_.start();
-        }
-    }
-
-    private void startLDAThread(){
-        if(lDAThread_ == null || !lDAThread_.isAlive()){
-            lDAThread_ = new LDAThread();
-
-            lDAThread_.start();
-        }
     }
 
     @FXML

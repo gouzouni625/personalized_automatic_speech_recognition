@@ -41,14 +41,12 @@ public class Dictionary implements Iterable<Map.Entry<String, String>>{
         return dictionary;
     }
 
-    @SuppressWarnings ("WeakerAccess")
     public List<String> getPhones(String string){
         String phones = wordsToPhonesTable_.get(string);
 
         return phones == null ? null : Arrays.asList(phones.trim().split(" "));
     }
 
-    @SuppressWarnings ("WeakerAccess")
     public List<String> getPhones(Word word){
         return getPhones(word.getText());
     }
@@ -165,6 +163,10 @@ public class Dictionary implements Iterable<Map.Entry<String, String>>{
         while(wordsToPhonesTable_.remove(key + "(" + index + ")") != null){
             index++;
         }
+    }
+
+    public void removeUnknownWord(String word){
+        unknownWords_.remove(word);
     }
 
     public static Dictionary getDefaultDictionary() throws FileNotFoundException {
