@@ -20,4 +20,5 @@ dependencies {
     compile group: 'javax.mail'            , name: 'mail'                , version: '1.5.0-b01'
     compile group: 'com.google.code.gson'  , name: 'gson'                , version: '2.6.2'
     compile group: 'com.github.gouzouni625', name: 'native-utils'        , version: '-SNAPSHOT'
+    compile group: 'cc.mallet'             , name: 'mallet'              , version: '2.0.8'
 }

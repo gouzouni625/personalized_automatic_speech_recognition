@@ -1,7 +1,11 @@
 package org.pasr.utilities;
 
+import org.apache.commons.lang3.ArrayUtils;
+
 import java.io.InputStream;
 import java.net.URL;
+import java.util.OptionalDouble;
+import java.util.stream.DoubleStream;
 
 
 public class Utilities {
@@ -30,6 +34,17 @@ public class Utilities {
         }
 
         return newArray;
+    }
+
+    public static int indexOfMax(double[] array){
+        OptionalDouble result = DoubleStream.of(array).max();
+
+        if(result.isPresent()){
+            return ArrayUtils.indexOf(array, result.getAsDouble());
+        }
+        else{
+            return -1;
+        }
     }
 
 }
