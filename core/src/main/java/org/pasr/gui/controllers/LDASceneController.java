@@ -93,13 +93,13 @@ public class LDASceneController extends Controller {
         int selectedIndex = wordsListView.getSelectionModel().getSelectedIndex();
 
         if(selectedIndex != -1){
-            unknownWords_.remove(selectedIndex);
-            candidateWords_.remove(selectedIndex);
-
             String selectedWord = wordsListView.getSelectionModel().getSelectedItem();
 
             dictionary_.removeUnknownWord(selectedWord);
             corpus_.removeWordByText(selectedWord);
+
+            unknownWords_.remove(selectedIndex);
+            candidateWords_.remove(selectedIndex);
         }
     }
 
@@ -115,11 +115,11 @@ public class LDASceneController extends Controller {
             String wrongWord = wordsListView.getSelectionModel().getSelectedItem();
             String selectedWord = candidatesListView.getSelectionModel().getSelectedItem();
 
-            unknownWords_.remove(wrongWordIndex);
-            candidateWords_.remove(wrongWordIndex);
-
             dictionary_.removeUnknownWord(wrongWord);
             corpus_.replaceWordText(wrongWord, selectedWord);
+
+            unknownWords_.remove(wrongWordIndex);
+            candidateWords_.remove(wrongWordIndex);
         }
     }
 
