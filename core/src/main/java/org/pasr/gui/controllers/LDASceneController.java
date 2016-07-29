@@ -50,7 +50,7 @@ public class LDASceneController extends Controller {
             100, 10000, 1000, 100 // min, max, default, step
         ));
 
-        classesSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(
+        topicsSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(
             2, 5, 3, 1 // min, max, default, step
         ));
 
@@ -255,7 +255,7 @@ public class LDASceneController extends Controller {
     private Spinner<Integer> threadsSpinner;
 
     @FXML
-    private Spinner<Integer> classesSpinner;
+    private Spinner<Integer> topicsSpinner;
 
     @FXML
     private Button runAgainButton;
