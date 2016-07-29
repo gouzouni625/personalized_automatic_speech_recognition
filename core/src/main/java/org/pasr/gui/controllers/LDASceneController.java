@@ -7,12 +7,14 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.AnchorPane;
 import org.pasr.asr.dictionary.Dictionary;
 import org.pasr.prep.corpus.Corpus;
@@ -45,11 +47,15 @@ public class LDASceneController extends Controller {
         chooseButton.setOnAction(this :: chooseButtonOnAction);
 
         iterationsSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(
-            100, 10000, 1000, 100
+            100, 10000, 1000, 100 // min, max, default, step
         ));
 
         classesSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(
-            2, 5, 3, 1
+            2, 5, 3, 1 // min, max, default, step
+        ));
+
+        threadsSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(
+            1, 64, 2, 1 // min, max, default, step
         ));
 
         wordsListView.setItems(unknownWords_);
@@ -64,6 +70,7 @@ public class LDASceneController extends Controller {
                 }
         });
 
+        useLDACheckBox.setTooltip(new Tooltip(USE_LDA_CHECK_BOX_TOOLTIP));
     }
 
     private void startDictionaryThread(){
@@ -113,13 +120,7 @@ public class LDASceneController extends Controller {
 
             dictionary_.removeUnknownWord(wrongWord);
             corpus_.replaceWordText(wrongWord, selectedWord);
-
-            System.out.println(corpus_.getText());
         }
-    }
-
-    public interface API extends org.pasr.gui.controllers.Controller.API{
-        List<Email> getEmails();
     }
 
     private class DictionaryThread extends Thread{
@@ -216,6 +217,10 @@ public class LDASceneController extends Controller {
         private Timer timer_;
     }
 
+    public interface API extends org.pasr.gui.controllers.Controller.API{
+        List<Email> getEmails();
+    }
+
     @FXML
     private SplitPane wordsPane;
 
@@ -247,16 +252,19 @@ public class LDASceneController extends Controller {
     private Spinner<Integer> iterationsSpinner;
 
     @FXML
-    private Button runAgainButton;
+    private Spinner<Integer> threadsSpinner;
 
     @FXML
     private Spinner<Integer> classesSpinner;
 
     @FXML
+    private Button runAgainButton;
+
+    @FXML
     private TextArea resultsTextArea;
 
     @FXML
-    private Button acceptButton;
+    private CheckBox useLDACheckBox;
 
     @FXML
     private Button backButton;
@@ -276,7 +284,10 @@ public class LDASceneController extends Controller {
     private Corpus corpus_;
     private Dictionary dictionary_ = null;
 
-    private Thread dictionaryThread_;
-    private Thread lDAThread_;
+    private DictionaryThread dictionaryThread_;
+    private LDAThread lDAThread_;
+
+    private static final String USE_LDA_CHECK_BOX_TOOLTIP = "Create more than one corpora" +
+        " according to the LDA e-mail grouping";
 
 }
