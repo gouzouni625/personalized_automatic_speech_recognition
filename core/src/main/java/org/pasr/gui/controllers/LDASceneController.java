@@ -19,8 +19,10 @@ import javafx.scene.layout.AnchorPane;
 import org.pasr.asr.dictionary.Dictionary;
 import org.pasr.prep.corpus.Corpus;
 import org.pasr.prep.email.fetchers.Email;
+import org.pasr.prep.lda.LDA;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.Timer;
@@ -35,7 +37,10 @@ public class LDASceneController extends Controller {
         unknownWords_ = FXCollections.observableArrayList();
         candidateWords_ = FXCollections.observableArrayList();
 
-        corpus_ = new Corpus(((API) api_).getEmails());
+        corpus_ = new Corpus(((API) api_).getEmails().stream()
+            .map(Email :: getBody)
+            .collect(Collectors.toList())
+        );
     }
 
     @FXML
@@ -45,6 +50,7 @@ public class LDASceneController extends Controller {
 
         removeButton.setOnAction(this :: removeButtonOnAction);
         chooseButton.setOnAction(this :: chooseButtonOnAction);
+        runAgainButton.setOnAction(this :: runAgainButtonOnAction);
 
         iterationsSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(
             100, 10000, 1000, 100 // min, max, default, step
@@ -74,9 +80,9 @@ public class LDASceneController extends Controller {
     }
 
     private void startDictionaryThread(){
-        if(dictionaryThread_ == null || !dictionaryThread_.isAlive()){
+        // The dictionary thread will run only once during the life cycle of this controller
+        if(dictionaryThread_ == null){
             dictionaryThread_ = new DictionaryThread();
-
             dictionaryThread_.start();
         }
     }
@@ -84,7 +90,6 @@ public class LDASceneController extends Controller {
     private void startLDAThread(){
         if(lDAThread_ == null || !lDAThread_.isAlive()){
             lDAThread_ = new LDAThread();
-
             lDAThread_.start();
         }
     }
@@ -121,6 +126,10 @@ public class LDASceneController extends Controller {
             unknownWords_.remove(wrongWordIndex);
             candidateWords_.remove(wrongWordIndex);
         }
+    }
+
+    private void runAgainButtonOnAction(ActionEvent actionEvent){
+        startLDAThread();
     }
 
     private class DictionaryThread extends Thread{
@@ -163,8 +172,22 @@ public class LDASceneController extends Controller {
             progressIndicator_.showProgress();
 
             try {
-                Thread.sleep(10000);
+                // Wait for the dictionary thread to finish before starting the lda thread so
+                // that the data needed from the second are available.
+                // Note that the dictionary thread will run only once during the life cycle of this
+                // controller
+                dictionaryThread_.join();
             } catch (InterruptedException e) {
+                // TODO Act appropriately
+                e.printStackTrace();
+            }
+
+            LDA lda = new LDA(corpus_.getDocumentsText(), topicsSpinner.getValue(),
+                iterationsSpinner.getValue(), threadsSpinner.getValue());
+            try {
+                lda.start();
+            } catch (IOException e) {
+                // TODO Act appropriately: Set a flag that will indicate that something went wrong
                 e.printStackTrace();
             }
 
@@ -284,8 +307,8 @@ public class LDASceneController extends Controller {
     private Corpus corpus_;
     private Dictionary dictionary_ = null;
 
-    private DictionaryThread dictionaryThread_;
-    private LDAThread lDAThread_;
+    private DictionaryThread dictionaryThread_ = null;
+    private LDAThread lDAThread_ = null;
 
     private static final String USE_LDA_CHECK_BOX_TOOLTIP = "Create more than one corpora" +
         " according to the LDA e-mail grouping";

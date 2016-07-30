@@ -9,20 +9,14 @@ import java.util.stream.Collectors;
 
 
 public class WordSequence implements Iterable<Word> {
-    public WordSequence(String text) {
-        text_ = text.toLowerCase();
+    public WordSequence(String text, int documentID) {
+        documentID_ = documentID;
 
-        tokenize();
-    }
+        text = text.toLowerCase();
 
-    public WordSequence(List<Word> words){
-        this(StringUtils.join(words, " "));
-    }
-
-    private void tokenize() {
         words_ = new ArrayList<>();
 
-        String[] words = text_.split(" ");
+        String[] words = text.split(" ");
         int index = 0;
         for(String word : words){
             if(!word.isEmpty()){
@@ -32,8 +26,16 @@ public class WordSequence implements Iterable<Word> {
         }
     }
 
+    public WordSequence(List<Word> words, int documentID){
+        this(StringUtils.join(words, " "), documentID);
+    }
+
+    public int getDocumentID(){
+        return documentID_;
+    }
+
     public String getText() {
-        return text_;
+        return buildText();
     }
 
     public List<Word> getWords(){
@@ -83,7 +85,7 @@ public class WordSequence implements Iterable<Word> {
             throw new IndexOutOfBoundsException("beginIndex should not be greater than endIndex");
         }
 
-        return new WordSequence(words_.subList(beginIndex, endIndex));
+        return new WordSequence(words_.subList(beginIndex, endIndex), documentID_);
     }
 
     public WordSequence subSequence (int beginIndex){
@@ -100,7 +102,7 @@ public class WordSequence implements Iterable<Word> {
         ArrayList<WordSequence> tokens = new ArrayList<>();
         for(String token : tokensText){
             if(!token.isEmpty()){
-                tokens.add(new WordSequence(token));
+                tokens.add(new WordSequence(token, documentID_));
             }
         }
 
@@ -151,22 +153,10 @@ public class WordSequence implements Iterable<Word> {
 
     private void appendWord (Word word){
         words_.add(word);
-
-        if (! text_.isEmpty()) {
-            text_ += " ";
-        }
-        text_ += word.getText();
     }
 
     private void prependWord(Word word){
         words_.add(0, word);
-
-        if(! text_.isEmpty()){
-            text_ = word.getText() + " " + text_;
-        }
-        else{
-            text_ = word.getText();
-        }
     }
 
     public void appendSequence(WordSequence wordSequence){
@@ -184,29 +174,25 @@ public class WordSequence implements Iterable<Word> {
     }
 
     public boolean equals(String text){
-        return text_.equals(text.toLowerCase());
+        return buildText().equals(text.toLowerCase());
     }
 
     public void replaceWordText(String oldText, String newText){
         words_.stream().filter(word -> word.equals(oldText)).forEach(word -> word.setText(newText));
-
-        rebuildText();
     }
 
     public void remove(Word word){
         words_.remove(word);
-
-        rebuildText();
     }
 
-    private void rebuildText(){
+    private String buildText (){
         StringBuilder stringBuilder = new StringBuilder();
 
         for(Word word : words_){
             stringBuilder.append(word).append(" ");
         }
 
-        text_ = stringBuilder.toString().trim();
+        return stringBuilder.toString().trim();
     }
 
     public void remove(List<Word> words){
@@ -219,24 +205,25 @@ public class WordSequence implements Iterable<Word> {
 
     @Override
     public boolean equals(Object o) {
-        return o instanceof WordSequence && text_.equals(((WordSequence) o).getText());
+        return o instanceof WordSequence && buildText().equals(((WordSequence) o).getText());
     }
 
     @Override
     public int hashCode(){
-        return text_.hashCode();
+        return buildText().hashCode();
     }
 
     @Override
     public String toString() {
-        return text_;
+        return buildText();
     }
 
     public Iterator<Word> iterator(){
         return words_.iterator();
     }
 
-    private String text_;
+    private final int documentID_;
+
     private List<Word> words_;
 
 }

@@ -2,7 +2,6 @@ package org.pasr.prep.corpus;
 
 
 import org.pasr.asr.dictionary.Dictionary;
-import org.pasr.prep.email.fetchers.Email;
 
 import org.pasr.utilities.NumberSpeller;
 
@@ -15,38 +14,22 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Scanner;
 import java.util.Iterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.apache.commons.collections4.ListUtils.longestCommonSubsequence;
 
 
 public class Corpus implements Iterable<WordSequence> {
-    public Corpus(){
-        text_ = "";
+    public Corpus(List<String> documents){
+        documents_ = documents;
+
         sentences_ = new ArrayList<>();
-        name_ = "";
-    }
-
-    public Corpus(String text){
-        text_ = text;
-        sentences_ = new ArrayList<>();
-        name_ = "";
-    }
-
-    public Corpus(List<Email> emails){
-        StringBuilder stringBuilder = new StringBuilder();
-
-        for(Email email : emails){
-            stringBuilder.append(email.getBody()).append(" ");
-        }
-
-        text_ = stringBuilder.toString().trim();
-        sentences_ = new ArrayList<>();
-        name_ = "";
     }
 
     public static Corpus createFromStream(InputStream inputStream){
@@ -58,19 +41,10 @@ public class Corpus implements Iterable<WordSequence> {
         }
         scanner.close();
 
-        return new Corpus(stringBuilder.toString());
-    }
+        ArrayList<String> documents = new ArrayList<>();
+        documents.add(stringBuilder.toString());
 
-    public String getText(){
-        return text_;
-    }
-
-    public List<WordSequence> getSentences() {
-        return sentences_;
-    }
-
-    public String getName(){
-        return name_;
+        return new Corpus(documents);
     }
 
     private List<Word> getUniqueWords (){
@@ -83,20 +57,11 @@ public class Corpus implements Iterable<WordSequence> {
         return new ArrayList<>(uniqueWords);
     }
 
-    public void setName(String name){
-        name_ = name;
-    }
-
-    public synchronized void append(String text){
-        if(!text_.isEmpty()){
-            text_ += " ";
-        }
-        text_ += text;
-    }
-
     public Dictionary process(Dictionary dictionary) {
-        processNumbers();
-        createSentences();
+        for(int i = 0, n = documents_.size();i < n;i++){
+            String currentDocument = processNumbers(documents_.get(i));
+            sentences_.addAll(createSentences(currentDocument, i));
+        }
 
         Dictionary reducedDictionary = new Dictionary();
 
@@ -113,6 +78,9 @@ public class Corpus implements Iterable<WordSequence> {
             }
         }
 
+        // Release the documents resources
+        documents_ = null;
+
         return reducedDictionary;
     }
 
@@ -122,12 +90,12 @@ public class Corpus implements Iterable<WordSequence> {
      *        nineteen forty two) and the second is for amounts (e.g. 1942 dollars -> one thousand
      *        nine hundred forty two dollars).
      */
-    private void processNumbers() {
+    private String processNumbers(String document) {
         NumberSpeller speller = NumberSpeller.getInstance();
 
         ArrayList<String> matches = new ArrayList<>();
 
-        Matcher matcher = Pattern.compile("([0-9]+) dollars").matcher(text_);
+        Matcher matcher = Pattern.compile("([0-9]+) dollars").matcher(document);
         while(matcher.find()){
             matches.add(matcher.group(1));
         }
@@ -137,34 +105,36 @@ public class Corpus implements Iterable<WordSequence> {
         Collections.sort(matches, (s1, s2) -> s2.length() - s1.length());
         for(String match : matches){
             String spelled = speller.spell(Integer.valueOf(match));
-            text_ = text_.replaceAll(spelled + " dollars", " " + spelled + " dollars ");
+            document = document.replaceAll(spelled + " dollars", " " + spelled + " dollars ");
         }
         matches.clear();
 
-        matcher = Pattern.compile("([0-9]+)\\$").matcher(text_);
+        matcher = Pattern.compile("([0-9]+)\\$").matcher(document);
         while(matcher.find()){
             matches.add(matcher.group(1));
         }
         Collections.sort(matches, (s1, s2) -> s2.length() - s1.length());
         for(String match : matches){
             String spelled = speller.spell(Integer.valueOf(match));
-            text_ = text_.replaceAll(match + "\\$", " " + spelled + " dollars ");
+            document = document.replaceAll(match + "\\$", " " + spelled + " dollars ");
         }
         matches.clear();
 
-        matcher = Pattern.compile("([0-9]+)").matcher(text_);
+        matcher = Pattern.compile("([0-9]+)").matcher(document);
         while(matcher.find()){
             matches.add(matcher.group(1));
         }
         Collections.sort(matches, (s1, s2) -> s2.length() - s1.length());
         for(String match : matches){
             String spelled = speller.spell(Integer.valueOf(match), NumberSpeller.Types.DATE);
-            text_ = text_.replaceAll(match, " " + spelled + " ");
+            document = document.replaceAll(match, " " + spelled + " ");
         }
+
+        return document;
     }
 
-    private void createSentences(){
-        text_ = text_.
+    private List<WordSequence> createSentences(String document, int documentID){
+        document = document.
             replaceAll("\\(", " ").
             replaceAll("\\)", " . ").
             replaceAll("\\[", " ").
@@ -176,13 +146,42 @@ public class Corpus implements Iterable<WordSequence> {
             replaceAll(" +", " ").
             toLowerCase();
 
-        String[] sentencesText = text_.split(" ?\\. ?");
+        String[] sentencesText = document.split(" ?\\. ?");
 
+        ArrayList<WordSequence> sentences = new ArrayList<>();
         for(String sentenceText : sentencesText){
             if(!sentenceText.isEmpty()) {
-                sentences_.add(new WordSequence(sentenceText));
+                sentences.add(new WordSequence(sentenceText, documentID));
             }
         }
+
+        return sentences;
+    }
+
+    public List<String> getDocumentsText(){
+        int numberOfDocuments;
+        Optional<Integer> result = sentences_.stream()
+            .map(WordSequence :: getDocumentID)
+            .max(Integer :: compare);
+
+        if(result.isPresent()){
+            numberOfDocuments = result.get();
+        }
+        else{
+            numberOfDocuments = 0;
+        }
+
+        ArrayList<String> documentsText = new ArrayList<>();
+        // i must be final in lambda expression that is why integers are read from a list instead
+        // of the usual for(int i = 0;i < ...)
+        for(int i : IntStream.range(0, numberOfDocuments).boxed().collect(Collectors.toList())){
+            documentsText.add(sentences_.stream()
+                .filter(sentence -> sentence.getDocumentID() == i)
+                .map(WordSequence :: getText)
+                .collect(Collectors.joining(" ")));
+        }
+
+        return documentsText;
     }
 
     public boolean contains(WordSequence wordSequence){
@@ -203,7 +202,7 @@ public class Corpus implements Iterable<WordSequence> {
             List<Word> candidate = longestCommonSubsequence(sentence.getWords(), words);
 
             if(candidate.size() > 0) {
-                lCSS.add(new WordSequence(candidate));
+                lCSS.add(new WordSequence(candidate, sentence.getDocumentID()));
             }
         }
 
@@ -222,26 +221,12 @@ public class Corpus implements Iterable<WordSequence> {
         for(WordSequence sentence : sentences_){
             sentence.replaceWordText(oldText, newText);
         }
-
-        rebuildText();
     }
 
     public void removeWordByText(String text){
         for(WordSequence sentence : sentences_){
             sentence.removeByText(text);
         }
-
-        rebuildText();
-    }
-
-    private void rebuildText(){
-        StringBuilder stringBuilder = new StringBuilder();
-
-        for(WordSequence sentence : sentences_){
-            stringBuilder.append(sentence).append(".");
-        }
-
-        text_ = stringBuilder.toString();
     }
 
     public void saveToFile(File file) throws FileNotFoundException {
@@ -256,9 +241,7 @@ public class Corpus implements Iterable<WordSequence> {
         return sentences_.iterator();
     }
 
-    private String text_;
+    private List<String> documents_;
     private List<WordSequence> sentences_;
-
-    private String name_;
 
 }
