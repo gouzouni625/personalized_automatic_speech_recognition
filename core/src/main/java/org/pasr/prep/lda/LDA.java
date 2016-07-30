@@ -24,14 +24,12 @@ import java.util.regex.Pattern;
 public class LDA {
     public LDA(List<String> documents, int numberOfTopics, int numberOfIterations,
                int numberOfThreads){
-        documents_ = documents;
-
         numberOfTopics_ = numberOfTopics;
         numberOfIterations_ = numberOfIterations;
 
         numberOfThreads_ = numberOfThreads;
 
-        StringArrayIterator iterator = new StringArrayIterator(documents_.toArray(new String[0]));
+        StringArrayIterator iterator = new StringArrayIterator(documents.toArray(new String[0]));
 
         instances_ = new InstanceList(buildPipe());
         instances_.addThruPipe(iterator);
@@ -48,18 +46,6 @@ public class LDA {
         pipeList.add(new TokenSequence2FeatureSequence());
 
         return new SerialPipes(pipeList);
-    }
-
-    public int getNumberOfTopics(){
-        return numberOfTopics_;
-    }
-
-    public int getNumberOfIterations(){
-        return numberOfIterations_;
-    }
-
-    public int getNumberOfThreads(){
-        return numberOfThreads_;
     }
 
     public List<List<String>> getTopWords(int numberOfWords){
@@ -102,7 +88,7 @@ public class LDA {
         // that was previously written by the PrintWriter
         Scanner scanner = new Scanner(pipedInputStream);
 
-        double[][] probabilities = new double[documents_.size()][numberOfTopics_];
+        double[][] probabilities = new double[instances_.size()][numberOfTopics_];
         int currentDocumentIndex = 0;
         while(scanner.hasNextLine()){
             String[] tokens = scanner.nextLine()
@@ -126,7 +112,7 @@ public class LDA {
     public int[] getDocumentTopic(){
         double[][] documentTopicProbabilities = getDocumentTopicProbabilities();
 
-        int numberOfDocuments = documents_.size();
+        int numberOfDocuments = instances_.size();
         int[] documentTopicArray = new int[numberOfDocuments];
 
         for(int i = 0;i < numberOfDocuments;i++){
@@ -137,32 +123,13 @@ public class LDA {
     }
 
     public void start() throws IOException {
-        if(lda_ == null){
-            lda_ = new ParallelTopicModel(numberOfIterations_);
-        }
-        else{
-            lda_.setNumIterations(numberOfIterations_);
-        }
-
-        lda_.setNumTopics(numberOfTopics_);
+        lda_ = new ParallelTopicModel(numberOfTopics_);
+        lda_.setNumIterations(numberOfIterations_);
         lda_.setNumThreads(numberOfThreads_);
         lda_.addInstances(instances_);
         lda_.estimate();
     }
 
-    public void setNumberOfTopics(int numberOfTopics){
-        numberOfTopics_ = numberOfTopics;
-    }
-
-    public void setNumberOfIterations(int numberOfIterations){
-        numberOfIterations_ = numberOfIterations;
-    }
-
-    public void setNumberOfThreads(int numberOfThreads){
-        numberOfThreads_ = numberOfThreads;
-    }
-
-    private List<String> documents_;
     private InstanceList instances_;
 
     private int numberOfTopics_;
@@ -170,6 +137,6 @@ public class LDA {
 
     private int numberOfThreads_;
 
-    private ParallelTopicModel lda_ = null;
+    private ParallelTopicModel lda_;
 
 }
