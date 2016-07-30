@@ -178,7 +178,16 @@ public class WordSequence implements Iterable<Word> {
     }
 
     public void replaceWordText(String oldText, String newText){
-        words_.stream().filter(word -> word.equals(oldText)).forEach(word -> word.setText(newText));
+        // If new text is empty then the words should be removed instead of having their text
+        // replaced
+        if(newText.isEmpty()){
+            removeByText(oldText);
+        }
+        else {
+            words_.stream()
+                .filter(word -> word.equals(oldText))
+                .forEach(word -> word.setText(newText));
+        }
     }
 
     public void remove(Word word){

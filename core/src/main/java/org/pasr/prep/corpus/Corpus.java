@@ -209,14 +209,31 @@ public class Corpus implements Iterable<WordSequence> {
     }
 
     public void replaceWordText(String oldText, String newText){
-        for(WordSequence sentence : sentences_){
-            sentence.replaceWordText(oldText, newText);
+        // If new text is empty then the words should be removed instead of having their text
+        // replaced
+        if(newText.isEmpty()){
+            removeWordByText(oldText);
+        }
+        else {
+            for (WordSequence sentence : sentences_) {
+                sentence.replaceWordText(oldText, newText);
+            }
         }
     }
 
     public void removeWordByText(String text){
+        ArrayList<WordSequence> emptySentences = new ArrayList<>();
+
         for(WordSequence sentence : sentences_){
             sentence.removeByText(text);
+
+            if(sentence.size() == 0){
+                emptySentences.add(sentence);
+            }
+        }
+
+        for(WordSequence emptySentence : emptySentences){
+            sentences_.remove(emptySentence);
         }
     }
 
