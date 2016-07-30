@@ -14,19 +14,17 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Scanner;
 import java.util.Iterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import static org.apache.commons.collections4.ListUtils.longestCommonSubsequence;
 
 
 public class Corpus implements Iterable<WordSequence> {
-    public Corpus(List<String> documents){
+    public Corpus(List<Document> documents){
         documents_ = documents;
 
         sentences_ = new ArrayList<>();
@@ -41,8 +39,11 @@ public class Corpus implements Iterable<WordSequence> {
         }
         scanner.close();
 
-        ArrayList<String> documents = new ArrayList<>();
-        documents.add(stringBuilder.toString());
+        String documentContent = stringBuilder.toString();
+        Document document = new Document(documentContent.hashCode(), documentContent);
+
+        ArrayList<Document> documents = new ArrayList<>();
+        documents.add(document);
 
         return new Corpus(documents);
     }
@@ -58,9 +59,9 @@ public class Corpus implements Iterable<WordSequence> {
     }
 
     public Dictionary process(Dictionary dictionary) {
-        for(int i = 0, n = documents_.size();i < n;i++){
-            String currentDocument = processNumbers(documents_.get(i));
-            sentences_.addAll(createSentences(currentDocument, i));
+        for(Document document : documents_){
+            String processedContent = processNumbers(document.getContent());
+            sentences_.addAll(createSentences(processedContent, document.getID()));
         }
 
         Dictionary reducedDictionary = new Dictionary();
@@ -159,22 +160,12 @@ public class Corpus implements Iterable<WordSequence> {
     }
 
     public List<String> getDocumentsText(){
-        int numberOfDocuments;
-        Optional<Integer> result = sentences_.stream()
+        List<Integer> documentIDs = sentences_.stream()
             .map(WordSequence :: getDocumentID)
-            .max(Integer :: compare);
-
-        if(result.isPresent()){
-            numberOfDocuments = result.get();
-        }
-        else{
-            numberOfDocuments = 0;
-        }
+            .collect(Collectors.toList());
 
         ArrayList<String> documentsText = new ArrayList<>();
-        // i must be final in lambda expression that is why integers are read from a list instead
-        // of the usual for(int i = 0;i < ...)
-        for(int i : IntStream.range(0, numberOfDocuments).boxed().collect(Collectors.toList())){
+        for(int i : documentIDs){
             documentsText.add(sentences_.stream()
                 .filter(sentence -> sentence.getDocumentID() == i)
                 .map(WordSequence :: getText)
@@ -241,7 +232,7 @@ public class Corpus implements Iterable<WordSequence> {
         return sentences_.iterator();
     }
 
-    private List<String> documents_;
+    private List<Document> documents_;
     private List<WordSequence> sentences_;
 
 }

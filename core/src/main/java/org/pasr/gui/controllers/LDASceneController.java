@@ -18,6 +18,7 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.layout.AnchorPane;
 import org.pasr.asr.dictionary.Dictionary;
 import org.pasr.prep.corpus.Corpus;
+import org.pasr.prep.corpus.Document;
 import org.pasr.prep.email.fetchers.Email;
 import org.pasr.prep.lda.LDA;
 
@@ -38,7 +39,7 @@ public class LDASceneController extends Controller {
         candidateWords_ = FXCollections.observableArrayList();
 
         corpus_ = new Corpus(((API) api_).getEmails().stream()
-            .map(Email :: getBody)
+            .map(email -> new Document(email.getID(), email.getBody()))
             .collect(Collectors.toList())
         );
     }

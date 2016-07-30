@@ -13,6 +13,8 @@ public class Email {
         receivedDate_ = receivedDate;
         subject_ = subject;
         body_ = body;
+
+        id_ = receivedDate_.hashCode();
     }
 
     public String[] getSenders(){
@@ -44,6 +46,10 @@ public class Email {
         return body_;
     }
 
+    public int getID(){
+        return id_;
+    }
+
     private final String[] senders_;
     private final String[] tORecipients_;
     private final String[] cCRecipients_;
@@ -51,6 +57,7 @@ public class Email {
     private final String receivedDate_;
     private final String subject_;
     private final String body_;
+    private final int id_;
 
     public enum RecipientType{
         TO,
