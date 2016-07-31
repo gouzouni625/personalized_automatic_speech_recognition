@@ -2,20 +2,15 @@ package org.pasr.prep.corpus;
 
 
 import org.pasr.asr.dictionary.Dictionary;
-
 import org.pasr.utilities.NumberSpeller;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
 import java.util.Iterator;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -28,28 +23,6 @@ public class Corpus implements Iterable<WordSequence> {
         documents_ = documents;
 
         sentences_ = new ArrayList<>();
-    }
-
-    public static Corpus createFromStream(InputStream inputStream){
-        ArrayList<WordSequence> sentences = new ArrayList<>();
-
-        Pattern pattern = Pattern.compile("<s> (.*) </s> \\((-?[0-9]+)\\)");
-
-        Scanner scanner = new Scanner(inputStream);
-        while(scanner.hasNextLine()){
-            Matcher matcher = pattern.matcher(scanner.nextLine());
-            if(matcher.find()){
-                sentences.add(
-                    new WordSequence(matcher.group(1), Integer.parseInt(matcher.group(2)))
-                );
-            }
-        }
-        scanner.close();
-
-        Corpus corpus = new Corpus(null);
-        corpus.setSentences(sentences);
-
-        return corpus;
     }
 
     private List<Word> getUniqueWords (){
@@ -241,21 +214,17 @@ public class Corpus implements Iterable<WordSequence> {
         }
     }
 
-    // See also #createFromStream
-    private void setSentences(List<WordSequence> sentences){
+    public void setSentences(List<WordSequence> sentences){
         sentences_ = sentences;
-    }
-
-    public void saveToFile(File file) throws FileNotFoundException {
-        PrintWriter printWriter = new PrintWriter(file);
-
-        sentences_.forEach(sentence -> printWriter.println(
-            "<s> " + sentence + " </s> (" + sentence.getDocumentID() + ")"));
-        printWriter.close();
     }
 
     public Iterator<WordSequence> iterator(){
         return sentences_.iterator();
+    }
+
+    @Override
+    public void forEach (Consumer<? super WordSequence> action) {
+        sentences_.forEach(action);
     }
 
     private List<Document> documents_;

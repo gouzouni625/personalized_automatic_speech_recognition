@@ -17,6 +17,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.AnchorPane;
 import org.pasr.asr.dictionary.Dictionary;
+import org.pasr.database.DataBase;
 import org.pasr.prep.corpus.Corpus;
 import org.pasr.prep.corpus.Document;
 import org.pasr.prep.email.fetchers.Email;
@@ -52,6 +53,7 @@ public class LDASceneController extends Controller {
         removeButton.setOnAction(this :: removeButtonOnAction);
         chooseButton.setOnAction(this :: chooseButtonOnAction);
         runAgainButton.setOnAction(this :: runAgainButtonOnAction);
+        doneButton.setOnAction(this :: doneButtonOnAction);
 
         iterationsSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(
             100, 10000, 1000, 100 // min, max, default, step
@@ -133,6 +135,12 @@ public class LDASceneController extends Controller {
         startLDAThread();
     }
 
+    private void doneButtonOnAction(ActionEvent actionEvent){
+        // TODO Ask for a name for the corpus
+        // TODO Check if LDA should be applied and act appropriately
+        DataBase.getInstance().newCorpusEntry(corpus_, dictionary_);
+    }
+
     private class DictionaryThread extends Thread{
         DictionaryThread (){
             progressIndicator_ = new ProgressIndicator(
@@ -143,6 +151,7 @@ public class LDASceneController extends Controller {
         @Override
         public void run(){
             progressIndicator_.showProgress();
+            doneButton.setDisable(true);
 
             try {
                 dictionary_ = corpus_.process(Dictionary.getDefaultDictionary());
@@ -157,6 +166,7 @@ public class LDASceneController extends Controller {
                 e.printStackTrace();
             }
 
+            doneButton.setDisable(false);
             progressIndicator_.hideProgress();
         }
 

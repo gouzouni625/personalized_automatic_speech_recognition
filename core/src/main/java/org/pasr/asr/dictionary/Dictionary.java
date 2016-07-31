@@ -4,10 +4,10 @@ import org.pasr.asr.Configuration;
 import org.pasr.prep.corpus.Word;
 import org.pasr.prep.corpus.WordSequence;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -22,8 +22,7 @@ public class Dictionary implements Iterable<Map.Entry<String, String>>{
         unknownWords_ = new ArrayList<>();
     }
 
-    public static Dictionary createFromStream (InputStream inputStream)
-        throws FileNotFoundException {
+    public static Dictionary createFromStream (InputStream inputStream) {
 
         Dictionary dictionary = new Dictionary();
 
@@ -111,12 +110,6 @@ public class Dictionary implements Iterable<Map.Entry<String, String>>{
         return fuzzyMatch(string, 5);
     }
 
-    public List<List<String>> getUnknownWordsFuzzyMatch(){
-        return unknownWords_.stream()
-            .map(this :: fuzzyMatch)
-            .collect(Collectors.toCollection(ArrayList::new));
-    }
-
     public void add(String key, String value){
         if(!wordsToPhonesTable_.containsKey(key)) {
             wordsToPhonesTable_.put(key, value);
@@ -175,14 +168,14 @@ public class Dictionary implements Iterable<Map.Entry<String, String>>{
         ));
     }
 
-    public void saveToFile(File file) throws FileNotFoundException {
+    public void exportToStream(OutputStream outputStream) {
         // Sort the entries of the dictionary based on the key length. This will ensure that
         // "the(1)" is below "the" when the dictionary is saved to the file.
         List<Map.Entry<String, String>> entries = new ArrayList<>(wordsToPhonesTable_.entrySet());
 
         Collections.sort(entries, (e1, e2) -> e1.getKey().length() - e2.getKey().length());
 
-        PrintWriter printWriter = new PrintWriter(file);
+        PrintWriter printWriter = new PrintWriter(outputStream);
         for (Map.Entry<String, String> entry : entries) {
             printWriter.write(entry.getKey() + " " + entry.getValue() + "\n");
         }
