@@ -62,8 +62,7 @@ cp pocketsphinx.jar ../../../core/libs
 cd ../../../
 
 ## ===== Create directories ===== ##
-mkdir database
-mkdir database/corpora database/acoustic_models
+mkdir -p database/corpora
 
 ## ===== Download and Install cmuclmtk ===== ##
 wget https://sourceforge.net/projects/cmusphinx/files/cmuclmtk/0.7/cmuclmtk-0.7.tar.gz/download \

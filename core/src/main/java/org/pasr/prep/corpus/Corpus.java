@@ -23,6 +23,12 @@ public class Corpus implements Iterable<WordSequence> {
         documents_ = documents;
 
         sentences_ = new ArrayList<>();
+
+        name_ = "";
+    }
+
+    public String getName(){
+        return name_;
     }
 
     private List<Word> getUniqueWords (){
@@ -218,6 +224,10 @@ public class Corpus implements Iterable<WordSequence> {
         sentences_ = sentences;
     }
 
+    public void setName(String name){
+        name_ = name;
+    }
+
     public Iterator<WordSequence> iterator(){
         return sentences_.iterator();
     }
@@ -229,5 +239,7 @@ public class Corpus implements Iterable<WordSequence> {
 
     private List<Document> documents_;
     private List<WordSequence> sentences_;
+
+    private String name_;
 
 }

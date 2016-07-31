@@ -1,14 +1,19 @@
 package org.pasr.database;
 
 
+import com.google.gson.Gson;
+import com.google.gson.stream.JsonWriter;
 import org.pasr.asr.dictionary.Dictionary;
 import org.pasr.prep.corpus.Corpus;
 import org.pasr.prep.corpus.WordSequence;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Scanner;
@@ -17,19 +22,24 @@ import java.util.regex.Pattern;
 
 
 public class DataBase {
-    private DataBase () {}
+    private DataBase () {
+        Gson gson = new Gson();
+
+        try {
+            index_ = gson.fromJson(new InputStreamReader(
+                new FileInputStream(INDEX_PATH)), Index.class
+            );
+        } catch (FileNotFoundException e) {
+            index_ = new Index();
+        }
+    }
 
     public void newCorpusEntry (Corpus corpus, Dictionary dictionary){
-        int newCorpusIndex;
-        File[] files = corpusDirectory_.listFiles();
-        if(files == null){
-            newCorpusIndex = 1;
-        }
-        else{
-            newCorpusIndex = files.length + 1;
-        }
+        File corpusDirectory = new File(CORPUS_DIRECTORY_PATH);
 
-        File newCorpusDirectory = new File(corpusDirectory_, String.valueOf(newCorpusIndex));
+        int newCorpusID = index_.getNumberOfEntries() + 1;
+
+        File newCorpusDirectory = new File(corpusDirectory, String.valueOf(newCorpusID));
         if(!newCorpusDirectory.mkdir()){
             throw new RuntimeException("Could not create the directory to save the new corpus");
         }
@@ -45,6 +55,8 @@ public class DataBase {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        index_.addEntry(new Index.Entry(newCorpusID, corpus.getName()));
     }
 
     private void saveCorpusToDirectory(Corpus corpus, File directory) throws FileNotFoundException {
@@ -110,12 +122,32 @@ public class DataBase {
     //     return corpus;
     // }
 
+    public void close(){
+        PrintWriter printWriter;
+        try {
+            printWriter = new PrintWriter(new OutputStreamWriter(
+                new FileOutputStream(INDEX_PATH))
+            );
+        } catch (FileNotFoundException e) {
+            // TODO Could not save database. Act appropriately
+            e.printStackTrace();
+            return;
+        }
+
+        new Gson().toJson(index_, printWriter);
+
+        printWriter.close();
+    }
+
     public static DataBase getInstance () {
         return instance_;
     }
 
-    private static final File corpusDirectory_ = new File("database/corpora/");
+    private static final String CORPUS_DIRECTORY_PATH = "database/corpora/";
+    private static final String INDEX_PATH = "database/corpora/index.json";
 
     private static DataBase instance_ = new DataBase();
+
+    private Index index_;
 
 }
