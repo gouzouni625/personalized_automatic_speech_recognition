@@ -31,21 +31,25 @@ public class Corpus implements Iterable<WordSequence> {
     }
 
     public static Corpus createFromStream(InputStream inputStream){
-        StringBuilder stringBuilder = new StringBuilder();
+        ArrayList<WordSequence> sentences = new ArrayList<>();
+
+        Pattern pattern = Pattern.compile("<s> (.*) </s> \\((-?[0-9]+)\\)");
 
         Scanner scanner = new Scanner(inputStream);
         while(scanner.hasNextLine()){
-            stringBuilder.append(scanner.nextLine());
+            Matcher matcher = pattern.matcher(scanner.nextLine());
+            if(matcher.find()){
+                sentences.add(
+                    new WordSequence(matcher.group(1), Integer.parseInt(matcher.group(2)))
+                );
+            }
         }
         scanner.close();
 
-        String documentContent = stringBuilder.toString();
-        Document document = new Document(documentContent.hashCode(), documentContent);
+        Corpus corpus = new Corpus(null);
+        corpus.setSentences(sentences);
 
-        ArrayList<Document> documents = new ArrayList<>();
-        documents.add(document);
-
-        return new Corpus(documents);
+        return corpus;
     }
 
     private List<Word> getUniqueWords (){
@@ -237,11 +241,16 @@ public class Corpus implements Iterable<WordSequence> {
         }
     }
 
+    // See also #createFromStream
+    private void setSentences(List<WordSequence> sentences){
+        sentences_ = sentences;
+    }
+
     public void saveToFile(File file) throws FileNotFoundException {
         PrintWriter printWriter = new PrintWriter(file);
 
-        sentences_.forEach(printWriter:: println);
-
+        sentences_.forEach(sentence -> printWriter.println(
+            "<s> " + sentence + " </s> (" + sentence.getDocumentID() + ")"));
         printWriter.close();
     }
 
