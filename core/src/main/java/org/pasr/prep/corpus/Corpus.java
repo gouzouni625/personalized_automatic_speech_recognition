@@ -25,6 +25,11 @@ public class Corpus implements Iterable<WordSequence> {
         sentences_ = new ArrayList<>();
 
         name_ = "";
+        id_ = -1;
+    }
+
+    public int getID(){
+        return id_;
     }
 
     public String getName(){
@@ -224,6 +229,10 @@ public class Corpus implements Iterable<WordSequence> {
         sentences_ = sentences;
     }
 
+    public void setID(int id){
+        id_ = id;
+    }
+
     public void setName(String name){
         name_ = name;
     }
@@ -240,6 +249,7 @@ public class Corpus implements Iterable<WordSequence> {
     private List<Document> documents_;
     private List<WordSequence> sentences_;
 
+    private int id_;
     private String name_;
 
 }

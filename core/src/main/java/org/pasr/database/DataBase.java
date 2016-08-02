@@ -47,6 +47,7 @@ public class DataBase {
         File corpusDirectory = new File(CORPUS_DIRECTORY_PATH);
 
         int newCorpusID = index_.getNumberOfEntries() + 1;
+        corpus.setID(newCorpusID);
 
         File newCorpusDirectory = new File(corpusDirectory, String.valueOf(newCorpusID));
         if(!newCorpusDirectory.mkdir()){

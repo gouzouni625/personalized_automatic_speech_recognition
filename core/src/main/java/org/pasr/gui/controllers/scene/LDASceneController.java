@@ -19,6 +19,7 @@ import javafx.scene.layout.AnchorPane;
 import org.pasr.asr.dictionary.Dictionary;
 import org.pasr.database.DataBase;
 import org.pasr.gui.dialog.CorpusNameDialog;
+import org.pasr.gui.dialog.YesNoDialog;
 import org.pasr.prep.corpus.Corpus;
 import org.pasr.prep.corpus.Document;
 import org.pasr.prep.email.fetchers.Email;
@@ -157,7 +158,21 @@ public class LDASceneController extends Controller {
                 // TODO
                 e.printStackTrace();
             }
+        }
 
+        try {
+            YesNoDialog yesNoDialog = new YesNoDialog(true, YES_NO_DIALOG_PROMPT_TEXT);
+            yesNoDialog.showAndWait();
+
+            if(yesNoDialog.getValue()){
+                ((API)api_).record(corpus_.getID());
+            }
+            else{
+                ((API)api_).dictate(corpus_.getID());
+            }
+        } catch (IOException e) {
+            // TODO
+            e.printStackTrace();
         }
     }
 
@@ -273,6 +288,8 @@ public class LDASceneController extends Controller {
 
     public interface API extends Controller.API{
         List<Email> getEmails();
+        void record(int corpusID);
+        void dictate(int corpusID);
     }
 
     @FXML
@@ -343,5 +360,8 @@ public class LDASceneController extends Controller {
 
     private static final String USE_LDA_CHECK_BOX_TOOLTIP = "Create more than one corpora" +
         " according to the LDA e-mail grouping";
+
+    private static final String YES_NO_DIALOG_PROMPT_TEXT = "Record voice samples for acoustic" +
+        " model adaptation?";
 
 }
