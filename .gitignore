@@ -1,4 +1,2 @@
-*.wav
-
-acoustic_model_adaptation/
-cmuclmtk-0.7/
+cmuclmtk/
+database/
