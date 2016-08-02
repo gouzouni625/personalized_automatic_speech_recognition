@@ -42,9 +42,9 @@ class SceneFactory {
     }
 
     enum Scenes{
-        MAIN_SCENE("/fxml/scene/main_scene.fxml"),
-        EMAIL_LIST_SCENE("/fxml/scene/email_list_scene.fxml"),
-        LDA_SCENE("/fxml/scene/lda_scene.fxml");
+        MAIN_SCENE("/fxml/scene/main.fxml"),
+        EMAIL_LIST_SCENE("/fxml/scene/email_list.fxml"),
+        LDA_SCENE("/fxml/scene/lda.fxml");
 
         Scenes(String fXMLResource){
             fXMLResource_ = fXMLResource;
