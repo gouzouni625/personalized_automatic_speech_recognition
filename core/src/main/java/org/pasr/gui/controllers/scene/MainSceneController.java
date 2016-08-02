@@ -1,4 +1,4 @@
-package org.pasr.gui.controllers;
+package org.pasr.gui.controllers.scene;
 
 
 import javafx.application.Platform;
@@ -16,7 +16,7 @@ import java.io.IOException;
 
 
 public class MainSceneController extends Controller{
-    public MainSceneController(org.pasr.gui.controllers.Controller.API api){
+    public MainSceneController(Controller.API api){
         super(api);
     }
 
@@ -87,7 +87,7 @@ public class MainSceneController extends Controller{
         ((API) api_).dictate();
     }
 
-    public interface API extends org.pasr.gui.controllers.Controller.API{
+    public interface API extends Controller.API{
         void newCorpus(String emailAddress, String password);
         void dictate(); // TODO probably will pass the chosen corpus and acoustic model
     }

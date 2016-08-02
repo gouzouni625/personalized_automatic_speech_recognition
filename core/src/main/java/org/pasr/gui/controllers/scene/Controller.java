@@ -1,6 +1,6 @@
-package org.pasr.gui.controllers;
+package org.pasr.gui.controllers.scene;
 
-// Each controller class should extend this one
+// Each controller class in this package should extend this class
 public abstract class Controller {
     Controller(API api){
         api_ = api;

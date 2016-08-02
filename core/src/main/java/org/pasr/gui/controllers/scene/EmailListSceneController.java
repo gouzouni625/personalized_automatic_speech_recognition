@@ -1,4 +1,4 @@
-package org.pasr.gui.controllers;
+package org.pasr.gui.controllers.scene;
 
 
 import javafx.event.ActionEvent;
@@ -23,7 +23,7 @@ import java.util.Observer;
 
 
 public class EmailListSceneController extends Controller implements Observer{
-    public EmailListSceneController(org.pasr.gui.controllers.Controller.API api) {
+    public EmailListSceneController(Controller.API api) {
         super(api);
 
         try {
@@ -141,7 +141,7 @@ public class EmailListSceneController extends Controller implements Observer{
         emailFetcher_.close();
     }
 
-    public interface API extends org.pasr.gui.controllers.Controller.API{
+    public interface API extends Controller.API{
         String getEmailAddress();
         String getPassword();
         void back();

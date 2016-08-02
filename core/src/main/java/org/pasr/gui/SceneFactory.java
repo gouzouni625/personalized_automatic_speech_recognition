@@ -3,11 +3,11 @@ package org.pasr.gui;
 
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
-import org.pasr.gui.controllers.Controller;
-import org.pasr.gui.controllers.Controller.API;
-import org.pasr.gui.controllers.EmailListSceneController;
-import org.pasr.gui.controllers.LDASceneController;
-import org.pasr.gui.controllers.MainSceneController;
+import org.pasr.gui.controllers.scene.Controller;
+import org.pasr.gui.controllers.scene.Controller.API;
+import org.pasr.gui.controllers.scene.EmailListSceneController;
+import org.pasr.gui.controllers.scene.LDASceneController;
+import org.pasr.gui.controllers.scene.MainSceneController;
 
 import java.io.IOException;
 

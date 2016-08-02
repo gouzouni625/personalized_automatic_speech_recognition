@@ -1,4 +1,4 @@
-package org.pasr.gui.controllers;
+package org.pasr.gui.controllers.scene;
 
 
 import javafx.collections.FXCollections;
@@ -18,6 +18,7 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.layout.AnchorPane;
 import org.pasr.asr.dictionary.Dictionary;
 import org.pasr.database.DataBase;
+import org.pasr.gui.dialog.CorpusNameDialog;
 import org.pasr.prep.corpus.Corpus;
 import org.pasr.prep.corpus.Document;
 import org.pasr.prep.email.fetchers.Email;
@@ -33,7 +34,7 @@ import java.util.stream.Collectors;
 
 
 public class LDASceneController extends Controller {
-    public LDASceneController (org.pasr.gui.controllers.Controller.API api) {
+    public LDASceneController (Controller.API api) {
         super(api);
 
         unknownWords_ = FXCollections.observableArrayList();
@@ -136,9 +137,28 @@ public class LDASceneController extends Controller {
     }
 
     private void doneButtonOnAction(ActionEvent actionEvent){
-        // TODO Ask for a name for the corpus
-        // TODO Check if LDA should be applied and act appropriately
-        DataBase.getInstance().newCorpusEntry(corpus_, dictionary_);
+        DataBase database = DataBase.getInstance();
+
+        if(useLDACheckBox.isSelected()){
+
+        }
+        else {
+            try {
+                CorpusNameDialog corpusNameDialog = new CorpusNameDialog("corpus_" +
+                    String.valueOf(database.getNumberOfCorpora() + 1)
+                );
+                corpusNameDialog.showAndWait();
+
+                corpus_.setName(corpusNameDialog.getValue());
+
+                DataBase.getInstance().newCorpusEntry(corpus_, dictionary_);
+
+            } catch (IOException e) {
+                // TODO
+                e.printStackTrace();
+            }
+
+        }
     }
 
     private class DictionaryThread extends Thread{
@@ -151,7 +171,6 @@ public class LDASceneController extends Controller {
         @Override
         public void run(){
             progressIndicator_.showProgress();
-            doneButton.setDisable(true);
 
             try {
                 dictionary_ = corpus_.process(Dictionary.getDefaultDictionary());
@@ -166,7 +185,6 @@ public class LDASceneController extends Controller {
                 e.printStackTrace();
             }
 
-            doneButton.setDisable(false);
             progressIndicator_.hideProgress();
         }
 
@@ -181,6 +199,7 @@ public class LDASceneController extends Controller {
         @Override
         public void run(){
             progressIndicator_.showProgress();
+            doneButton.setDisable(true);
 
             try {
                 // Wait for the dictionary thread to finish before starting the lda thread so
@@ -202,6 +221,7 @@ public class LDASceneController extends Controller {
                 e.printStackTrace();
             }
 
+            doneButton.setDisable(false);
             progressIndicator_.hideProgress();
         }
 
@@ -251,7 +271,7 @@ public class LDASceneController extends Controller {
         private Timer timer_;
     }
 
-    public interface API extends org.pasr.gui.controllers.Controller.API{
+    public interface API extends Controller.API{
         List<Email> getEmails();
     }
 
