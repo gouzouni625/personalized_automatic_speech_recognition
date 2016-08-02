@@ -90,6 +90,10 @@ public class DataBase {
         unknownWordPrintWriter.close();
     }
 
+    public int getNumberOfCorpora(){
+        return index_.getNumberOfEntries();
+    }
+
     // public static Corpus loadFromDirectory (File directory) throws FileNotFoundException {
     //     ArrayList<WordSequence> sentences = new ArrayList<>();
     //
