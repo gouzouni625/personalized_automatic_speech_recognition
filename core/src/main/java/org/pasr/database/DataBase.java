@@ -4,6 +4,7 @@ package org.pasr.database;
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonWriter;
 import org.pasr.asr.dictionary.Dictionary;
+import org.pasr.database.processes.LanguageModelProcess;
 import org.pasr.prep.corpus.Corpus;
 import org.pasr.prep.corpus.WordSequence;
 
@@ -15,6 +16,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.regex.Matcher;
@@ -47,12 +49,26 @@ public class DataBase {
         try {
             saveCorpusToDirectory(corpus, newCorpusDirectory);
         } catch (FileNotFoundException e) {
+            // TODO
             e.printStackTrace();
         }
 
         try {
             saveDictionaryToDirectory(dictionary, newCorpusDirectory);
         } catch (IOException e) {
+            // TODO
+            e.printStackTrace();
+        }
+
+        // Create language model for this corpus
+        try {
+            new LanguageModelProcess(
+                Paths.get(newCorpusDirectory.getPath(), "sentences.txt"),
+                Paths.get(newCorpusDirectory.getPath(), "language_model.lm"),
+                3
+            ).startAndWaitFor();
+        } catch (IOException | InterruptedException e) {
+            // TODO
             e.printStackTrace();
         }
 
