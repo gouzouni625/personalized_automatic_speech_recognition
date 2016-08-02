@@ -24,6 +24,13 @@ import java.util.regex.Pattern;
 
 
 public class DataBase {
+    static{
+        String databaseDirectoryPath = Configuration.getInstance().getDatabaseDirectoryPath();
+
+        CORPUS_DIRECTORY_PATH = databaseDirectoryPath + "corpora/";
+        INDEX_PATH = databaseDirectoryPath + "corpora/index.json";
+    }
+
     private DataBase () {
         Gson gson = new Gson();
 
@@ -163,8 +170,8 @@ public class DataBase {
         return instance_;
     }
 
-    private static final String CORPUS_DIRECTORY_PATH = "database/corpora/";
-    private static final String INDEX_PATH = "database/corpora/index.json";
+    private static final String CORPUS_DIRECTORY_PATH;
+    private static final String INDEX_PATH;
 
     private static DataBase instance_ = new DataBase();
 
