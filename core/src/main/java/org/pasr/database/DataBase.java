@@ -18,9 +18,12 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 
 public class DataBase {
@@ -156,6 +159,22 @@ public class DataBase {
         corpus.setSentences(sentences);
 
         return corpus;
+    }
+
+    public List<String> getUnUsedArcticSentences(int count){
+        List<String> sentences = arcticIndex_.stream()
+            .filter(entry -> !entry.isUsed())
+            .map(org.pasr.database.arctic.Index.Entry :: getSentence)
+            .collect(Collectors.toList());
+
+        Collections.shuffle(sentences);
+
+        if(count < 0 || count > sentences.size()){
+            return sentences;
+        }
+        else{
+            return sentences.subList(0, count);
+        }
     }
 
     public void close(){

@@ -18,7 +18,7 @@
                       AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
         </AnchorPane>
         <AnchorPane minHeight="0.0" minWidth="0.0">
-            <ListView fx:id="externalListView" layoutX="14.0" layoutY="139.0" prefHeight="395.0"
+            <ListView fx:id="arcticListView" layoutX="14.0" layoutY="139.0" prefHeight="395.0"
                       prefWidth="638.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
                       AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
         </AnchorPane>

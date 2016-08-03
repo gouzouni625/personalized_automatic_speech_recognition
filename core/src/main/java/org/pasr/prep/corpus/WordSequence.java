@@ -5,6 +5,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 
@@ -149,6 +150,25 @@ public class WordSequence implements Iterable<Word> {
         return words_.stream()
             .map(Word:: getText)
             .collect(Collectors.toCollection(ArrayList::new));
+    }
+
+    public String getRandomSubsequence(Random random){
+        int size = size();
+
+        if(size <= 5){
+            return getText();
+        }
+
+        int subSequenceSize;
+        do{
+            // Note that nextInt argument is exclusive, that is why +1 is added
+            subSequenceSize = random.nextInt(size + 1);
+        } while(subSequenceSize == 0);
+
+        // Note that nextInt argument is exclusive, that is why +1 is added
+        int beginIndex = random.nextInt(size - subSequenceSize + 1);
+
+        return subSequence(beginIndex, beginIndex + subSequenceSize).getText();
     }
 
     private void appendWord (Word word){

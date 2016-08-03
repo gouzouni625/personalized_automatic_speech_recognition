@@ -1,6 +1,8 @@
 package org.pasr.gui.controllers.scene;
 
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -10,6 +12,10 @@ import javafx.scene.control.ProgressBar;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import org.pasr.database.DataBase;
+import org.pasr.prep.corpus.Corpus;
+
+import java.util.Random;
 
 import static org.pasr.utilities.Utilities.getResourceStream;
 
@@ -17,6 +23,37 @@ import static org.pasr.utilities.Utilities.getResourceStream;
 public class RecordController extends Controller{
     public RecordController(Controller.API api){
         super(api);
+
+        corpus_ = DataBase.getInstance().getCorpusByID(((API) api_).getCorpusID());
+        corpusSentences_ = FXCollections.observableArrayList();
+        fillCorpusSentences();
+
+        arcticSentences_ = FXCollections.observableArrayList();
+        fillArcticSentences();
+
+    }
+
+    private void fillCorpusSentences(){
+        int currentSize = corpusSentences_.size();
+        if(currentSize == corpusSentencesMaxSize_){
+            return;
+        }
+
+        Random random = new Random(System.currentTimeMillis());
+        for(int i = currentSize;i < corpusSentencesMaxSize_;i++){
+            corpusSentences_.add(corpus_.getRandomSubSequence(random));
+        }
+    }
+
+    private void fillArcticSentences(){
+        int currentSize = arcticSentences_.size();
+        if(currentSize == arcticSentencesMaxSize_){
+            return;
+        }
+
+        arcticSentences_.addAll(DataBase.getInstance().getUnUsedArcticSentences(
+            arcticSentencesMaxSize_ - currentSize
+        ));
     }
 
     @FXML
@@ -62,6 +99,9 @@ public class RecordController extends Controller{
                 newValue ? saveButtonPressedGraphic : saveButtonDefaultGraphic
             );
         });
+
+        corpusListView.setItems(corpusSentences_);
+        arcticListView.setItems(arcticSentences_);
     }
 
     public interface API extends Controller.API{
@@ -70,9 +110,13 @@ public class RecordController extends Controller{
 
     @FXML
     private ListView<String> corpusListView;
+    private ObservableList<String> corpusSentences_;
+    private static final int corpusSentencesMaxSize_ = 20;
 
     @FXML
-    private ListView<String> externalListView;
+    private ListView<String> arcticListView;
+    private ObservableList<String> arcticSentences_;
+    private static final int arcticSentencesMaxSize_ = 20;
 
     @FXML
     private Label sentenceLabel;
@@ -130,5 +174,7 @@ public class RecordController extends Controller{
 
     @FXML
     private Button doneButton;
+
+    private Corpus corpus_;
 
 }

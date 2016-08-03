@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Iterator;
+import java.util.Random;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -34,6 +35,10 @@ public class Corpus implements Iterable<WordSequence> {
 
     public String getName(){
         return name_;
+    }
+
+    public int size(){
+        return sentences_.size();
     }
 
     private List<Word> getUniqueWords (){
@@ -194,6 +199,10 @@ public class Corpus implements Iterable<WordSequence> {
         return longestCommonSubSequences(wordSequence).stream()
             .filter(subSequence -> subSequence.size() == size)
             .collect(Collectors.toList());
+    }
+
+    public String getRandomSubSequence(Random random){
+        return sentences_.get(random.nextInt(size())).getRandomSubsequence(random);
     }
 
     public void replaceWordText(String oldText, String newText){
