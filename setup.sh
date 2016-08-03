@@ -61,9 +61,6 @@ cp pocketsphinx.jar ../../../core/libs
 
 cd ../../../
 
-## ===== Create directories ===== ##
-mkdir -p database/corpora
-
 ## ===== Download and Install cmuclmtk ===== ##
 wget https://sourceforge.net/projects/cmusphinx/files/cmuclmtk/0.7/cmuclmtk-0.7.tar.gz/download \
 -O cmuclmtk-0.7.tar.gz

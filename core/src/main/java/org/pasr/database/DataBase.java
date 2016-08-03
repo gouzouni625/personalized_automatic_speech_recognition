@@ -2,8 +2,8 @@ package org.pasr.database;
 
 
 import com.google.gson.Gson;
-import com.google.gson.stream.JsonWriter;
 import org.pasr.asr.dictionary.Dictionary;
+import org.pasr.database.corpus.Index;
 import org.pasr.database.processes.LanguageModelProcess;
 import org.pasr.prep.corpus.Corpus;
 import org.pasr.prep.corpus.WordSequence;
@@ -25,28 +25,17 @@ import java.util.regex.Pattern;
 
 public class DataBase {
     static{
-        String databaseDirectoryPath = Configuration.getInstance().getDatabaseDirectoryPath();
-
-        CORPUS_DIRECTORY_PATH = databaseDirectoryPath + "corpora/";
-        INDEX_PATH = databaseDirectoryPath + "corpora/index.json";
+        configuration_ = Configuration.getInstance();
+        corpusIndex_ = org.pasr.database.corpus.Index.getInstance();
+        arcticIndex_ = org.pasr.database.arctic.Index.getInstance();
     }
 
-    private DataBase () {
-        Gson gson = new Gson();
-
-        try {
-            index_ = gson.fromJson(new InputStreamReader(
-                new FileInputStream(INDEX_PATH)), Index.class
-            );
-        } catch (FileNotFoundException e) {
-            index_ = new Index();
-        }
-    }
+    private DataBase () {}
 
     public void newCorpusEntry (Corpus corpus, Dictionary dictionary){
-        File corpusDirectory = new File(CORPUS_DIRECTORY_PATH);
+        File corpusDirectory = new File(configuration_.getCorpusDirectoryPath());
 
-        int newCorpusID = index_.getNumberOfEntries() + 1;
+        int newCorpusID = corpusIndex_.size() + 1;
         corpus.setID(newCorpusID);
 
         File newCorpusDirectory = new File(corpusDirectory, String.valueOf(newCorpusID));
@@ -80,7 +69,7 @@ public class DataBase {
             e.printStackTrace();
         }
 
-        index_.addEntry(new Index.Entry(newCorpusID, corpus.getName()));
+        corpusIndex_.add(new Index.Entry(newCorpusID, corpus.getName()));
     }
 
     private void saveCorpusToDirectory(Corpus corpus, File directory) throws FileNotFoundException {
@@ -115,46 +104,65 @@ public class DataBase {
     }
 
     public int getNumberOfCorpora(){
-        return index_.getNumberOfEntries();
+        return corpusIndex_.size();
     }
 
-    // public static Corpus loadFromDirectory (File directory) throws FileNotFoundException {
-    //     ArrayList<WordSequence> sentences = new ArrayList<>();
-    //
-    //     Pattern sentencePattern = Pattern.compile("<s> (.*) </s>");
-    //
-    //     Scanner sentencesScanner = new Scanner(new File(directory, "sentences.txt"));
-    //     Scanner documentIDSScanner = new Scanner(new File(directory, "document_ids.txt"));
-    //
-    //     while(sentencesScanner.hasNextLine()){
-    //         Matcher matcher = sentencePattern.matcher(sentencesScanner.nextLine());
-    //
-    //         if(matcher.find()){
-    //             int documentID;
-    //             if(documentIDSScanner.hasNextLine()){
-    //                 documentID = Integer.parseInt(documentIDSScanner.nextLine());
-    //             }
-    //             else{
-    //                 documentID = -1;
-    //             }
-    //
-    //             sentences.add(new WordSequence(matcher.group(1), documentID));
-    //         }
-    //     }
-    //     sentencesScanner.close();
-    //     documentIDSScanner.close();
-    //
-    //     Corpus corpus = new Corpus(null);
-    //     corpus.setSentences(sentences);
-    //
-    //     return corpus;
-    // }
+    public Corpus getCorpusByID(int corpusID){
+        if(! corpusIndex_.containsID(corpusID)){
+            return null;
+        }
+
+        Corpus corpus = null;
+
+        try {
+            corpus = loadCorpusFromDirectory(
+                new File(configuration_.getCorpusDirectoryPath(), String.valueOf(corpusID))
+            );
+        } catch (FileNotFoundException e) {
+            // TODO
+            e.printStackTrace();
+        }
+
+        return corpus;
+    }
+
+    private Corpus loadCorpusFromDirectory (File directory) throws FileNotFoundException {
+        ArrayList<WordSequence> sentences = new ArrayList<>();
+
+        Pattern sentencePattern = Pattern.compile("<s> (.*) </s>");
+
+        Scanner sentencesScanner = new Scanner(new File(directory, "sentences.txt"));
+        Scanner documentIDSScanner = new Scanner(new File(directory, "document_ids.txt"));
+
+        while(sentencesScanner.hasNextLine()){
+            Matcher matcher = sentencePattern.matcher(sentencesScanner.nextLine());
+
+            if(matcher.find()){
+                int documentID;
+                if(documentIDSScanner.hasNextLine()){
+                    documentID = Integer.parseInt(documentIDSScanner.nextLine());
+                }
+                else{
+                    documentID = -1;
+                }
+
+                sentences.add(new WordSequence(matcher.group(1), documentID));
+            }
+        }
+        sentencesScanner.close();
+        documentIDSScanner.close();
+
+        Corpus corpus = new Corpus(null);
+        corpus.setSentences(sentences);
+
+        return corpus;
+    }
 
     public void close(){
         PrintWriter printWriter;
         try {
             printWriter = new PrintWriter(new OutputStreamWriter(
-                new FileOutputStream(INDEX_PATH))
+                new FileOutputStream(configuration_.getCorpusIndexPath()))
             );
         } catch (FileNotFoundException e) {
             // TODO Could not save database. Act appropriately
@@ -162,7 +170,7 @@ public class DataBase {
             return;
         }
 
-        new Gson().toJson(index_, printWriter);
+        new Gson().toJson(org.pasr.database.corpus.Index.getInstance(), printWriter);
 
         printWriter.close();
     }
@@ -171,11 +179,10 @@ public class DataBase {
         return instance_;
     }
 
-    private static final String CORPUS_DIRECTORY_PATH;
-    private static final String INDEX_PATH;
+    private static final Configuration configuration_;
+    private static final org.pasr.database.corpus.Index corpusIndex_;
+    private static final org.pasr.database.arctic.Index arcticIndex_;
 
     private static DataBase instance_ = new DataBase();
-
-    private Index index_;
 
 }

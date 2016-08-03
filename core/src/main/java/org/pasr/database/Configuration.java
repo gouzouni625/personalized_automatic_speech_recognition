@@ -10,42 +10,58 @@ import static org.pasr.utilities.Utilities.getResourceStream;
 
 public class Configuration {
     static{
-        Gson gson = new Gson();
-
-        instance_ = gson.fromJson(new InputStreamReader(getResourceStream(
+        instance_ = new Gson().fromJson(new InputStreamReader(getResourceStream(
             "/database/default_configuration.json"
         )), Configuration.class);
     }
 
     private Configuration () {}
 
-    public static Configuration getInstance () {
-        return instance_;
+    public String getDatabaseDirectoryPath () {
+        return databaseDirectoryPath;
     }
 
-    public String getIdngram2lmPath () {
-        return idngram2lmPath;
+    public String getCorpusDirectoryPath(){
+        return corpusDirectoryPath;
     }
 
-    public String getText2idngramPath () {
-        return text2idngramPath;
+    public String getCorpusIndexPath(){
+        return corpusIndexPath;
     }
 
-    public String getWfreq2vocabPath () {
-        return wfreq2vocabPath;
+    public String getArcticIndexPath(){
+        return arcticIndexPath;
     }
 
     public String getText2wfreqPath () {
         return text2wfreqPath;
     }
 
-    public String getDatabaseDirectoryPath () {
-        return databaseDirectoryPath;
+    public String getWfreq2vocabPath () {
+        return wfreq2vocabPath;
+    }
+
+    public String getText2idngramPath () {
+        return text2idngramPath;
+    }
+
+    public String getIdngram2lmPath () {
+        return idngram2lmPath;
+    }
+
+    public static Configuration getInstance () {
+        return instance_;
     }
 
     private static Configuration instance_;
 
     private String databaseDirectoryPath;
+
+    private String corpusDirectoryPath;
+    private String corpusIndexPath;
+
+    private String arcticIndexPath;
+
     private String text2wfreqPath;
     private String wfreq2vocabPath;
     private String text2idngramPath;

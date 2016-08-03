@@ -1,0 +1,1 @@
+CMU ARCTIC data can be found [here](http://festvox.org/cmu_arctic/)

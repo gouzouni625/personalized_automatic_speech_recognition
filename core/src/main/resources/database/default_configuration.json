@@ -1,5 +1,11 @@
 {
   "databaseDirectoryPath": "database/",
+
+  "corpusDirectoryPath": "database/corpora/",
+  "corpusIndexPath": "database/corpora/index.json",
+
+  "arcticIndexPath": "database/arctic/index.json",
+
   "text2wfreqPath": "cmuclmtk/installation/bin/text2wfreq",
   "wfreq2vocabPath": "cmuclmtk/installation/bin/wfreq2vocab",
   "text2idngramPath": "cmuclmtk/installation/bin/text2idngram",
