@@ -2,115 +2,127 @@ package org.pasr.gui;
 
 
 import javafx.application.Application;
-import javafx.fxml.FXMLLoader;
-import javafx.geometry.Rectangle2D;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.stage.Screen;
 import javafx.stage.Stage;
-import org.pasr.prep.corpus.Corpus;
-import org.pasr.gui.controllers.ASRSceneController;
-import org.pasr.gui.controllers.EmailListSceneController;
-import org.pasr.gui.controllers.LoginSceneController;
-import org.pasr.gui.controllers.LoginSceneController.Authenticator;
-import org.pasr.gui.controllers.EmailListSceneController.HasCorpus;
-import org.pasr.gui.controllers.VoiceRecordingSceneController;
-import org.pasr.gui.controllers.VoiceRecordingSceneController.HasASR;
-import org.pasr.asr.dictionary.Dictionary;
-import org.pasr.utilities.Utilities;
+import org.pasr.database.DataBase;
+import org.pasr.gui.controllers.scene.EmailListController;
+import org.pasr.gui.controllers.scene.LDAController;
+import org.pasr.gui.controllers.scene.MainController;
+import org.pasr.gui.controllers.scene.RecordController;
+import org.pasr.prep.email.fetchers.Email;
 
-import java.io.File;
-
-import static org.pasr.utilities.Utilities.getResource;
+import java.io.IOException;
+import java.util.List;
 
 
-public class MainView extends Application implements Authenticator, HasCorpus, HasASR {
-
-    private final Rectangle2D screenSize_ = Screen.getPrimary().getVisualBounds();
+public class MainView extends Application implements MainController.API,
+    EmailListController.API, LDAController.API, RecordController.API {
 
     private Stage primaryStage_;
 
-    private LoginSceneController loginSceneController_;
-    private EmailListSceneController emailListSceneController_;
-    private VoiceRecordingSceneController voiceRecordingSceneController_;
-    private ASRSceneController asrSceneController_;
+    private String emailAddress_;
+    private String password_;
 
-    private Corpus corpus_;
+    private List<Email> emails_;
+
+    private int corpusID_;
+
+    private SceneFactory sceneFactory_ = SceneFactory.getInstance();
 
     public static void main(String[] args){
         launch(args);
     }
 
     @Override
-    public void start (Stage primaryStage) throws Exception {
+    public void start(Stage primaryStage) throws IOException {
         primaryStage_ = primaryStage;
 
-        primaryStage_.setTitle("Personalized Automatic Speech Recognition");
+        primaryStage.setTitle("Personalized Automatic Speech Recognition");
 
-        FXMLLoader loginNodeLoader = new FXMLLoader(getResource("/fxml/login_scene.fxml"));
-        loginSceneController_ = new LoginSceneController(this);
-        loginNodeLoader.setController(loginSceneController_);
-        Parent loginNode = loginNodeLoader.load();
+        primaryStage.setScene(sceneFactory_.create(SceneFactory.Scenes.MAIN_SCENE, this));
 
-        primaryStage_.setScene(
-            new Scene(loginNode, screenSize_.getWidth(), screenSize_.getHeight())
-        );
-
-        primaryStage_.show();
+        primaryStage.show();
     }
 
-    @Override
-    public void authenticate (String username, String password) throws Exception {
-        FXMLLoader emailListNodeLoader = new FXMLLoader(getResource("/fxml/email_list_scene.fxml"));
-        emailListSceneController_ = new EmailListSceneController(this, username, password);
-        emailListNodeLoader.setController(emailListSceneController_);
-        Parent emailListNode = emailListNodeLoader.load();
-
-        primaryStage_.setScene(
-            new Scene(emailListNode, screenSize_.getWidth(), screenSize_.getHeight())
-        );
-    }
 
     @Override
-    public void setCorpus (Corpus corpus) throws Exception {
-        corpus_ = corpus;
+    public void newCorpus (String emailAddress, String password) {
+        emailAddress_ = emailAddress;
+        password_ = password;
 
-        // Stop the email fetcher from fetching more email
-        if(emailListSceneController_ != null) {
-            emailListSceneController_.close();
+        try {
+            primaryStage_.setScene(
+                sceneFactory_.create(SceneFactory.Scenes.EMAIL_LIST_SCENE, this)
+            );
+        } catch (IOException e) {
+            // TODO Act appropriately
+            e.printStackTrace();
         }
+    }
 
-        // Create language model
-        corpus_.saveToFile(new File("cmuclmtk-0.7/language_model.txt"));
-        new ProcessBuilder("./generate_language_model.sh", "language_model.txt",
-            "language_model.lm", "3").start();
+    @Override
+    public void dictate () {
+        // TODO Implement
+    }
 
-        // Move to recording scene
-        FXMLLoader voiceRecordingNodeLoader = new FXMLLoader(getResource("/fxml/voice_recording_scene.fxml"));
-        voiceRecordingSceneController_ = new VoiceRecordingSceneController(this, corpus_);
-        voiceRecordingNodeLoader.setController(voiceRecordingSceneController_);
-        Parent voiceRecordingNode = voiceRecordingNodeLoader.load();
+    @Override
+    public String getEmailAddress () {
+        return emailAddress_;
+    }
 
-        primaryStage_.setScene(new Scene(voiceRecordingNode, screenSize_.getWidth(), screenSize_.getHeight()));
+    @Override
+    public String getPassword () {
+        return password_;
+    }
+
+    @Override
+    public void back(){
+        // TODO Implement
+    }
+
+    @Override
+    public void processEmail(List<Email> emails){
+        emails_ = emails;
+
+        try {
+            primaryStage_.setScene(sceneFactory_.create(SceneFactory.Scenes.LDA_SCENE, this));
+        } catch (IOException e) {
+            // TODO Act appropriately
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public List<Email> getEmails(){
+        return emails_;
+    }
+
+    @Override
+    public void record(int corpusID){
+        corpusID_ = corpusID;
+
+        try {
+            primaryStage_.setScene(sceneFactory_.create(SceneFactory.Scenes.RECORD_SCENE, this));
+        } catch (IOException e) {
+            // TODO
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void dictate(int corpusID){
+
+    }
+
+    @Override
+    public int getCorpusID(){
+        return corpusID_;
     }
 
     @Override
     public void stop() throws Exception {
-        if(emailListSceneController_ != null) {
-            emailListSceneController_.close();
-        }
+        sceneFactory_.getCurrentController().terminate();
 
-        if(asrSceneController_ != null){
-            asrSceneController_.close();
-        }
-    }
-
-    @Override
-    public void startASR () throws Exception {
-        FXMLLoader asrNodeLoader = new FXMLLoader(getResource("/fxml/asr_scene.fxml"));
-        asrSceneController_ = new ASRSceneController(corpus_, Dictionary.createFromStream(Utilities.getResourceStream("/edu/cmu/sphinx/models/en-us/cmudict-en-us.dict")));
-        asrNodeLoader.setController(asrSceneController_);
-        primaryStage_.setScene(new Scene(asrNodeLoader.load(), screenSize_.getWidth(), screenSize_.getHeight()));
+        DataBase.getInstance().close();
     }
 
 }
