@@ -1,6 +1,8 @@
 package org.pasr.gui.controllers.scene;
 
 
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -105,7 +107,24 @@ public class RecordController extends Controller{
         });
 
         corpusListView.setItems(corpusSentences_);
+        corpusListView.getSelectionModel().selectedItemProperty().addListener(
+            (observable, oldValue, newValue) -> {
+                if(newValue != null){
+                    sentenceLabel.setText(newValue);
+
+                    arcticListView.getSelectionModel().clearSelection();
+                }
+        });
+
         arcticListView.setItems(arcticSentences_);
+        arcticListView.getSelectionModel().selectedItemProperty().addListener(
+            (observable, oldValue, newValue) -> {
+                if(newValue != null){
+                    sentenceLabel.setText(newValue);
+
+                    corpusListView.getSelectionModel().clearSelection();
+                }
+        });
     }
 
     public interface API extends Controller.API{

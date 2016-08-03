@@ -9,8 +9,8 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 
-<HBox prefHeight="800.0" prefWidth="1280.0" xmlns:fx="http://javafx.com/fxml/1"
-      xmlns="http://javafx.com/javafx/8.0.91">
+<?import javafx.scene.text.Font?>
+<HBox prefHeight="800.0" prefWidth="1280.0" xmlns:fx="http://javafx.com/fxml">
     <SplitPane dividerPositions="0.5" orientation="VERTICAL" prefHeight="200.0" prefWidth="640.0">
         <AnchorPane minHeight="0.0" minWidth="0.0">
             <ListView fx:id="corpusListView" layoutX="191.0" layoutY="58.0" prefHeight="395.0"
@@ -24,12 +24,16 @@
         </AnchorPane>
     </SplitPane>
     <AnchorPane prefHeight="200.0" prefWidth="640.0">
-        <Label alignment="CENTER" layoutX="274.0" layoutY="120.0" prefHeight="30.0"
+        <Label alignment="CENTER" layoutX="274.0" layoutY="50.0" prefHeight="30.0"
                prefWidth="160.0" text="Sentence to pronounce:" AnchorPane.leftAnchor="10.0"
                AnchorPane.rightAnchor="10.0"/>
-        <Label fx:id="sentenceLabel" alignment="CENTER" layoutX="302.0" layoutY="160.0"
-               prefHeight="30.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0"
-               AnchorPane.topAnchor="160.0"/>
+        <Label fx:id="sentenceLabel" alignment="CENTER" textAlignment="CENTER" wrapText="true"
+               layoutX="302.0" layoutY="160.0" prefHeight="100.0" AnchorPane.leftAnchor="10.0"
+               AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="90.0">
+            <font>
+                <Font name="System Bold" size="15.0"/>
+            </font>
+        </Label>
         <ProgressBar fx:id="leftProgressBar" layoutX="-8.0" layoutY="313.0" prefHeight="30.0"
                      prefWidth="200.0" progress="0.0" rotate="-90.0" AnchorPane.leftAnchor="10.0"
                      AnchorPane.topAnchor="320.0"/>
