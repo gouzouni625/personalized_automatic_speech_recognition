@@ -14,3 +14,7 @@
   - made by [Freepik](http://www.freepik.com)
   - from [www.flaticon.com](http://www.flaticon.com)
   - are licensed by [CC 3.0 BY](http://creativecommons.org/licenses/by/3.0/)
+- stop_black.png and stop_green.png icons
+  - made by [Chanut is Industries](http://www.flaticon.com/authors/chanut-is-industries)
+  - from [www.flaticon.com](http://www.flaticon.com)
+  - are licensed by [CC 3.0 BY](http://creativecommons.org/licenses/by/3.0/)
