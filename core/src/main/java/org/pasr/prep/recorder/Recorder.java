@@ -15,8 +15,6 @@ public class Recorder {
     public Recorder() throws LineUnavailableException {
         targetDataLine_ = AudioSystem.getTargetDataLine(AUDIO_FORMAT);
         targetDataLine_.open(AUDIO_FORMAT);
-
-        audioInputStream_ = new AudioInputStream(targetDataLine_);
     }
 
     public void startRecording(){
@@ -52,7 +50,6 @@ public class Recorder {
         stopRecording();
 
         targetDataLine_.close();
-        audioInputStream_.close();
     }
 
     public int getSampleRate(){
@@ -60,7 +57,6 @@ public class Recorder {
     }
 
     private TargetDataLine targetDataLine_;
-    private AudioInputStream audioInputStream_;
 
     private static final int SAMPLE_RATE = 16000; // Samples per second
 
