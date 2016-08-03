@@ -33,27 +33,31 @@ public class RecordController extends Controller{
 
     }
 
-    private void fillCorpusSentences(){
-        int currentSize = corpusSentences_.size();
-        if(currentSize == corpusSentencesMaxSize_){
-            return;
-        }
+    private void fillCorpusSentences () {
+        new Thread(() -> {
+            int currentSize = corpusSentences_.size();
+            if (currentSize == corpusSentencesMaxSize_) {
+                return;
+            }
 
-        Random random = new Random(System.currentTimeMillis());
-        for(int i = currentSize;i < corpusSentencesMaxSize_;i++){
-            corpusSentences_.add(corpus_.getRandomSubSequence(random));
-        }
+            Random random = new Random(System.currentTimeMillis());
+            for (int i = currentSize; i < corpusSentencesMaxSize_; i++) {
+                corpusSentences_.add(corpus_.getRandomSubSequence(random));
+            }
+        }).start();
     }
 
-    private void fillArcticSentences(){
-        int currentSize = arcticSentences_.size();
-        if(currentSize == arcticSentencesMaxSize_){
-            return;
-        }
+    private void fillArcticSentences () {
+        new Thread(() -> {
+            int currentSize = arcticSentences_.size();
+            if (currentSize == arcticSentencesMaxSize_) {
+                return;
+            }
 
-        arcticSentences_.addAll(DataBase.getInstance().getUnUsedArcticSentences(
-            arcticSentencesMaxSize_ - currentSize
-        ));
+            arcticSentences_.addAll(DataBase.getInstance().getUnUsedArcticSentences(
+                arcticSentencesMaxSize_ - currentSize
+            ));
+        }).start();
     }
 
     @FXML
