@@ -8,8 +8,8 @@ import javafx.scene.control.Label;
 import org.pasr.gui.dialog.YesNoDialog;
 
 
-public class YesNoDialogController extends Controller<Boolean>{
-    public YesNoDialogController(YesNoDialog dialog, String promptText) {
+public class YesNoController extends Controller<Boolean>{
+    public YesNoController (YesNoDialog dialog, String promptText) {
         super(dialog);
 
         promptText_ = promptText;

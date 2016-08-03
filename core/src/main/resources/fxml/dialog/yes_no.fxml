@@ -7,7 +7,7 @@
 <AnchorPane prefHeight="100.0" prefWidth="410.0" xmlns="http://javafx.com/javafx/8.0.91"
             xmlns:fx="http://javafx.com/fxml/1">
     <Label fx:id="label" layoutX="32.0" layoutY="192.0" prefHeight="30.0" prefWidth="130.0"
-           textAlignment="CENTER" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0"
+           alignment="CENTER" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0"
            AnchorPane.topAnchor="10.0"/>
     <Button fx:id="yesButton" layoutX="276.0" layoutY="349.0" mnemonicParsing="false"
             prefHeight="30.0" prefWidth="80.0" text="yes" AnchorPane.bottomAnchor="10.0"

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+
+<HBox prefHeight="800.0" prefWidth="1280.0" xmlns:fx="http://javafx.com/fxml/1"
+      xmlns="http://javafx.com/javafx/8.0.91">
+    <SplitPane dividerPositions="0.5" orientation="VERTICAL" prefHeight="200.0" prefWidth="640.0">
+        <AnchorPane minHeight="0.0" minWidth="0.0">
+            <ListView fx:id="corpusListView" layoutX="191.0" layoutY="58.0" prefHeight="395.0"
+                      prefWidth="638.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                      AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
+        </AnchorPane>
+        <AnchorPane minHeight="0.0" minWidth="0.0">
+            <ListView fx:id="externalListView" layoutX="14.0" layoutY="139.0" prefHeight="395.0"
+                      prefWidth="638.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                      AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
+        </AnchorPane>
+    </SplitPane>
+    <AnchorPane prefHeight="200.0" prefWidth="640.0">
+        <Label alignment="CENTER" layoutX="274.0" layoutY="120.0" prefHeight="30.0"
+               prefWidth="160.0" text="Sentence to pronounce:" AnchorPane.leftAnchor="10.0"
+               AnchorPane.rightAnchor="10.0"/>
+        <Label fx:id="sentenceLabel" alignment="CENTER" layoutX="302.0" layoutY="160.0"
+               prefHeight="30.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0"
+               AnchorPane.topAnchor="160.0"/>
+        <ProgressBar fx:id="leftProgressBar" layoutX="-8.0" layoutY="313.0" prefHeight="30.0"
+                     prefWidth="200.0" progress="0.0" rotate="-90.0" AnchorPane.leftAnchor="10.0"
+                     AnchorPane.topAnchor="320.0"/>
+        <ProgressBar fx:id="rightProgressBar" layoutX="407.0" layoutY="321.0" prefHeight="30.0"
+                     prefWidth="200.0" progress="0.0" rotate="-90.0" AnchorPane.leftAnchor="430.0"
+                     AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="320.0"/>
+        <AnchorPane layoutX="227.0" layoutY="435.0" prefHeight="30.0" prefWidth="200.0"
+                    AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0"
+                    AnchorPane.topAnchor="450.0">
+            <Button fx:id="eraseButton" layoutY="1.0" mnemonicParsing="false" prefHeight="30.0"
+                    prefWidth="50.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                    AnchorPane.topAnchor="0.0"/>
+            <ToggleButton fx:id="recordToggleButton" layoutX="137.0" layoutY="1.0"
+                          mnemonicParsing="false" prefHeight="30.0" prefWidth="50.0"
+                          AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="150.0"
+                          AnchorPane.topAnchor="0.0"/>
+            <Button fx:id="stopButton" layoutX="217.0" layoutY="4.0" mnemonicParsing="false"
+                    prefHeight="30.0" prefWidth="50.0" AnchorPane.bottomAnchor="0.0"
+                    AnchorPane.leftAnchor="240.0" AnchorPane.topAnchor="0.0"/>
+            <ToggleButton fx:id="pauseToggleButton" layoutX="252.0" layoutY="6.0"
+                          mnemonicParsing="false" prefHeight="30.0" prefWidth="50.0"
+                          AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="330.0"
+                          AnchorPane.topAnchor="0.0"/>
+            <ToggleButton fx:id="playToggleButton" layoutX="310.0" layoutY="1.0"
+                          mnemonicParsing="false" prefHeight="30.0" prefWidth="50.0"
+                          AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="420.0"
+                          AnchorPane.topAnchor="0.0"/>
+            <Button fx:id="saveButton" layoutX="558.0" layoutY="3.0" mnemonicParsing="false"
+                    prefHeight="30.0" prefWidth="50.0" AnchorPane.bottomAnchor="0.0"
+                    AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
+        </AnchorPane>
+        <Button fx:id="backButton" layoutX="490.0" layoutY="762.0" mnemonicParsing="false"
+                prefHeight="30.0" prefWidth="60.0" text="back" AnchorPane.bottomAnchor="10.0"
+                AnchorPane.rightAnchor="80.0"/>
+        <Button fx:id="doneButton" layoutX="564.0" layoutY="753.0" mnemonicParsing="false"
+                prefHeight="30.0" prefWidth="60.0" text="done" AnchorPane.bottomAnchor="10.0"
+                AnchorPane.rightAnchor="10.0"/>
+    </AnchorPane>
+</HBox>

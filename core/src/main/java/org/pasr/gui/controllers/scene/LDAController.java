@@ -34,8 +34,8 @@ import java.util.TimerTask;
 import java.util.stream.Collectors;
 
 
-public class LDASceneController extends Controller {
-    public LDASceneController (Controller.API api) {
+public class LDAController extends Controller {
+    public LDAController (Controller.API api) {
         super(api);
 
         unknownWords_ = FXCollections.observableArrayList();

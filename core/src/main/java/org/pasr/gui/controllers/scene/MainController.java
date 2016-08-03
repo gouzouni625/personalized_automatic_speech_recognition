@@ -15,8 +15,8 @@ import java.io.File;
 import java.io.IOException;
 
 
-public class MainSceneController extends Controller{
-    public MainSceneController(Controller.API api){
+public class MainController extends Controller{
+    public MainController (Controller.API api){
         super(api);
     }
 

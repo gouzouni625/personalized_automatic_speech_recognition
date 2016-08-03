@@ -7,8 +7,8 @@ import javafx.scene.control.TextField;
 import org.pasr.gui.dialog.CorpusNameDialog;
 
 
-public class CorpusNameDialogController extends Controller<String> {
-    public CorpusNameDialogController(CorpusNameDialog dialog){
+public class CorpusNameController extends Controller<String> {
+    public CorpusNameController (CorpusNameDialog dialog){
         super(dialog);
     }
 

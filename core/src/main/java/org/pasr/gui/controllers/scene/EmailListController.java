@@ -22,8 +22,8 @@ import java.util.Observable;
 import java.util.Observer;
 
 
-public class EmailListSceneController extends Controller implements Observer{
-    public EmailListSceneController(Controller.API api) {
+public class EmailListController extends Controller implements Observer{
+    public EmailListController (Controller.API api) {
         super(api);
 
         try {
