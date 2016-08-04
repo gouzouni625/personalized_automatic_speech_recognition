@@ -60,7 +60,7 @@ public class StreamSpeechRecognizer extends Observable{
     public void close() throws IOException {
         stopRecognition();
 
-        recorder_.close();
+        recorder_.terminate();
     }
 
     private class RecognizingThread extends Thread {

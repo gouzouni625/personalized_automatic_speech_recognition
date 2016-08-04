@@ -1,10 +1,10 @@
 package org.pasr.gui.controllers.scene;
 
 
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -16,8 +16,13 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import org.pasr.database.DataBase;
 import org.pasr.prep.corpus.Corpus;
+import org.pasr.prep.recorder.BufferedRecorder;
 
+import javax.sound.sampled.Clip;
+import javax.sound.sampled.LineUnavailableException;
 import java.util.Random;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import static org.pasr.utilities.Utilities.getResourceStream;
 
@@ -33,6 +38,14 @@ public class RecordController extends Controller{
         arcticSentences_ = FXCollections.observableArrayList();
         fillArcticSentences();
 
+        try {
+            recorder_ = new BufferedRecorder();
+            new Thread(recorder_).start();
+        } catch (LineUnavailableException e) {
+            e.printStackTrace();
+        }
+
+        timer_ = new Timer();
     }
 
     private void fillCorpusSentences () {
@@ -70,6 +83,7 @@ public class RecordController extends Controller{
                 newValue ? eraseButtonPressedGraphic : eraseButtonDefaultGraphic
             );
         });
+        eraseButton.setOnAction(this :: eraseButtonOnAction);
 
         recordToggleButton.setGraphic(recordToggleButtonDefaultGraphic);
         recordToggleButton.selectedProperty().addListener((observable, oldValue, newValue) -> {
@@ -77,6 +91,7 @@ public class RecordController extends Controller{
                 newValue ? recordToggleButtonSelectedGraphic : recordToggleButtonDefaultGraphic
             );
         });
+        recordToggleButton.setOnAction(this :: recordToggleButtonOnAction);
 
         stopButton.setGraphic(stopButtonDefaultGraphic);
         stopButton.pressedProperty().addListener((observable, oldValue, newValue) -> {
@@ -98,6 +113,7 @@ public class RecordController extends Controller{
                 newValue ? playToggleButtonSelectedGraphic : playToggleButtonDefaultGraphic
             );
         });
+        playToggleButton.setOnAction(this :: playToggleButtonOnAction);
 
         saveButton.setGraphic(saveButtonDefaultGraphic);
         saveButton.pressedProperty().addListener((observable, oldValue, newValue) -> {
@@ -125,6 +141,56 @@ public class RecordController extends Controller{
                     corpusListView.getSelectionModel().clearSelection();
                 }
         });
+
+        timer_.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run () {
+                Platform.runLater(() -> updateProgressBars());
+            }
+        }, 0, 100);
+    }
+
+    private void eraseButtonOnAction(ActionEvent actionEvent){
+        recorder_.flush();
+    }
+
+    private void recordToggleButtonOnAction(ActionEvent actionEvent){
+        if(recordToggleButton.isSelected()){
+            recorder_.startRecording();
+        }
+        else{
+            recorder_.stopRecording();
+        }
+    }
+
+    private void playToggleButtonOnAction(ActionEvent actionEvent){
+        if(playToggleButton.isSelected()){
+            try {
+                clip_ = recorder_.getClip();
+            } catch (LineUnavailableException e) {
+                // TODO
+                e.printStackTrace();
+            }
+
+            clip_.start();
+        }
+        else{
+            clip_.stop();
+        }
+    }
+
+    private void updateProgressBars(){
+        double level = recorder_.getLevel();
+
+        leftProgressBar.setProgress(level);
+        rightProgressBar.setProgress(level);
+
+        System.out.println(level);
+    }
+
+    @Override
+    public void terminate(){
+        timer_.cancel();
     }
 
     public interface API extends Controller.API{
@@ -199,5 +265,10 @@ public class RecordController extends Controller{
     private Button doneButton;
 
     private Corpus corpus_;
+
+    private BufferedRecorder recorder_;
+    private Clip clip_;
+
+    private Timer timer_;
 
 }

@@ -47,4 +47,22 @@ public class Utilities {
         }
     }
 
+    public static double rootMeanSquare(byte[] array){
+        int length = array.length;
+
+        long sum = 0;
+        for(byte b : array){
+            sum += b;
+        }
+
+        double average = sum / length;
+
+        sum = 0;
+        for(byte b : array){
+            sum += Math.pow(b - average, 2);
+        }
+
+        return (sum / length);
+    }
+
 }
