@@ -1,4 +1,4 @@
-- microphone_back.png, microphone_green.png, pause_black.png and pause_green.png icons
+- microphone_back.png, microphone_green.png icons
   - made by [Stephen Hutchings](http://www.flaticon.com/authors/stephen-hutchings)
   - from [www.flaticon.com](http://www.flaticon.com)
   - are licensed by [CC 3.0 BY](http://creativecommons.org/licenses/by/3.0/)
@@ -12,9 +12,5 @@
   - are licensed by [CC 3.0 BY](http://creativecommons.org/licenses/by/3.0/)
 - save_black.png and save_green.png icons
   - made by [Freepik](http://www.freepik.com)
-  - from [www.flaticon.com](http://www.flaticon.com)
-  - are licensed by [CC 3.0 BY](http://creativecommons.org/licenses/by/3.0/)
-- stop_black.png and stop_green.png icons
-  - made by [Chanut is Industries](http://www.flaticon.com/authors/chanut-is-industries)
   - from [www.flaticon.com](http://www.flaticon.com)
   - are licensed by [CC 3.0 BY](http://creativecommons.org/licenses/by/3.0/)

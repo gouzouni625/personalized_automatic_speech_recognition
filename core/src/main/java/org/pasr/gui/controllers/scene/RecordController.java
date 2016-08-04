@@ -93,20 +93,6 @@ public class RecordController extends Controller{
         });
         recordToggleButton.setOnAction(this :: recordToggleButtonOnAction);
 
-        stopButton.setGraphic(stopButtonDefaultGraphic);
-        stopButton.pressedProperty().addListener((observable, oldValue, newValue) -> {
-            stopButton.setGraphic(
-                newValue ? stopButtonPressedGraphic : stopButtonDefaultGraphic
-            );
-        });
-
-        pauseToggleButton.setGraphic(pauseToggleButtonDefaultGraphic);
-        pauseToggleButton.selectedProperty().addListener((observable, oldValue, newValue) -> {
-            pauseToggleButton.setGraphic(
-                newValue ? pauseToggleButtonSelectedGraphic : pauseToggleButtonDefaultGraphic
-            );
-        });
-
         playToggleButton.setGraphic(playToggleButtonDefaultGraphic);
         playToggleButton.selectedProperty().addListener((observable, oldValue, newValue) -> {
             playToggleButton.setGraphic(
@@ -229,20 +215,6 @@ public class RecordController extends Controller{
         new Image(getResourceStream("/icons/microphone_black.png")));
     private static final Node recordToggleButtonSelectedGraphic = new ImageView(
         new Image(getResourceStream("/icons/microphone_green.png")));
-
-    @FXML
-    private Button stopButton;
-    private static final Node stopButtonDefaultGraphic = new ImageView(
-        new Image(getResourceStream("/icons/stop_black.png")));
-    private static final Node stopButtonPressedGraphic = new ImageView(
-        new Image(getResourceStream("/icons/stop_green.png")));
-
-    @FXML
-    private ToggleButton pauseToggleButton;
-    private static final Node pauseToggleButtonDefaultGraphic = new ImageView(
-        new Image(getResourceStream("/icons/pause_black.png")));
-    private static final Node pauseToggleButtonSelectedGraphic = new ImageView(
-        new Image(getResourceStream("/icons/pause_green.png")));
 
     @FXML
     private ToggleButton playToggleButton;
