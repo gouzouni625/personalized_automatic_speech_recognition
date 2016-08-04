@@ -98,11 +98,12 @@ public class BufferedRecorder extends Recorder implements Runnable {
     }
 
     @Override
-    public void terminate() throws IOException {
+    public synchronized void terminate() throws IOException {
         super.terminate();
 
         // Make sure that the thread that runs the run method can terminate
         live_ = false;
+
         notify();
 
         byteArrayOutputStream_.close();

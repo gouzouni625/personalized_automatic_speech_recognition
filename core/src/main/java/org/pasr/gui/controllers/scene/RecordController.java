@@ -12,6 +12,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import org.pasr.database.DataBase;
@@ -19,6 +20,7 @@ import org.pasr.prep.corpus.Corpus;
 import org.pasr.prep.recorder.BufferedRecorder;
 
 import javax.sound.sampled.Clip;
+import javax.sound.sampled.LineEvent;
 import javax.sound.sampled.LineUnavailableException;
 import java.io.IOException;
 import java.util.Random;
@@ -103,6 +105,10 @@ public class RecordController extends Controller{
         });
         playToggleButton.setOnAction(this :: playToggleButtonOnAction);
 
+        ToggleGroup toggleGroup = new ToggleGroup();
+        recordToggleButton.setToggleGroup(toggleGroup);
+        playToggleButton.setToggleGroup(toggleGroup);
+
         saveButton.setGraphic(saveButtonDefaultGraphic);
         saveButton.pressedProperty().addListener((observable, oldValue, newValue) -> {
             saveButton.setGraphic(
@@ -156,6 +162,12 @@ public class RecordController extends Controller{
             try {
                 clip_ = recorder_.getClip();
                 clip_.start();
+
+                clip_.addLineListener(event -> {
+                    if(event.getType() == LineEvent.Type.STOP){
+                        Platform.runLater(() -> playToggleButton.setSelected(false));
+                    }
+                });
             } catch (LineUnavailableException e) {
                 // TODO
                 e.printStackTrace();

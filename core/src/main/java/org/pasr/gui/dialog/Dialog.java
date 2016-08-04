@@ -1,6 +1,7 @@
 package org.pasr.gui.dialog;
 
 
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 
@@ -12,6 +13,9 @@ public abstract class Dialog<T> {
     }
 
     public void showAndWait(){
+        // Make sure that events aren't delivered to other stages.
+        stage_.initModality(Modality.APPLICATION_MODAL);
+
         stage_.showAndWait();
     }
 
