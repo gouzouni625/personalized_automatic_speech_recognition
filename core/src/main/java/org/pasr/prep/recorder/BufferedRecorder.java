@@ -2,12 +2,14 @@ package org.pasr.prep.recorder;
 
 
 import org.apache.commons.io.output.ByteArrayOutputStream;
-import org.pasr.utilities.Utilities;
 
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 import javax.sound.sampled.LineUnavailableException;
 import java.io.IOException;
+
+import static org.pasr.utilities.Utilities.rootMeanSquare;
+
 
 public class BufferedRecorder extends Recorder implements Runnable {
     public BufferedRecorder() throws LineUnavailableException {
@@ -56,7 +58,7 @@ public class BufferedRecorder extends Recorder implements Runnable {
                 int readSize = read(buffer);
 
                 if (readSize > 0) {
-                    level_ = Utilities.rootMeanSquare(buffer) / 10000;
+                    level_ = rootMeanSquare(buffer) / 10000;
 
                     byteArrayOutputStream_.write(buffer, 0, readSize);
                 }
@@ -99,7 +101,9 @@ public class BufferedRecorder extends Recorder implements Runnable {
     public void terminate() throws IOException {
         super.terminate();
 
+        // Make sure that the thread that runs the run method can terminate
         live_ = false;
+        notify();
 
         byteArrayOutputStream_.close();
     }

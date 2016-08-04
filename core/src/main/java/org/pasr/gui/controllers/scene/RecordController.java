@@ -20,6 +20,7 @@ import org.pasr.prep.recorder.BufferedRecorder;
 
 import javax.sound.sampled.Clip;
 import javax.sound.sampled.LineUnavailableException;
+import java.io.IOException;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -40,7 +41,8 @@ public class RecordController extends Controller{
 
         try {
             recorder_ = new BufferedRecorder();
-            new Thread(recorder_).start();
+            recorderThread_ = new Thread(recorder_);
+            recorderThread_.start();
         } catch (LineUnavailableException e) {
             e.printStackTrace();
         }
@@ -153,12 +155,11 @@ public class RecordController extends Controller{
         if(playToggleButton.isSelected()){
             try {
                 clip_ = recorder_.getClip();
+                clip_.start();
             } catch (LineUnavailableException e) {
                 // TODO
                 e.printStackTrace();
             }
-
-            clip_.start();
         }
         else{
             clip_.stop();
@@ -170,13 +171,17 @@ public class RecordController extends Controller{
 
         leftProgressBar.setProgress(level);
         rightProgressBar.setProgress(level);
-
-        System.out.println(level);
     }
 
     @Override
-    public void terminate(){
+    public void terminate() throws InterruptedException, IOException {
         timer_.cancel();
+
+        clip_.close();
+
+        recorder_.terminate();
+
+        recorderThread_.join();
     }
 
     public interface API extends Controller.API{
@@ -238,6 +243,7 @@ public class RecordController extends Controller{
 
     private Corpus corpus_;
 
+    private Thread recorderThread_;
     private BufferedRecorder recorder_;
     private Clip clip_;
 

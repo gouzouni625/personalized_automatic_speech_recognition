@@ -32,7 +32,7 @@ public class Recorder {
         targetDataLine_.flush();
     }
 
-    public int read(byte[] buffer){
+    int read(byte[] buffer){
         return targetDataLine_.read(buffer, 0, buffer.length);
     }
 
@@ -58,11 +58,10 @@ public class Recorder {
         return SAMPLE_RATE;
     }
 
-    protected TargetDataLine targetDataLine_;
+    TargetDataLine targetDataLine_;
 
     private static final int SAMPLE_RATE = 16000; // Samples per second
 
-    public static final AudioFormat AUDIO_FORMAT = new AudioFormat(
-        SAMPLE_RATE, 16, 1, true, false);
+    static final AudioFormat AUDIO_FORMAT = new AudioFormat(SAMPLE_RATE, 16, 1, true, false);
 
 }
