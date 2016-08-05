@@ -2,11 +2,15 @@ package org.pasr.database.corpus;
 
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.pasr.database.Configuration;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 
 
@@ -49,6 +53,16 @@ public class Index extends ArrayList<Index.Entry>{
         }
 
         return false;
+    }
+
+    public void save () throws FileNotFoundException {
+        PrintWriter printWriter = new PrintWriter(new OutputStreamWriter(new FileOutputStream(
+            Configuration.getInstance().getCorpusIndexPath()
+        )));
+
+        new GsonBuilder().setPrettyPrinting().create().toJson(this, printWriter);
+
+        printWriter.close();
     }
 
     public static Index getInstance(){

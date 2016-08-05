@@ -184,20 +184,19 @@ public class DataBase {
     }
 
     public void close(){
-        PrintWriter printWriter;
         try {
-            printWriter = new PrintWriter(new OutputStreamWriter(
-                new FileOutputStream(configuration_.getCorpusIndexPath()))
-            );
+            corpusIndex_.save();
         } catch (FileNotFoundException e) {
-            // TODO Could not save database. Act appropriately
+            // TODO could not save database
             e.printStackTrace();
-            return;
         }
 
-        new Gson().toJson(org.pasr.database.corpus.Index.getInstance(), printWriter);
-
-        printWriter.close();
+        try {
+            arcticIndex_.save();
+        } catch (FileNotFoundException e) {
+            // TODO could not save database
+            e.printStackTrace();
+        }
     }
 
     public static DataBase getInstance () {
