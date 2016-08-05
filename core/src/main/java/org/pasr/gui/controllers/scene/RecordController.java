@@ -114,10 +114,6 @@ public class RecordController extends Controller{
         });
         playToggleButton.setOnAction(this :: playToggleButtonOnAction);
 
-        ToggleGroup toggleGroup = new ToggleGroup();
-        recordToggleButton.setToggleGroup(toggleGroup);
-        playToggleButton.setToggleGroup(toggleGroup);
-
         saveButton.setGraphic(saveButtonDefaultGraphic);
         saveButton.pressedProperty().addListener((observable, oldValue, newValue) -> {
             saveButton.setGraphic(
@@ -165,11 +161,23 @@ public class RecordController extends Controller{
     }
 
     private void eraseButtonOnAction(ActionEvent actionEvent){
+        if(recordToggleButton.isSelected()){
+            recordToggleButton.fire();
+        }
+
+        if(playToggleButton.isSelected()){
+            playToggleButton.fire();
+        }
+
         recorder_.flush();
     }
 
     private void recordToggleButtonOnAction(ActionEvent actionEvent){
         if(recordToggleButton.isSelected()){
+            if(playToggleButton.isSelected()){
+                playToggleButton.fire();
+            }
+
             recorder_.startRecording();
         }
         else{
@@ -179,6 +187,10 @@ public class RecordController extends Controller{
 
     private void playToggleButtonOnAction(ActionEvent actionEvent){
         if(playToggleButton.isSelected()){
+            if(recordToggleButton.isSelected()){
+                recordToggleButton.fire();
+            }
+
             try {
                 clip_ = recorder_.getClip();
                 clip_.start();
@@ -199,6 +211,14 @@ public class RecordController extends Controller{
     }
 
     private void saveButtonOnAction(ActionEvent actionEvent){
+        if(recordToggleButton.isSelected()){
+            recordToggleButton.fire();
+        }
+
+        if(playToggleButton.isSelected()) {
+            playToggleButton.fire();
+        }
+
         String sentence = sentenceLabel.getText();
 
         if(sentence.isEmpty()){
