@@ -6,7 +6,12 @@ import org.pasr.database.corpus.Index;
 import org.pasr.database.processes.LanguageModelProcess;
 import org.pasr.prep.corpus.Corpus;
 import org.pasr.prep.corpus.WordSequence;
+import org.pasr.prep.recorder.Recorder;
 
+import javax.sound.sampled.AudioFileFormat;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -27,6 +32,7 @@ public class DataBase {
         configuration_ = Configuration.getInstance();
         corpusIndex_ = org.pasr.database.corpus.Index.getInstance();
         arcticIndex_ = org.pasr.database.arctic.Index.getInstance();
+        audioIndex_ = org.pasr.database.audio.Index.getInstance();
     }
 
     private DataBase () {}
@@ -179,6 +185,32 @@ public class DataBase {
             .forEach(entry -> entry.setUsed(true));
     }
 
+    public void newAudioEntry(byte[] audioData, String sentence, int corpusID){
+        int newEntryID = audioIndex_.size() + 1;
+
+        File newEntryFile = new File(configuration_.getAudioPath(), newEntryID + ".wav");
+
+        long numberOfFrames = (long)(audioData.length / Recorder.AUDIO_FORMAT.getFrameSize());
+
+        AudioInputStream audioInputStream = new AudioInputStream(
+            new ByteArrayInputStream(audioData, 0, audioData.length),
+            Recorder.AUDIO_FORMAT,
+            numberOfFrames
+        );
+
+        try {
+            AudioSystem.write(audioInputStream, AudioFileFormat.Type.WAVE, newEntryFile);
+            audioInputStream.close();
+        } catch (IOException e) {
+            // TODO
+            e.printStackTrace();
+        }
+
+        audioIndex_.add(new org.pasr.database.audio.Index.Entry(
+            newEntryFile.getName(), sentence, corpusID
+        ));
+    }
+
     public void close(){
         try {
             corpusIndex_.save();
@@ -193,6 +225,13 @@ public class DataBase {
             // TODO could not save database
             e.printStackTrace();
         }
+
+        try {
+            audioIndex_.save();
+        } catch (FileNotFoundException e) {
+            // TODO could not save database
+            e.printStackTrace();
+        }
     }
 
     public static DataBase getInstance () {
@@ -202,6 +241,7 @@ public class DataBase {
     private static final Configuration configuration_;
     private static final org.pasr.database.corpus.Index corpusIndex_;
     private static final org.pasr.database.arctic.Index arcticIndex_;
+    private static final org.pasr.database.audio.Index audioIndex_;
 
     private static DataBase instance_ = new DataBase();
 

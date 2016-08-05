@@ -226,9 +226,11 @@ public class RecordController extends Controller{
         }
 
         int index;
+        int corpusID;
         if((index = corpusListView.getSelectionModel().getSelectedIndex()) != -1){
             corpusListView.getItems().remove(index);
             fillCorpusSentences();
+            corpusID = corpus_.getID();
         }
         else{
             index = arcticListView.getSelectionModel().getSelectedIndex();
@@ -236,9 +238,12 @@ public class RecordController extends Controller{
             arcticListView.getItems().remove(index);
             DataBase.getInstance().setArcticSentenceAsUsed(sentence);
             fillArcticSentences();
+            corpusID = 0;
         }
 
-        // save wav
+        DataBase.getInstance().newAudioEntry(recorder_.getData(), sentence, corpusID);
+
+        eraseButton.fire();
     }
 
     private void updateProgressBars(){

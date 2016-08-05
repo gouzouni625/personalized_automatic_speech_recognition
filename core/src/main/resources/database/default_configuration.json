@@ -6,6 +6,9 @@
 
   "arcticIndexPath": "database/arctic/index.json",
 
+  "audioPath": "database/audio/",
+  "audioIndexPath": "database/audio/index.json",
+
   "text2wfreqPath": "cmuclmtk/installation/bin/text2wfreq",
   "wfreq2vocabPath": "cmuclmtk/installation/bin/wfreq2vocab",
   "text2idngramPath": "cmuclmtk/installation/bin/text2idngram",

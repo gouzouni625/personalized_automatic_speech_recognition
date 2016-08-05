@@ -97,6 +97,10 @@ public class BufferedRecorder extends Recorder implements Runnable {
         return clip;
     }
 
+    public byte[] getData(){
+        return byteArrayOutputStream_.toByteArray();
+    }
+
     @Override
     public synchronized void terminate() throws IOException {
         super.terminate();

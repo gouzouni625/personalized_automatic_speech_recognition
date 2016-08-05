@@ -33,6 +33,14 @@ public class Configuration {
         return arcticIndexPath;
     }
 
+    public String getAudioPath(){
+        return audioPath;
+    }
+
+    public String getAudioIndexPath() {
+        return audioIndexPath;
+    }
+
     public String getText2wfreqPath () {
         return text2wfreqPath;
     }
@@ -61,6 +69,9 @@ public class Configuration {
     private String corpusIndexPath;
 
     private String arcticIndexPath;
+
+    private String audioPath;
+    private String audioIndexPath;
 
     private String text2wfreqPath;
     private String wfreq2vocabPath;

@@ -62,6 +62,6 @@ public class Recorder {
 
     private static final int SAMPLE_RATE = 16000; // Samples per second
 
-    static final AudioFormat AUDIO_FORMAT = new AudioFormat(SAMPLE_RATE, 16, 1, true, false);
+    public static final AudioFormat AUDIO_FORMAT = new AudioFormat(SAMPLE_RATE, 16, 1, true, false);
 
 }
