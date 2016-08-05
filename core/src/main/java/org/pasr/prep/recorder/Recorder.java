@@ -58,7 +58,7 @@ public class Recorder {
         return SAMPLE_RATE;
     }
 
-    TargetDataLine targetDataLine_;
+    volatile TargetDataLine targetDataLine_;
 
     private static final int SAMPLE_RATE = 16000; // Samples per second
 

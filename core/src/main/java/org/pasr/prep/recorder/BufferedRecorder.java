@@ -113,11 +113,11 @@ public class BufferedRecorder extends Recorder implements Runnable {
         byteArrayOutputStream_.close();
     }
 
-    private ByteArrayOutputStream byteArrayOutputStream_;
+    private volatile ByteArrayOutputStream byteArrayOutputStream_;
 
-    private double level_ = 0;
+    private volatile double level_ = 0;
 
-    private boolean run_ = true;
-    private boolean live_ = true;
+    private volatile boolean run_ = true;
+    private volatile boolean live_ = true;
 
 }
