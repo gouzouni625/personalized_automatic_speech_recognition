@@ -36,7 +36,7 @@
             <TextArea fx:id="correctedTextArea" layoutX="180.0" layoutY="354.0" prefHeight="250.0"
                       prefWidth="200.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
                       AnchorPane.topAnchor="340.0"/>
-            <ToggleButton fx:id="dictateButton" layoutX="227.0" layoutY="617.0"
+            <ToggleButton fx:id="dictateToggleButton" layoutX="227.0" layoutY="617.0"
                           mnemonicParsing="false" prefHeight="30.0" prefWidth="100.0"
                           AnchorPane.leftAnchor="230.0" AnchorPane.topAnchor="650.0"/>
         </AnchorPane>
