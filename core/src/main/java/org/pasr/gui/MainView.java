@@ -33,16 +33,24 @@ public class MainView extends Application implements MainController.API,
     }
 
     @Override
-    public void start(Stage primaryStage) throws IOException {
+    public void start(Stage primaryStage) {
         primaryStage_ = primaryStage;
 
         primaryStage.setTitle("Personalized Automatic Speech Recognition");
 
-        primaryStage.setScene(sceneFactory_.create(SceneFactory.Scenes.MAIN_SCENE, this));
+        initialScene();
 
         primaryStage.show();
     }
 
+    @Override
+    public void initialScene(){
+        try {
+            primaryStage_.setScene(sceneFactory_.create(SceneFactory.Scenes.MAIN_SCENE, this));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     @Override
     public void newCorpus (String emailAddress, String password) {

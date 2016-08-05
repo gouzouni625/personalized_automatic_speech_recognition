@@ -121,6 +121,9 @@ public class RecordController extends Controller{
         });
         saveButton.setOnAction(this :: saveButtonOnAction);
 
+        backButton.setOnAction(this :: backButtonOnAction);
+        doneButton.setOnAction(this :: doneButtonOnAction);
+
         corpusListView.setItems(corpusSentences_);
         corpusListView.getSelectionModel().selectedItemProperty().addListener(
             (observable, oldValue, newValue) -> {
@@ -246,6 +249,14 @@ public class RecordController extends Controller{
         eraseButton.fire();
     }
 
+    private void backButtonOnAction(ActionEvent actionEvent){
+        ((API) api_).initialScene();
+    }
+
+    private void doneButtonOnAction(ActionEvent actionEvent){
+        ((API) api_).dictate(corpus_.getID());
+    }
+
     private void updateProgressBars(){
         double level = recorder_.getLevel();
 
@@ -266,6 +277,8 @@ public class RecordController extends Controller{
 
     public interface API extends Controller.API{
         int getCorpusID();
+        void initialScene();
+        void dictate(int corpusID);
     }
 
     @FXML
