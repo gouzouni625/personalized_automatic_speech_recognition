@@ -177,6 +177,12 @@ public class DataBase {
         }
     }
 
+    public void setArcticSentenceAsUsed(String sentence){
+        arcticIndex_.stream()
+            .filter(entry -> entry.getSentence().equals(sentence))
+            .forEach(entry -> entry.setUsed(true));
+    }
+
     public void close(){
         PrintWriter printWriter;
         try {

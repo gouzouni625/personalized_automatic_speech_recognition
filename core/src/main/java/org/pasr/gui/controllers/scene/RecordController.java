@@ -23,6 +23,8 @@ import javax.sound.sampled.Clip;
 import javax.sound.sampled.LineEvent;
 import javax.sound.sampled.LineUnavailableException;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -59,10 +61,14 @@ public class RecordController extends Controller{
                 return;
             }
 
+            ArrayList<String> randomSentences = new ArrayList<>();
+
             Random random = new Random(System.currentTimeMillis());
             for (int i = currentSize; i < corpusSentencesMaxSize_; i++) {
-                corpusSentences_.add(corpus_.getRandomSubSequence(random));
+                randomSentences.add(corpus_.getRandomSubSequence(random));
             }
+
+            Platform.runLater(() -> corpusSentences_.addAll(randomSentences));
         }).start();
     }
 
@@ -71,11 +77,14 @@ public class RecordController extends Controller{
             int currentSize = arcticSentences_.size();
             if (currentSize == arcticSentencesMaxSize_) {
                 return;
+
             }
 
-            arcticSentences_.addAll(DataBase.getInstance().getUnUsedArcticSentences(
+            List<String> newArcticSentences = DataBase.getInstance().getUnUsedArcticSentences(
                 arcticSentencesMaxSize_ - currentSize
-            ));
+            );
+
+            Platform.runLater(() -> arcticSentences_.addAll(newArcticSentences));
         }).start();
     }
 
@@ -115,6 +124,7 @@ public class RecordController extends Controller{
                 newValue ? saveButtonPressedGraphic : saveButtonDefaultGraphic
             );
         });
+        saveButton.setOnAction(this :: saveButtonOnAction);
 
         corpusListView.setItems(corpusSentences_);
         corpusListView.getSelectionModel().selectedItemProperty().addListener(
@@ -123,6 +133,11 @@ public class RecordController extends Controller{
                     sentenceLabel.setText(newValue);
 
                     arcticListView.getSelectionModel().clearSelection();
+                }
+                else{
+                    if(arcticListView.getSelectionModel().getSelectedIndex() == -1){
+                        sentenceLabel.setText("");
+                    }
                 }
         });
 
@@ -133,6 +148,11 @@ public class RecordController extends Controller{
                     sentenceLabel.setText(newValue);
 
                     corpusListView.getSelectionModel().clearSelection();
+                }
+                else{
+                    if(corpusListView.getSelectionModel().getSelectedIndex() == -1){
+                        sentenceLabel.setText("");
+                    }
                 }
         });
 
@@ -176,6 +196,30 @@ public class RecordController extends Controller{
         else{
             clip_.stop();
         }
+    }
+
+    private void saveButtonOnAction(ActionEvent actionEvent){
+        String sentence = sentenceLabel.getText();
+
+        if(sentence.isEmpty()){
+            // TODO Maybe show a message saying that the user must choose a sentence.
+            return;
+        }
+
+        int index;
+        if((index = corpusListView.getSelectionModel().getSelectedIndex()) != -1){
+            corpusListView.getItems().remove(index);
+            fillCorpusSentences();
+        }
+        else{
+            index = arcticListView.getSelectionModel().getSelectedIndex();
+
+            arcticListView.getItems().remove(index);
+            DataBase.getInstance().setArcticSentenceAsUsed(sentence);
+            fillArcticSentences();
+        }
+
+        // save wav
     }
 
     private void updateProgressBars(){
