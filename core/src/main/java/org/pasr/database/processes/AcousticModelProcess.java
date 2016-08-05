@@ -45,6 +45,7 @@ public class AcousticModelProcess extends Process{
         processBuilderList_.add(new ProcessBuilder(
             dataBaseConfiguration.getBwPath(),
             "-hmmdir", defaultAcousticModelPath,
+            "-cepdir", acousticModelDirectoryPath,
             "-moddeffn", defaultAcousticModelPath + "mdef.txt",
             "-ts2cbfn", ".ptm.",
             "-feat", "1s_c_d_dd",

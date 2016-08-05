@@ -16,7 +16,6 @@
   "idngram2lmPath": "cmuclmtk/installation/bin/idngram2lm",
 
   "sphinxFePath": "sphinxbase/installation/bin/sphinx_fe",
-  "pocketsphinxMdefConvert": "pocketsphinx/installation/bin/pocketsphinx_mdef_convert",
   "bwPath": "sphinxtrain/installation/libexec/sphinxtrain/bw",
   "mllrSolvePath": "sphinxtrain/installation/libexec/sphinxtrain/mllr_solve",
   "mapAdaptPath": "sphinxtrain/installation/libexec/sphinxtrain/map_adapt"

@@ -131,6 +131,8 @@ public class DataBase {
             corpus = loadCorpusFromDirectory(
                 new File(configuration_.getCorpusDirectoryPath(), String.valueOf(corpusID))
             );
+
+            corpus.setID(corpusID);
         } catch (FileNotFoundException e) {
             // TODO
             e.printStackTrace();

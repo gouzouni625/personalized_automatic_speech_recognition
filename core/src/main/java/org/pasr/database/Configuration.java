@@ -65,10 +65,6 @@ public class Configuration {
         return sphinxFePath;
     }
 
-    public String getPocketsphinxMdefConvert(){
-        return pocketsphinxMdefConvert;
-    }
-
     public String getBwPath () {
         return bwPath;
     }
@@ -104,7 +100,6 @@ public class Configuration {
     private String idngram2lmPath;
 
     private String sphinxFePath;
-    private String pocketsphinxMdefConvert;
     private String bwPath;
     private String mllrSolvePath;
     private String mapAdaptPath;
