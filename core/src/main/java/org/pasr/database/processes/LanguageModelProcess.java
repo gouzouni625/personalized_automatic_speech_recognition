@@ -7,11 +7,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
 
 
-public class LanguageModelProcess {
+public class LanguageModelProcess extends Process{
     public LanguageModelProcess(Path inputPath, Path outputPath, int depth) throws IOException {
         File inputFile = inputPath.toFile();
 
@@ -20,8 +18,6 @@ public class LanguageModelProcess {
         File freqFile = Files.createTempFile(inputFileName, "freq").toFile();
         File vocabFile = Files.createTempFile(inputFileName, "vocab").toFile();
         File idngramFile = Files.createTempFile(inputFileName, "idngram").toFile();
-
-        processBuilderList_ = new ArrayList<>(4);
 
         Configuration configuration = Configuration.getInstance();
 
@@ -50,13 +46,5 @@ public class LanguageModelProcess {
             "-ascii_input"
         ));
     }
-
-    public void startAndWaitFor() throws IOException, InterruptedException {
-        for(ProcessBuilder processBuilder : processBuilderList_){
-            processBuilder.start().waitFor();
-        }
-    }
-
-    private List<ProcessBuilder> processBuilderList_;
 
 }

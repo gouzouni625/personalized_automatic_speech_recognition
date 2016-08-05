@@ -37,8 +37,12 @@ public class DataBase {
 
     private DataBase () {}
 
-    public List<org.pasr.database.corpus.Index.Entry> getCorpora(){
+    public List<org.pasr.database.corpus.Index.Entry> getCorpusEntryList (){
         return corpusIndex_;
+    }
+
+    public List<org.pasr.database.audio.Index.Entry> getAudioEntryList() {
+        return audioIndex_;
     }
 
     public void newCorpusEntry (Corpus corpus, Dictionary dictionary){
@@ -192,7 +196,7 @@ public class DataBase {
     public void newAudioEntry(byte[] audioData, String sentence, int corpusID){
         int newEntryID = audioIndex_.size() + 1;
 
-        File newEntryFile = new File(configuration_.getAudioPath(), newEntryID + ".wav");
+        File newEntryFile = new File(configuration_.getAudioDirectoryPath(), newEntryID + ".wav");
 
         long numberOfFrames = (long)(audioData.length / Recorder.AUDIO_FORMAT.getFrameSize());
 

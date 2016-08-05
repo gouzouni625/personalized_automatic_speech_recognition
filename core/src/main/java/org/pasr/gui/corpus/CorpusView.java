@@ -26,7 +26,7 @@ public class CorpusView extends SplitPane {
 
     @FXML
     public void initialize(){
-        entryListView.getItems().addAll(DataBase.getInstance().getCorpora());
+        entryListView.getItems().addAll(DataBase.getInstance().getCorpusEntryList());
         entryListView.getSelectionModel().selectedItemProperty().addListener(
             (observable, oldValue, newValue) -> {
                 if(newValue == null){

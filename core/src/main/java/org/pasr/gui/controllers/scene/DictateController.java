@@ -10,6 +10,7 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
+import org.pasr.asr.recognizers.StreamSpeechRecognizer;
 import org.pasr.gui.corpus.CorpusView;
 
 import static org.pasr.utilities.Utilities.getResourceStream;
@@ -64,5 +65,7 @@ public class DictateController extends Controller{
 
     @FXML
     private Button backButton;
+
+    private StreamSpeechRecognizer recognizer_;
 
 }

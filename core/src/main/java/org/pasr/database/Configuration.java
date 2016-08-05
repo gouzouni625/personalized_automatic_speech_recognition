@@ -17,10 +17,6 @@ public class Configuration {
 
     private Configuration () {}
 
-    public String getDatabaseDirectoryPath () {
-        return databaseDirectoryPath;
-    }
-
     public String getCorpusDirectoryPath(){
         return corpusDirectoryPath;
     }
@@ -33,12 +29,20 @@ public class Configuration {
         return arcticIndexPath;
     }
 
-    public String getAudioPath(){
-        return audioPath;
+    public String getAudioDirectoryPath (){
+        return audioDirectoryPath;
     }
 
     public String getAudioIndexPath() {
         return audioIndexPath;
+    }
+
+    public String getAcousticModelDirectoryPath(){
+        return acousticModelDirectoryPath;
+    }
+
+    public String getAcousticModelPath(){
+        return acousticModelPath;
     }
 
     public String getText2wfreqPath () {
@@ -57,25 +61,52 @@ public class Configuration {
         return idngram2lmPath;
     }
 
+    public String getSphinxFePath () {
+        return sphinxFePath;
+    }
+
+    public String getPocketsphinxMdefConvert(){
+        return pocketsphinxMdefConvert;
+    }
+
+    public String getBwPath () {
+        return bwPath;
+    }
+
+    public String getMllrSolvePath () {
+        return mllrSolvePath;
+    }
+
+    public String getMapAdaptPath(){
+        return mapAdaptPath;
+    }
+
     public static Configuration getInstance () {
         return instance_;
     }
 
     private static Configuration instance_;
 
-    private String databaseDirectoryPath;
-
     private String corpusDirectoryPath;
     private String corpusIndexPath;
 
     private String arcticIndexPath;
 
-    private String audioPath;
+    private String audioDirectoryPath;
     private String audioIndexPath;
+
+    private String acousticModelDirectoryPath;
+    private String acousticModelPath;
 
     private String text2wfreqPath;
     private String wfreq2vocabPath;
     private String text2idngramPath;
     private String idngram2lmPath;
+
+    private String sphinxFePath;
+    private String pocketsphinxMdefConvert;
+    private String bwPath;
+    private String mllrSolvePath;
+    private String mapAdaptPath;
 
 }
