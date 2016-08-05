@@ -37,6 +37,10 @@ public class DataBase {
 
     private DataBase () {}
 
+    public List<org.pasr.database.corpus.Index.Entry> getCorpora(){
+        return corpusIndex_;
+    }
+
     public void newCorpusEntry (Corpus corpus, Dictionary dictionary){
         File corpusDirectory = new File(configuration_.getCorpusDirectoryPath());
 

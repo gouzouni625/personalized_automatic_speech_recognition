@@ -36,7 +36,13 @@ public class WordSequence implements Iterable<Word> {
     }
 
     public String getText() {
-        return buildText();
+        StringBuilder stringBuilder = new StringBuilder();
+
+        for(Word word : words_){
+            stringBuilder.append(word).append(" ");
+        }
+
+        return stringBuilder.toString().trim();
     }
 
     public List<Word> getWords(){
@@ -194,7 +200,7 @@ public class WordSequence implements Iterable<Word> {
     }
 
     public boolean equals(String text){
-        return buildText().equals(text.toLowerCase());
+        return getText().equals(text.toLowerCase());
     }
 
     public void replaceWordText(String oldText, String newText){
@@ -214,16 +220,6 @@ public class WordSequence implements Iterable<Word> {
         words_.remove(word);
     }
 
-    private String buildText (){
-        StringBuilder stringBuilder = new StringBuilder();
-
-        for(Word word : words_){
-            stringBuilder.append(word).append(" ");
-        }
-
-        return stringBuilder.toString().trim();
-    }
-
     public void remove(List<Word> words){
         words.forEach(this :: remove);
     }
@@ -234,17 +230,17 @@ public class WordSequence implements Iterable<Word> {
 
     @Override
     public boolean equals(Object o) {
-        return o instanceof WordSequence && buildText().equals(((WordSequence) o).getText());
+        return o instanceof WordSequence && getText().equals(((WordSequence) o).getText());
     }
 
     @Override
     public int hashCode(){
-        return buildText().hashCode();
+        return getText().hashCode();
     }
 
     @Override
     public String toString() {
-        return buildText();
+        return getText();
     }
 
     public Iterator<Word> iterator(){

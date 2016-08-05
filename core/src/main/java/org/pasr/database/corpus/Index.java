@@ -41,6 +41,11 @@ public class Index extends ArrayList<Index.Entry>{
             return name;
         }
 
+        @Override
+        public String toString(){
+            return id + ". " + name;
+        }
+
         private final int id;
         private final String name;
     }

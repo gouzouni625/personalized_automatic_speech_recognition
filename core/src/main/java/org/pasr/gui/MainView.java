@@ -118,7 +118,14 @@ public class MainView extends Application implements MainController.API,
 
     @Override
     public void dictate(int corpusID){
+        corpusID_ = corpusID;
 
+        try {
+            primaryStage_.setScene(sceneFactory_.create(SceneFactory.Scenes.DICTATE_SCENE, this));
+        } catch (IOException e) {
+            // TODO
+            e.printStackTrace();
+        }
     }
 
     @Override

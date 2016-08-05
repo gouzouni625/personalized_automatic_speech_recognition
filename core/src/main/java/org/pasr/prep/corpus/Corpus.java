@@ -168,6 +168,16 @@ public class Corpus implements Iterable<WordSequence> {
         return documentsText;
     }
 
+    public String getText(){
+        StringBuilder stringBuilder = new StringBuilder();
+
+        for(WordSequence sentence : sentences_){
+            stringBuilder.append(sentence.getText()).append("\n");
+        }
+
+        return stringBuilder.toString();
+    }
+
     public boolean contains(WordSequence wordSequence){
         for(WordSequence sentence : sentences_){
             if(sentence.getText().contains(wordSequence.getText())){
