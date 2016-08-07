@@ -4,6 +4,7 @@ package org.pasr.gui;
 import javafx.application.Application;
 import javafx.stage.Stage;
 import org.pasr.database.DataBase;
+import org.pasr.gui.console.Console;
 import org.pasr.gui.controllers.scene.DictateController;
 import org.pasr.gui.controllers.scene.EmailListController;
 import org.pasr.gui.controllers.scene.LDAController;
@@ -42,6 +43,8 @@ public class MainView extends Application implements MainController.API,
         initialScene();
 
         primaryStage.show();
+
+        Console.create(primaryStage).show();
     }
 
     @Override
