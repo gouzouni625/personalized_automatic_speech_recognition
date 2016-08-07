@@ -3,6 +3,7 @@ package org.pasr.database;
 
 import org.pasr.asr.dictionary.Dictionary;
 import org.pasr.database.corpus.Index;
+import org.pasr.database.processes.AcousticModelProcess;
 import org.pasr.database.processes.LanguageModelProcess;
 import org.pasr.prep.corpus.Corpus;
 import org.pasr.prep.corpus.WordSequence;
@@ -173,6 +174,14 @@ public class DataBase {
         return corpus;
     }
 
+    public String getDictionaryPathByID(int id){
+        return configuration_.getCorpusDirectoryPath() + String.valueOf(id) + "/dictionary.dict";
+    }
+
+    public String getLanguageModelPathByID(int id){
+        return configuration_.getCorpusDirectoryPath() + String.valueOf(id) + "/language_model.lm";
+    }
+
     public List<String> getUnUsedArcticSentences(int count){
         List<String> sentences = arcticIndex_.stream()
             .filter(entry -> !entry.isUsed())
@@ -219,6 +228,16 @@ public class DataBase {
         audioIndex_.add(new org.pasr.database.audio.Index.Entry(
             newEntryFile.getName(), sentence, corpusID
         ));
+    }
+
+    public void newAcousticModel(){
+        try {
+            new AcousticModelProcess().startAndWaitFor();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     public void close(){

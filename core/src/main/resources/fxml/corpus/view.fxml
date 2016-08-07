@@ -12,7 +12,8 @@
                   AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
     </AnchorPane>
     <AnchorPane>
-        <TextArea fx:id="textArea" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
-                  AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
+        <TextArea fx:id="textArea" editable="false" AnchorPane.bottomAnchor="0.0"
+                  AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
+                  AnchorPane.topAnchor="0.0"/>
     </AnchorPane>
 </fx:root>

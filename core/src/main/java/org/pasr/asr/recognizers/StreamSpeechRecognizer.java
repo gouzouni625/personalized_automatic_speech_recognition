@@ -57,7 +57,7 @@ public class StreamSpeechRecognizer extends Observable{
         recognizingThread_ = null;
     }
 
-    public void close() throws IOException {
+    public void terminate() throws IOException {
         stopRecognition();
 
         recorder_.terminate();

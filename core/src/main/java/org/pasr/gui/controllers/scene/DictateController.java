@@ -1,6 +1,7 @@
 package org.pasr.gui.controllers.scene;
 
 
+import edu.cmu.pocketsphinx.Hypothesis;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -11,7 +12,10 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import org.pasr.asr.recognizers.StreamSpeechRecognizer;
+import org.pasr.database.DataBase;
 import org.pasr.gui.corpus.CorpusView;
+
+import java.io.IOException;
 
 import static org.pasr.utilities.Utilities.getResourceStream;
 
@@ -19,6 +23,23 @@ import static org.pasr.utilities.Utilities.getResourceStream;
 public class DictateController extends Controller{
     public DictateController(Controller.API api){
         super(api);
+
+        int corpusID = ((API) api_).getCorpusID();
+
+        DataBase dataBase = DataBase.getInstance();
+
+        org.pasr.asr.Configuration recognizerConfiguration = new org.pasr.asr.Configuration();
+        recognizerConfiguration.setDictionaryPath(dataBase.getDictionaryPathByID(corpusID));
+        recognizerConfiguration.setLanguageModelPath(dataBase.getLanguageModelPathByID(corpusID));
+        recognizerConfiguration.setAcousticModelPath(
+            org.pasr.database.Configuration.getInstance().getAcousticModelPath()
+        );
+
+        try {
+            recognizer_ = new StreamSpeechRecognizer(recognizerConfiguration);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @FXML
@@ -32,11 +53,40 @@ public class DictateController extends Controller{
             );
         });
 
+        dictateToggleButton.setOnAction(this :: dictateToggleButtonOnAction);
+
         backButton.setOnAction(this :: backButtonOnAction);
+
+        recognizer_.addObserver(
+            (o, arg) -> {
+                aSRResultTextArea.setText(aSRResultTextAreaText_ + ((Hypothesis) arg).getHypstr());
+                aSRResultTextArea.setScrollTop(Double.MAX_VALUE);
+            });
+    }
+
+    private void dictateToggleButtonOnAction(ActionEvent actionEvent){
+        if(dictateToggleButton.isSelected()){
+            recognizer_.startRecognition();
+        }
+        else{
+            recognizer_.stopRecognition();
+            aSRResultTextArea.appendText("\n");
+            aSRResultTextAreaText_ = aSRResultTextArea.getText();
+        }
     }
 
     private void backButtonOnAction(ActionEvent actionEvent){
         ((API) api_).initialScene();
+    }
+
+    @Override
+    public void terminate(){
+        try {
+            recognizer_.terminate();
+        } catch (IOException e) {
+            // TODO
+            e.printStackTrace();
+        }
     }
 
     public interface API extends Controller.API{
@@ -52,6 +102,7 @@ public class DictateController extends Controller{
 
     @FXML
     private TextArea aSRResultTextArea;
+    private String aSRResultTextAreaText_ = "";
 
     @FXML
     private TextArea correctedTextArea;

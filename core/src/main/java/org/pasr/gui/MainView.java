@@ -4,6 +4,7 @@ package org.pasr.gui;
 import javafx.application.Application;
 import javafx.stage.Stage;
 import org.pasr.database.DataBase;
+import org.pasr.gui.controllers.scene.DictateController;
 import org.pasr.gui.controllers.scene.EmailListController;
 import org.pasr.gui.controllers.scene.LDAController;
 import org.pasr.gui.controllers.scene.MainController;
@@ -15,7 +16,7 @@ import java.util.List;
 
 
 public class MainView extends Application implements MainController.API,
-    EmailListController.API, LDAController.API, RecordController.API {
+    EmailListController.API, LDAController.API, RecordController.API, DictateController.API {
 
     private Stage primaryStage_;
 
@@ -118,6 +119,8 @@ public class MainView extends Application implements MainController.API,
 
     @Override
     public void dictate(int corpusID){
+        DataBase.getInstance().newAcousticModel();
+
         corpusID_ = corpusID;
 
         try {
