@@ -2,6 +2,7 @@ package org.pasr.gui;
 
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.stage.Stage;
 import org.pasr.database.DataBase;
 import org.pasr.gui.console.Console;
@@ -11,13 +12,22 @@ import org.pasr.gui.controllers.scene.LDAController;
 import org.pasr.gui.controllers.scene.MainController;
 import org.pasr.gui.controllers.scene.RecordController;
 import org.pasr.prep.email.fetchers.Email;
+import org.pasr.utilities.logging.PrettyFormatter;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
+
+import static org.pasr.utilities.Utilities.getResourceStream;
 
 
 public class MainView extends Application implements MainController.API,
     EmailListController.API, LDAController.API, RecordController.API, DictateController.API {
+
+    private static Logger logger_ = Logger.getLogger(MainView.class.getName());
 
     private Stage primaryStage_;
 
@@ -31,6 +41,31 @@ public class MainView extends Application implements MainController.API,
     private SceneFactory sceneFactory_ = SceneFactory.getInstance();
 
     public static void main(String[] args){
+        logger_.info("Initializing logger...");
+
+        try {
+            InputStream inputStream = getResourceStream("/logging/logging.properties");
+
+            if(inputStream == null){
+                throw new IOException(
+                    "getResourceStream(\"/logging/logging.properties\") returned null"
+                );
+            }
+
+            LogManager.getLogManager().readConfiguration(inputStream);
+        } catch (IOException e) {
+            ConsoleHandler consoleHandler = new ConsoleHandler();
+            consoleHandler.setFormatter(new PrettyFormatter());
+
+            logger_.setUseParentHandlers(false);
+
+            logger_.addHandler(consoleHandler);
+
+            logger_.warning("Could not load resource:/logging/logging.properties\n" +
+                "Logging not configured (console output only).\n" +
+                "Exception Message: " + e.getMessage());
+        }
+
         launch(args);
     }
 
@@ -52,7 +87,12 @@ public class MainView extends Application implements MainController.API,
         try {
             primaryStage_.setScene(sceneFactory_.create(SceneFactory.Scenes.MAIN_SCENE, this));
         } catch (IOException e) {
-            e.printStackTrace();
+            logger_.severe("Could not load resource:" +
+                SceneFactory.Scenes.MAIN_SCENE.getFXMLResource() + "\n" +
+                "The file might be missing or be corrupted.\n" +
+                "Application will terminate.\n" +
+                "Exception Message: " + e.getMessage());
+            Platform.exit();
         }
     }
 

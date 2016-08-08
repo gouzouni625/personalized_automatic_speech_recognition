@@ -12,6 +12,7 @@ import org.pasr.gui.controllers.scene.MainController;
 import org.pasr.gui.controllers.scene.RecordController;
 
 import java.io.IOException;
+import java.net.URL;
 
 import static org.pasr.utilities.Utilities.getResource;
 
@@ -24,7 +25,13 @@ class SceneFactory {
     }
 
     Scene create(Scenes scene, API api) throws IOException {
-        FXMLLoader loader = new FXMLLoader(getResource(scene.getFXMLResource()));
+        URL location = getResource(scene.getFXMLResource());
+
+        if(location == null){
+            throw new IOException("getResource(" + scene.getFXMLResource() +") returned null");
+        }
+
+        FXMLLoader loader = new FXMLLoader(location);
         switch(scene){
             case MAIN_SCENE:
                 currentController_ = new MainController(api);
@@ -69,7 +76,7 @@ class SceneFactory {
         private String fXMLResource_;
     }
 
-    public Controller getCurrentController(){
+    Controller getCurrentController(){
         return currentController_;
     }
 
