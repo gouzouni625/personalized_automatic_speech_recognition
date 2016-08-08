@@ -59,7 +59,7 @@ public class Console extends Stage implements Runnable {
             try {
                 // Don't wait forever on this thread since it is a daemon and will not block the JVM
                 // from shutting down
-                thread_.join(10000);
+                thread_.join(3000);
             } catch (InterruptedException e) {
                 logger_.warning("Interrupted while joining console thread.");
             }

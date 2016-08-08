@@ -38,6 +38,6 @@ public abstract class EmailFetcher extends Observable implements Runnable {
 
     Properties properties_;
 
-    private Logger logger_ = Logger.getLogger(getClass().getName());
+    private final Logger logger_ = Logger.getLogger(getClass().getName());
 
 }

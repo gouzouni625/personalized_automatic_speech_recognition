@@ -31,10 +31,12 @@ public class GMailFetcher extends EmailFetcher{
     }
 
     @Override
-    public void fetch(){
-        thread_ = new Thread(this);
-        thread_.setDaemon(true);
-        thread_.start();
+    public void fetch() {
+        if(thread_ == null || !thread_.isAlive()) {
+            thread_ = new Thread(this);
+            thread_.setDaemon(true);
+            thread_.start();
+        }
     }
 
     @SuppressWarnings ("ContinueOrBreakFromFinallyBlock")
@@ -262,7 +264,7 @@ public class GMailFetcher extends EmailFetcher{
         setChanged();
         notifyObservers();
 
-        getLogger().fine("GmailFetcher thread shut down gracefully!");
+        getLogger().info("GmailFetcher thread shut down gracefully!");
     }
 
     private String getBodyFromMultiPart(Multipart multipart) throws MessagingException, IOException {
@@ -285,15 +287,19 @@ public class GMailFetcher extends EmailFetcher{
 
     @Override
     public void terminate () {
+        killThread();
+
+        close();
+    }
+
+    private void killThread(){
         run_ = false;
 
         try {
-            thread_.join(10000);
+            thread_.join(3000);
         } catch (InterruptedException e) {
             getLogger().warning("Interrupted while joining GmailFetcher thread.");
         }
-
-        close();
     }
 
     private void close(){
@@ -306,10 +312,10 @@ public class GMailFetcher extends EmailFetcher{
         }
     }
 
-    private Thread thread_;
+    private Thread thread_ = null;
     private volatile boolean run_ = true;
 
-    private volatile Store store_;
-    private Folder[] folders_;
+    private Store store_;
+    private volatile Folder[] folders_;
 
 }

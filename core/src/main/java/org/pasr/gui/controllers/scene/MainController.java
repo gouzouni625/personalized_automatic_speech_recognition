@@ -30,9 +30,17 @@ public class MainController extends Controller{
         });
         dictateButtonAccessHandling(false);
 
+        String emailAddress = ((API) api_).getEmailAddress();
+        String password = ((API) api_).getPassword();
+
+        if(emailAddress != null && password != null){
+            emailAddressTextField.setText(emailAddress);
+            passwordField.setText(password);
+        }
+
         // At the moment initialize is called the views are not yet ready to handle focus so
         // runLater is used
-        Platform.runLater(() -> emailAddress.requestFocus());
+        Platform.runLater(() -> emailAddressTextField.requestFocus());
 
         newCorpusButton.setTooltip(new Tooltip(NewCorpusButtonMessages.TOOLTIP.getMessage()));
         newCorpusButton.setOnAction(this :: newCorpusButtonOnAction);
@@ -44,18 +52,18 @@ public class MainController extends Controller{
         if(corpusSelected){
             dictateButton.setDisable(false);
             dictateButton.setTooltip(new Tooltip(DictateButtonMessages.ENABLED.getMessage()));
-            dictateButtonLabel.setVisible(false);
+            dictateLabel.setVisible(false);
         }
         else{
             dictateButton.setDisable(true);
-            dictateButtonLabel.setVisible(true);
-            dictateButtonLabel.setText(DictateButtonMessages.DISABLED.getMessage());
+            dictateLabel.setVisible(true);
+            dictateLabel.setText(DictateButtonMessages.DISABLED.getMessage());
         }
     }
 
     private void newCorpusButtonOnAction (ActionEvent actionEvent){
-        String emailAddressText = emailAddress.getText();
-        String passwordText = password.getText();
+        String emailAddressText = emailAddressTextField.getText();
+        String passwordText = passwordField.getText();
 
         Console console = Console.getInstance();
 
@@ -80,6 +88,8 @@ public class MainController extends Controller{
     }
 
     public interface API extends Controller.API{
+        String getEmailAddress();
+        String getPassword();
         void newCorpus(String emailAddress, String password);
         void dictate(int corpusID);
     }
@@ -88,16 +98,13 @@ public class MainController extends Controller{
     private CorpusView corpusView;
 
     @FXML
-    private TextField emailAddress;
+    private TextField emailAddressTextField;
 
     @FXML
-    private PasswordField password;
+    private PasswordField passwordField;
 
     @FXML
     private Button newCorpusButton;
-
-    @FXML
-    private Label newCorpusButtonLabel;
     private enum NewCorpusButtonMessages{
         TOOLTIP("Enter the address and the password of your e-mail to fetch your e-mails" +
             " and create a corpus."),
@@ -120,7 +127,7 @@ public class MainController extends Controller{
     private Button dictateButton;
 
     @FXML
-    private Label dictateButtonLabel;
+    private Label dictateLabel;
     private enum DictateButtonMessages{
         DISABLED("Note: You must create and select a corpus in order to dictate."),
         ENABLED("Use the chosen corpus for speech recognition.");

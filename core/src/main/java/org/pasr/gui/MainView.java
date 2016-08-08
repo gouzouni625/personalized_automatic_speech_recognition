@@ -39,13 +39,9 @@ public class MainView extends Application implements MainController.API,
 
     private Stage primaryStage_;
 
-    // TODO When initial scene is called from the email list controller, put emailAddress and
-    // TODO password to their respective fields. If newCorpus is clicked again, with the same
-    // TODO username and password, make sure that you don't create a new emailFetcher but use
-    // TODO the one you already have.
-    private EmailFetcher emailFetcher_;
-    private String emailAddress_;
-    private String password_;
+    private EmailFetcher emailFetcher_ = null;
+    private String emailAddress_ = null;
+    private String password_ = null;
 
     private List<Email> emails_;
 
@@ -110,9 +106,26 @@ public class MainView extends Application implements MainController.API,
     }
 
     @Override
+    public String getEmailAddress(){
+        return emailAddress_;
+    }
+
+    @Override
+    public String getPassword(){
+        return password_;
+    }
+
+    @Override
     public void newCorpus (String emailAddress, String password) {
-        emailAddress_ = emailAddress;
-        password_ = password;
+        if(emailAddress == null){
+            logger_.warning("emailAddress in newCorpus was null");
+            return;
+        }
+
+        if(password == null){
+            logger_.warning("password in newCorpus was null");
+            return;
+        }
 
         if(!emailAddress.endsWith("@gmail.com")){
             Console console = Console.getInstance();
@@ -124,42 +137,17 @@ public class MainView extends Application implements MainController.API,
             return;
         }
 
-        try {
-            emailFetcher_ = new GMailFetcher();
-        } catch (IOException e) {
-            logger_.severe("Could not load email fetcher properties resource file.\n" +
-                "The file might be missing or be corrupted.\n" +
-                "Application will terminate.\n" +
-                "Message: " + e.getMessage());
-            Platform.exit();
+        emailAddress_ = emailAddress;
+        password_ = password;
 
-            // Make sure that no other command is executed
+        if(!createNewEmailFetcher()){
+            logger_.severe("Could not create a new EmailFetcher.");
             return;
         }
 
-        try {
-            emailFetcher_.open(emailAddress, password);
-        } catch (NoSuchProviderException e) {
-            logger_.log(Level.SEVERE, "A provided for the given email protocol was not found.\n" +
-                "Application will terminate.", e);
-
-            Platform.exit();
-        } catch (AuthenticationFailedException e) {
-            Console.getInstance().postMessage(
-                "The provided email address and password were incorrect"
-            );
-
+        if(!openEmailFetcher(emailAddress_, password_)){
+            logger_.warning("Could not open EmailFetcher.");
             return;
-        } catch (IllegalStateException e) {
-            logger_.log(Level.SEVERE, "The email service is already connected.\n" +
-                "Application will terminate.", e);
-
-            Platform.exit();
-        } catch (MessagingException e) {
-            logger_.log(Level.SEVERE, "Something went wrong with the email service.\n" +
-                "Application will terminate.", e);
-
-            Platform.exit();
         }
 
         try {
@@ -174,6 +162,66 @@ public class MainView extends Application implements MainController.API,
                 "Exception Message: " + e.getMessage());
             Platform.exit();
         }
+    }
+
+    private boolean createNewEmailFetcher(){
+        logger_.info("Creating new EmailFetcher.");
+
+        // Before create a new fetcher, make sure any old one is dead
+        if (emailFetcher_ != null) {
+            emailFetcher_.terminate();
+        }
+
+        try {
+            emailFetcher_ = new GMailFetcher();
+        } catch (IOException e) {
+            logger_.severe("Could not load email fetcher properties resource file.\n" +
+                "The file might be missing or be corrupted.\n" +
+                "Application will terminate.\n" +
+                "Message: " + e.getMessage());
+            Platform.exit();
+
+            return false;
+        }
+
+        return true;
+    }
+
+    private boolean openEmailFetcher(String emailAddress, String password){
+        logger_.info("Opening EmailFetcher.");
+
+        try {
+            emailFetcher_.open(emailAddress, password);
+        } catch (NoSuchProviderException e) {
+            logger_.log(Level.SEVERE, "A provided for the given email protocol was not found.\n" +
+                "Application will terminate.", e);
+
+            Platform.exit();
+
+            return false;
+        } catch (AuthenticationFailedException e) {
+            Console.getInstance().postMessage(
+                "The provided email address and password were incorrect"
+            );
+
+            return false;
+        } catch (IllegalStateException e) {
+            Console.getInstance().postMessage("Something went wrong with the email service.\n" +
+                "Please try logging in again!");
+
+            logger_.log(Level.WARNING, "The email service is already connected.", e);
+
+            return false;
+        } catch (MessagingException e) {
+            Console.getInstance().postMessage("Something went wrong with the email service.\n" +
+                "Please try logging in again!");
+
+            logger_.log(Level.WARNING, "Something went wrong with the email service.", e);
+
+            return false;
+        }
+
+        return true;
     }
 
     @Override

@@ -47,6 +47,7 @@ public class EmailListController extends Controller implements Observer{
         doneButton.setOnAction(this :: doneButtonOnAction);
 
         // Start fetching the messages only after all the views have been initialized
+        getLogger().info("Starting fetching emails.");
         EmailFetcher emailFetcher = ((API) api_).getEmailFetcher();
         emailFetcher.addObserver(this);
         emailFetcher.fetch();
