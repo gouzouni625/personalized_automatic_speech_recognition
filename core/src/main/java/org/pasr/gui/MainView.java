@@ -12,12 +12,18 @@ import org.pasr.gui.controllers.scene.LDAController;
 import org.pasr.gui.controllers.scene.MainController;
 import org.pasr.gui.controllers.scene.RecordController;
 import org.pasr.prep.email.fetchers.Email;
+import org.pasr.prep.email.fetchers.EmailFetcher;
+import org.pasr.prep.email.fetchers.GMailFetcher;
 import org.pasr.utilities.logging.PrettyFormatter;
 
+import javax.mail.AuthenticationFailedException;
+import javax.mail.MessagingException;
+import javax.mail.NoSuchProviderException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.logging.ConsoleHandler;
+import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
@@ -33,6 +39,11 @@ public class MainView extends Application implements MainController.API,
 
     private Stage primaryStage_;
 
+    // TODO When initial scene is called from the email list controller, put emailAddress and
+    // TODO password to their respective fields. If newCorpus is clicked again, with the same
+    // TODO username and password, make sure that you don't create a new emailFetcher but use
+    // TODO the one you already have.
+    private EmailFetcher emailFetcher_;
     private String emailAddress_;
     private String password_;
 
@@ -80,6 +91,8 @@ public class MainView extends Application implements MainController.API,
         primaryStage.show();
 
         Console.create(primaryStage).show();
+
+        primaryStage.requestFocus();
     }
 
     @Override
@@ -101,29 +114,71 @@ public class MainView extends Application implements MainController.API,
         emailAddress_ = emailAddress;
         password_ = password;
 
+        if(!emailAddress.endsWith("@gmail.com")){
+            Console console = Console.getInstance();
+            console.postMessage("At the moment, only gmail addresses are supported.");
+            console.postMessage(
+                "Please, make sure that the provided address ends with @gmail.com" +
+                    " and is a valid gmail address."
+            );
+            return;
+        }
+
+        try {
+            emailFetcher_ = new GMailFetcher();
+        } catch (IOException e) {
+            logger_.severe("Could not load email fetcher properties resource file.\n" +
+                "The file might be missing or be corrupted.\n" +
+                "Application will terminate.\n" +
+                "Message: " + e.getMessage());
+            Platform.exit();
+
+            // Make sure that no other command is executed
+            return;
+        }
+
+        try {
+            emailFetcher_.open(emailAddress, password);
+        } catch (NoSuchProviderException e) {
+            logger_.log(Level.SEVERE, "A provided for the given email protocol was not found.\n" +
+                "Application will terminate.", e);
+
+            Platform.exit();
+        } catch (AuthenticationFailedException e) {
+            Console.getInstance().postMessage(
+                "The provided email address and password were incorrect"
+            );
+
+            return;
+        } catch (IllegalStateException e) {
+            logger_.log(Level.SEVERE, "The email service is already connected.\n" +
+                "Application will terminate.", e);
+
+            Platform.exit();
+        } catch (MessagingException e) {
+            logger_.log(Level.SEVERE, "Something went wrong with the email service.\n" +
+                "Application will terminate.", e);
+
+            Platform.exit();
+        }
+
         try {
             primaryStage_.setScene(
                 sceneFactory_.create(SceneFactory.Scenes.EMAIL_LIST_SCENE, this)
             );
         } catch (IOException e) {
-            // TODO Act appropriately: Tell the user something is wrong and go back to initial scene
-            e.printStackTrace();
+            logger_.severe("Could not load resource:" +
+                SceneFactory.Scenes.EMAIL_LIST_SCENE.getFXMLResource() + "\n" +
+                "The file might be missing or be corrupted.\n" +
+                "Application will terminate.\n" +
+                "Exception Message: " + e.getMessage());
+            Platform.exit();
         }
     }
 
     @Override
-    public String getEmailAddress () {
-        return emailAddress_;
-    }
-
-    @Override
-    public String getPassword () {
-        return password_;
-    }
-
-    @Override
-    public void back(){
-        // TODO Implement
+    public EmailFetcher getEmailFetcher(){
+        return emailFetcher_;
     }
 
     @Override
@@ -176,6 +231,10 @@ public class MainView extends Application implements MainController.API,
 
     @Override
     public void stop() throws Exception {
+        if(emailFetcher_ != null){
+            emailFetcher_.terminate();
+        }
+
         sceneFactory_.getCurrentController().terminate();
 
         DataBase.getInstance().close();

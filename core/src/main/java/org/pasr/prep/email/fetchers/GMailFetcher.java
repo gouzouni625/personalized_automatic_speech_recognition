@@ -1,10 +1,11 @@
 package org.pasr.prep.email.fetchers;
 
 
-import org.pasr.utilities.Utilities;
+import org.pasr.gui.console.Console;
 
 import javax.mail.Address;
 import javax.mail.Folder;
+import javax.mail.FolderNotFoundException;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
@@ -12,32 +13,39 @@ import javax.mail.Session;
 import javax.mail.Store;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 public class GMailFetcher extends EmailFetcher{
-    public GMailFetcher (String address, String password) throws IOException, MessagingException {
-        Properties properties = new Properties();
-        properties.load(Utilities.getResourceStream("/email/gmail-smtp.properties"));
+    public GMailFetcher () throws IOException {
+        super("/email/gmail-smtp.properties");
+    }
 
-        Session session = Session.getDefaultInstance(properties, null);
-
-        store_ = session.getStore("imaps");
-        store_.connect(properties.getProperty("mail.smtp.host"), address, password);
+    @Override
+    public void open(String address, String password) throws MessagingException {
+        store_ = Session.getDefaultInstance(properties_, null).getStore("imaps");
+        store_.connect(properties_.getProperty("mail.smtp.host"), address, password);
 
         folders_ = store_.getDefaultFolder().list("*");
     }
 
+    @Override
     public void fetch(){
-        fetchingThreadRunning_ = true;
-        fetchingThread_ = new Thread(this :: fetchMessages);
-        fetchingThread_.start();
+        thread_ = new Thread(this);
+        thread_.setDaemon(true);
+        thread_.start();
     }
 
-    private void fetchMessages() {
+    @SuppressWarnings ("ContinueOrBreakFromFinallyBlock")
+    @Override
+    public void run () {
+        Logger logger = getLogger();
+        Console console = Console.getInstance();
+
         for(Folder folder : folders_){
-            if (! fetchingThreadRunning_){
-                return;
+            if (! run_){
+                break;
             }
 
             if(notUsableFolder(folder)){
@@ -45,32 +53,59 @@ public class GMailFetcher extends EmailFetcher{
             }
 
             String folderFullName = folder.getFullName();
-            Message[] messages;
+            Message[] messages = null;
 
             try {
                 folder.open(Folder.READ_ONLY);
                 messages = folder.getMessages();
+            } catch (FolderNotFoundException e) {
+                String message = "Tried to interact with a folder that doesn't exist.\n";
+
+                // Should to something like that but the user might not like it if all his folders
+                // are written in the log file
+                // StringBuilder stringBuilder = new StringBuilder();
+                // for(Folder tempFolder : folders_){
+                //     stringBuilder.append(tempFolder.getFullName()).append("\n");
+                // }
+                // message += stringBuilder.toString();
+                message += "Folder name: " + folderFullName;
+
+                logger.log(Level.WARNING, message, e);
+            } catch (IllegalStateException e) {
+                logger.log(Level.WARNING, "Got an illegal state on folder: " + folderFullName, e);
             } catch (MessagingException e) {
-                // TODO debug information: could not get folder messages
-                continue;
+                logger.log(
+                    Level.WARNING, "Got an error while processing folder: " + folderFullName, e
+                );
+            }
+            finally {
+                if(messages == null){
+                    console.postMessage("Folder: " + folderFullName + " could not be processed!");
+
+                    // Obviously continue is called only if an exception has occurred
+                    continue;
+                }
             }
 
-            int numberOfMessages = messages.length;
             ArrayList<Email> emails = new ArrayList<>();
 
-            for(int i = 0;i < numberOfMessages;i++){
+            for (Message message : messages) {
                 String messageSubject;
                 try {
-                    messageSubject = messages[i].getSubject();
+                    messageSubject = message.getSubject();
                 } catch (MessagingException e) {
-                    // TODO debug information: could not get message subject
+                    logger.log(Level.WARNING, "Could not get the subject of a message", e);
+                    console.postMessage(
+                        "There was an error processing an email in folder: " + folderFullName +
+                            ". Email will not be used."
+                    );
                     continue;
                 }
 
                 String[] senders;
                 try {
-                    Address[] addresses = messages[i].getFrom();
-                    if(addresses == null){
+                    Address[] addresses = message.getFrom();
+                    if (addresses == null) {
                         senders = new String[0];
                     }
                     else {
@@ -82,14 +117,18 @@ public class GMailFetcher extends EmailFetcher{
                         }
                     }
                 } catch (MessagingException e) {
-                    // TODO debug information: could not get message senders
+                    logger.log(Level.WARNING, "Could not get the senders of a message", e);
+                    console.postMessage(
+                        "There was an error processing the senders of email: " + messageSubject +
+                            "in folder: " + folderFullName + ". Email will not be used."
+                    );
                     continue;
                 }
 
                 String[] tORecipients;
                 try {
-                    Address[] addresses = messages[i].getRecipients(Message.RecipientType.TO);
-                    if(addresses == null){
+                    Address[] addresses = message.getRecipients(Message.RecipientType.TO);
+                    if (addresses == null) {
                         tORecipients = new String[0];
                     }
                     else {
@@ -101,14 +140,19 @@ public class GMailFetcher extends EmailFetcher{
                         }
                     }
                 } catch (MessagingException e) {
-                    // TODO debug information: could not get message "TO" recipients
+                    logger.log(Level.WARNING, "Could not get \"TO\" recipients of a message", e);
+                    console.postMessage(
+                        "There was an error processing \"TO\" recipients of email: " +
+                            messageSubject + "in folder: " + folderFullName +
+                            ". Email will not be used."
+                    );
                     continue;
                 }
 
                 String[] cCRecipients;
                 try {
-                    Address[] addresses = messages[i].getRecipients(Message.RecipientType.CC);
-                    if(addresses == null){
+                    Address[] addresses = message.getRecipients(Message.RecipientType.CC);
+                    if (addresses == null) {
                         cCRecipients = new String[0];
                     }
                     else {
@@ -120,14 +164,19 @@ public class GMailFetcher extends EmailFetcher{
                         }
                     }
                 } catch (MessagingException e) {
-                    // TODO debug information: could not get message "CC" recipients
+                    logger.log(Level.WARNING, "Could not get \"CC\" recipients of a message", e);
+                    console.postMessage(
+                        "There was an error processing \"CC\" recipients of email: " +
+                            messageSubject + "in folder: " + folderFullName +
+                            ". Email will not be used."
+                    );
                     continue;
                 }
 
                 String[] bCCRecipients;
                 try {
-                    Address[] addresses = messages[i].getRecipients(Message.RecipientType.BCC);
-                    if(addresses == null){
+                    Address[] addresses = message.getRecipients(Message.RecipientType.BCC);
+                    if (addresses == null) {
                         bCCRecipients = new String[0];
                     }
                     else {
@@ -139,34 +188,49 @@ public class GMailFetcher extends EmailFetcher{
                         }
                     }
                 } catch (MessagingException e) {
-                    // TODO debug information: could not get message "BCC" recipients
+                    logger.log(Level.WARNING, "Could not get \"BCC\" recipients of a message", e);
+                    console.postMessage(
+                        "There was an error processing \"BCC\" recipients of email: " +
+                            messageSubject + "in folder: " + folderFullName +
+                            ". Email will not be used."
+                    );
                     continue;
                 }
 
                 String messageReceivedDate;
                 try {
-                    messageReceivedDate = messages[i].getSentDate().toString();
+                    messageReceivedDate = message.getSentDate().toString();
                 } catch (MessagingException e) {
-                    // TODO debug information: could not get message received date
+                    logger.log(Level.WARNING, "Could not get sent date of a message", e);
+                    console.postMessage(
+                        "There was an error processing sent date of email: " +
+                            messageSubject + "in folder: " + folderFullName +
+                            ". Email will not be used."
+                    );
                     continue;
                 }
 
                 Object messageContent;
                 String messageBody;
                 try {
-                    messageContent = messages[i].getContent();
+                    messageContent = message.getContent();
 
-                    if(messageContent instanceof String){
+                    if (messageContent instanceof String) {
                         messageBody = (String) messageContent;
                     }
-                    else if(messageContent instanceof Multipart){
+                    else if (messageContent instanceof Multipart) {
                         messageBody = getBodyFromMultiPart((Multipart) messageContent);
                     }
-                    else{
+                    else {
                         messageBody = "";
                     }
                 } catch (IOException | MessagingException e) {
-                    // TODO debug information: could not get message content
+                    logger.log(Level.WARNING, "Could not get the body of a message", e);
+                    console.postMessage(
+                        "There was an error processing the body of email: " +
+                            messageSubject + "in folder: " + folderFullName +
+                            ". Email will not be used."
+                    );
                     continue;
                 }
 
@@ -176,13 +240,29 @@ public class GMailFetcher extends EmailFetcher{
 
             try {
                 folder.close(false);
+            } catch (IllegalStateException e) {
+                logger.log(
+                    Level.WARNING, "Got an illegal state on folder: " + folderFullName +
+                    "while closing it", e
+                );
             } catch (MessagingException e) {
-                // TODO debug information: could not close the folder normally
+                logger.log(
+                    Level.WARNING, "Got an error while closing folder: " + folderFullName, e
+                );
             }
 
             setChanged();
             notifyObservers(new org.pasr.prep.email.fetchers.Folder(folderFullName, emails));
         }
+
+        // There is no use for the GmailFetcher at this time so it should release its resources
+        close();
+
+        // Notify the observers that the fetching is finished
+        setChanged();
+        notifyObservers();
+
+        getLogger().fine("GmailFetcher thread shut down gracefully!");
     }
 
     private String getBodyFromMultiPart(Multipart multipart) throws MessagingException, IOException {
@@ -204,16 +284,30 @@ public class GMailFetcher extends EmailFetcher{
     }
 
     @Override
-    public void close() throws InterruptedException, MessagingException {
-        fetchingThreadRunning_ = false;
+    public void terminate () {
+        run_ = false;
 
-        fetchingThread_.join();
+        try {
+            thread_.join(10000);
+        } catch (InterruptedException e) {
+            getLogger().warning("Interrupted while joining GmailFetcher thread.");
+        }
 
-        store_.close();
+        close();
     }
 
-    private Thread fetchingThread_;
-    private volatile boolean fetchingThreadRunning_ = false;
+    private void close(){
+        try {
+            store_.close();
+        } catch (MessagingException e) {
+            getLogger().log(
+                Level.WARNING, "There were errors when trying to close the email store", e
+            );
+        }
+    }
+
+    private Thread thread_;
+    private volatile boolean run_ = true;
 
     private volatile Store store_;
     private Folder[] folders_;

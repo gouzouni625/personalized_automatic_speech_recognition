@@ -57,7 +57,9 @@ public class Console extends Stage implements Runnable {
             thread_.interrupt();
 
             try {
-                thread_.join();
+                // Don't wait forever on this thread since it is a daemon and will not block the JVM
+                // from shutting down
+                thread_.join(10000);
             } catch (InterruptedException e) {
                 logger_.warning("Interrupted while joining console thread.");
             }
@@ -76,11 +78,14 @@ public class Console extends Stage implements Runnable {
                 String message = messageQueue_.take();
 
                 textArea.appendText("\n" + message);
+                textArea.setScrollTop(Double.MAX_VALUE);
             } catch (InterruptedException e) {
                 // If interrupted while waiting on the queue, return
                 break;
             }
         }
+
+        logger_.fine("Console thread shut down gracefully!");
     }
 
     public static Console create(Window owner){
