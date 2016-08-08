@@ -6,13 +6,11 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
-
-import java.io.File;
-import java.io.IOException;
+import org.pasr.gui.console.Console;
+import org.pasr.gui.corpus.CorpusView;
 
 
 public class MainController extends Controller{
@@ -21,82 +19,73 @@ public class MainController extends Controller{
     }
 
     @FXML
-    public void initialize() throws IOException {
-        // At the moment initialize is called,
-        // the views are not yet ready to handle
-        // focus so runLater is used.
+    public void initialize() {
+        corpusView.addSelectionListener((observable, oldValue, newValue) -> {
+            if(newValue == null){
+                dictateButtonAccessHandling(false);
+            }
+            else{
+                dictateButtonAccessHandling(true);
+            }
+        });
+        dictateButtonAccessHandling(false);
+
+        // At the moment initialize is called the views are not yet ready to handle focus so
+        // runLater is used
         Platform.runLater(() -> emailAddress.requestFocus());
 
-        newCorpusButton.setOnAction(this:: newCorpusButtonOnAction);
-        dictateButton.setOnAction(this:: dictateButtonOnAction);
+        newCorpusButton.setTooltip(new Tooltip(NewCorpusButtonMessages.TOOLTIP.getMessage()));
+        newCorpusButton.setOnAction(this :: newCorpusButtonOnAction);
 
-        File corpusDirectory = new File("corpora");
-        File acousticModelDirectory = new File("acoustic_models");
-        if(!corpusDirectory.exists()){
-            if(!corpusDirectory.mkdir()){
-                throw new IOException("Failed to create corpus directory");
-            }
+        dictateButton.setOnAction(this :: dictateButtonOnAction);
+    }
+
+    private void dictateButtonAccessHandling (boolean corpusSelected){
+        if(corpusSelected){
+            dictateButton.setDisable(false);
+            dictateButton.setTooltip(new Tooltip(DictateButtonMessages.ENABLED.getMessage()));
+            dictateButtonLabel.setVisible(false);
         }
-
-        if(!acousticModelDirectory.exists()){
-            if(!acousticModelDirectory.mkdir()){
-                throw new IOException("Failed to create acoustic model directory");
-            }
-        }
-
-        if(corpusDirectory.list().length == 0 || acousticModelDirectory.list().length == 0){
+        else{
             dictateButton.setDisable(true);
             dictateButtonLabel.setVisible(true);
             dictateButtonLabel.setText(DictateButtonMessages.DISABLED.getMessage());
         }
-        else{
-            dictateButton.setTooltip(
-                new Tooltip(DictateButtonMessages.ENABLED.getMessage())
-            );
-        }
-
-        newCorpusButton.setTooltip(new Tooltip(NewCorpusButtonMessages.TOOLTIP.getMessage()));
     }
 
     private void newCorpusButtonOnAction (ActionEvent actionEvent){
         String emailAddressText = emailAddress.getText();
         String passwordText = password.getText();
 
+        Console console = Console.getInstance();
+
         if(emailAddressText.isEmpty() && passwordText.isEmpty()){
-            newCorpusButtonLabel.setVisible(true);
-            newCorpusButtonLabel.setText(NewCorpusButtonMessages.NO_INPUT.getMessage());
+            console.postMessage(NewCorpusButtonMessages.NO_INPUT.getMessage());
         }
         else if(emailAddressText.isEmpty()){
-            newCorpusButtonLabel.setVisible(true);
-            newCorpusButtonLabel.setText(NewCorpusButtonMessages.NO_EMAIL_ADDRESS.getMessage());
+            console.postMessage(NewCorpusButtonMessages.NO_EMAIL_ADDRESS.getMessage());
         }
         else if(passwordText.isEmpty()){
-            newCorpusButtonLabel.setVisible(true);
-            newCorpusButtonLabel.setText(NewCorpusButtonMessages.NO_PASSWORD.getMessage());
+            console.postMessage(NewCorpusButtonMessages.NO_PASSWORD.getMessage());
         }
         else{
-            if(newCorpusButtonLabel.isVisible()){
-                newCorpusButtonLabel.setVisible(false);
-            }
-
             ((API) api_).newCorpus(emailAddressText, passwordText);
         }
     }
 
     private void dictateButtonOnAction (ActionEvent actionEvent){
-        ((API) api_).dictate();
+        // There is no need to check if the provided id is valid since dictateButton can be fired
+        // only when a valid corpus is chosen
+        ((API) api_).dictate(corpusView.getSelectedCorpusID());
     }
 
     public interface API extends Controller.API{
         void newCorpus(String emailAddress, String password);
-        void dictate(); // TODO probably will pass the chosen corpus and acoustic model
+        void dictate(int corpusID);
     }
 
     @FXML
-    private ListView<String> corpusList;
-
-    @FXML
-    private ListView<String> acousticModelList;
+    private CorpusView corpusView;
 
     @FXML
     private TextField emailAddress;
@@ -109,13 +98,12 @@ public class MainController extends Controller{
 
     @FXML
     private Label newCorpusButtonLabel;
-
     private enum NewCorpusButtonMessages{
         TOOLTIP("Enter the address and the password of your e-mail to fetch your e-mails" +
-            "and create a corpus"),
-        NO_INPUT("Please enter the address and the password\nof your e-mail"),
-        NO_EMAIL_ADDRESS("Please enter the address of your e-mail"),
-        NO_PASSWORD("Please enter the password of your e-mail");
+            " and create a corpus."),
+        NO_INPUT("Please enter the address and the password of your e-mail!"),
+        NO_EMAIL_ADDRESS("Please enter the address of your e-mail!"),
+        NO_PASSWORD("Please enter the password of your e-mail!");
 
         NewCorpusButtonMessages(String message){
             message_ = message;
@@ -133,11 +121,9 @@ public class MainController extends Controller{
 
     @FXML
     private Label dictateButtonLabel;
-
     private enum DictateButtonMessages{
-        DISABLED("Note: You should create at least one corpus\n" +
-            "and one acoustic model in order to dictate"),
-        ENABLED("Use the chosen corpus and acoustic model during speech recognition");
+        DISABLED("Note: You must create and select a corpus in order to dictate."),
+        ENABLED("Use the chosen corpus for speech recognition.");
 
         DictateButtonMessages(String message){
             message_ = message;

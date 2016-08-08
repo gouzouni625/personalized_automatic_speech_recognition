@@ -1,6 +1,7 @@
 package org.pasr.gui.corpus;
 
 
+import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.ListView;
@@ -40,6 +41,17 @@ public class CorpusView extends SplitPane {
         });
     }
 
+    public int getSelectedCorpusID(){
+        Index.Entry selectedEntry = entryListView.getSelectionModel().getSelectedItem();
+
+        if(selectedEntry == null){
+            return -1;
+        }
+        else{
+            return selectedEntry.getId();
+        }
+    }
+
     public void selectCorpus(int corpusID){
         Optional<Index.Entry> selectedEntry = entryListView.getItems().stream()
             .filter(entry -> entry.getId() == corpusID)
@@ -47,6 +59,12 @@ public class CorpusView extends SplitPane {
 
         if(selectedEntry.isPresent()){
             entryListView.getSelectionModel().select(selectedEntry.get());
+        }
+    }
+
+    public void addSelectionListener(ChangeListener<Index.Entry> listener){
+        if(listener != null) {
+            entryListView.getSelectionModel().selectedItemProperty().addListener(listener);
         }
     }
 

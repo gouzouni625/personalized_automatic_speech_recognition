@@ -29,6 +29,8 @@ public class MainView extends Application implements MainController.API,
 
     private static Logger logger_ = Logger.getLogger(MainView.class.getName());
 
+    private SceneFactory sceneFactory_ = SceneFactory.getInstance();
+
     private Stage primaryStage_;
 
     private String emailAddress_;
@@ -37,8 +39,6 @@ public class MainView extends Application implements MainController.API,
     private List<Email> emails_;
 
     private int corpusID_;
-
-    private SceneFactory sceneFactory_ = SceneFactory.getInstance();
 
     public static void main(String[] args){
         logger_.info("Initializing logger...");
@@ -106,14 +106,9 @@ public class MainView extends Application implements MainController.API,
                 sceneFactory_.create(SceneFactory.Scenes.EMAIL_LIST_SCENE, this)
             );
         } catch (IOException e) {
-            // TODO Act appropriately
+            // TODO Act appropriately: Tell the user something is wrong and go back to initial scene
             e.printStackTrace();
         }
-    }
-
-    @Override
-    public void dictate () {
-        // TODO Implement
     }
 
     @Override
