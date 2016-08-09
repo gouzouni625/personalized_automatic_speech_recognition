@@ -15,6 +15,7 @@ import org.pasr.prep.email.fetchers.Folder;
 import org.pasr.prep.email.fetchers.EmailFetcher;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
@@ -86,7 +87,7 @@ public class EmailListController extends Controller implements Observer{
                 .append("\n");
         }
 
-        stringBuilder.append("On: ").append(email.getReceivedDate()).append("\n");
+        stringBuilder.append("On: ").append(new Date(email.getReceivedDate())).append("\n");
 
         subjectTextArea.setText(stringBuilder.toString());
     }

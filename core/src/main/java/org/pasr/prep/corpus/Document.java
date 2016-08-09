@@ -2,20 +2,31 @@ package org.pasr.prep.corpus;
 
 
 public class Document {
-    public Document(int id, String content){
+    public Document(long id, String title, String content){
         id_ = id;
+        title_ = title;
         content_ = content;
     }
 
-    int getID(){
+    long getID(){
         return id_;
     }
 
-    String getContent(){
+    String getTitle(){
+        return title_;
+    }
+
+    public String getContent(){
         return content_;
     }
 
-    private final int id_;
+    @Override
+    public String toString(){
+        return getContent();
+    }
+
+    private final long id_;
+    private final String title_;
     private final String content_;
 
 }

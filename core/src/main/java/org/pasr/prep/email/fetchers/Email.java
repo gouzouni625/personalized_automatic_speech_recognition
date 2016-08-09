@@ -3,7 +3,7 @@ package org.pasr.prep.email.fetchers;
 
 public class Email {
     Email(String[] senders, String[] tORecipients, String[] cCRecipients,
-                 String[] bCCRecipients, String receivedDate, String subject, String body){
+                 String[] bCCRecipients, long receivedDate, String subject, String body){
         senders_ = senders != null ? senders : new String[0];
 
         tORecipients_ = tORecipients != null ? tORecipients : new String[0];
@@ -14,7 +14,7 @@ public class Email {
         subject_ = subject;
         body_ = body;
 
-        id_ = receivedDate_.hashCode();
+        id_ = receivedDate_;
     }
 
     public String[] getSenders(){
@@ -34,7 +34,7 @@ public class Email {
         }
     }
 
-    public String getReceivedDate(){
+    public long getReceivedDate(){
         return receivedDate_;
     }
 
@@ -46,7 +46,7 @@ public class Email {
         return body_;
     }
 
-    public int getID(){
+    public long getID(){
         return id_;
     }
 
@@ -54,10 +54,10 @@ public class Email {
     private final String[] tORecipients_;
     private final String[] cCRecipients_;
     private final String[] bCCRecipients_;
-    private final String receivedDate_;
+    private final long receivedDate_;
     private final String subject_;
     private final String body_;
-    private final int id_;
+    private final long id_;
 
     public enum RecipientType{
         TO,

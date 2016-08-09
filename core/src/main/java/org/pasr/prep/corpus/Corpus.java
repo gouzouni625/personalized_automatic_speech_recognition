@@ -11,11 +11,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Iterator;
 import java.util.Observable;
+import java.util.Optional;
 import java.util.Random;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.apache.commons.collections4.ListUtils.longestCommonSubsequence;
 
@@ -28,6 +30,10 @@ public class Corpus extends Observable implements Iterable<WordSequence> {
 
         name_ = "";
         id_ = - 1;
+    }
+
+    public Stream<WordSequence> stream(){
+        return wordSequenceList_.stream();
     }
 
     public int getID(){
@@ -68,7 +74,7 @@ public class Corpus extends Observable implements Iterable<WordSequence> {
 
             String processedContent = processNumbers(documentList_.get(i).getContent());
             wordSequenceList_.addAll(createWordSequences(
-                processedContent, documentList_.get(i).getID())
+                processedContent, documentList_.get(i).getID(), documentList_.get(i).getTitle())
             );
 
             setChanged();
@@ -158,7 +164,8 @@ public class Corpus extends Observable implements Iterable<WordSequence> {
         return document;
     }
 
-    private List<WordSequence> createWordSequences (String document, int documentID){
+    private List<WordSequence> createWordSequences (String document, long documentID,
+                                                    String documentTitle){
         document = document.
             replaceAll("\\(", " ").
             replaceAll("\\)", " . ").
@@ -176,27 +183,33 @@ public class Corpus extends Observable implements Iterable<WordSequence> {
         ArrayList<WordSequence> wordSequences = new ArrayList<>();
         for(String wordSequenceText : wordSequenceTextArray){
             if(!wordSequenceText.isEmpty()) {
-                wordSequences.add(new WordSequence(wordSequenceText, documentID));
+                wordSequences.add(new WordSequence(wordSequenceText, documentID, documentTitle));
             }
         }
 
         return wordSequences;
     }
 
-    public List<String> getDocumentsText(){
-        List<Integer> documentIDs = wordSequenceList_.stream()
-            .map(WordSequence :: getDocumentID)
+    public List<Document> getDocuments () {
+        return wordSequenceList_.stream()
+            .collect(Collectors.groupingBy(WordSequence:: getDocumentID, Collectors.toList()))
+            .values().stream()
+            .map(WordSequenceList -> {
+                Optional<WordSequence> r = WordSequenceList.stream()
+                    .reduce(WordSequence:: appendSequence);
+
+                if (r.isPresent()) {
+                    return r.get();
+                }
+                else {
+                    return null;
+                }
+            })
+            .filter(wordSequence -> wordSequence != null)
+            .map(wordSequence -> new Document(wordSequence.getDocumentID(),
+                wordSequence.getDocumentTitle(), wordSequence.getText()
+            ))
             .collect(Collectors.toList());
-
-        ArrayList<String> documentsText = new ArrayList<>();
-        for(int i : documentIDs){
-            documentsText.add(wordSequenceList_.stream()
-                .filter(wordSequence -> wordSequence.getDocumentID() == i)
-                .map(WordSequence :: getText)
-                .collect(Collectors.joining(" ")));
-        }
-
-        return documentsText;
     }
 
     public String getText(){
@@ -227,7 +240,9 @@ public class Corpus extends Observable implements Iterable<WordSequence> {
             List<Word> candidate = longestCommonSubsequence(wordSequence_.getWords(), words);
 
             if(candidate.size() > 0) {
-                lCSS.add(new WordSequence(candidate, wordSequence_.getDocumentID()));
+                lCSS.add(new WordSequence(
+                    candidate, wordSequence_.getDocumentID(), wordSequence_.getDocumentTitle()
+                ));
             }
         }
 

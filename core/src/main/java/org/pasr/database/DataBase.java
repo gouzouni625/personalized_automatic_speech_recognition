@@ -21,8 +21,11 @@ import java.io.PrintWriter;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -99,6 +102,31 @@ public class DataBase {
 
         sentencesPrintWriter.close();
         documentIDSPrintWriter.close();
+
+        PrintWriter documentTitlesPrintWriter = new PrintWriter(
+            new File(directory, "document_titles.txt")
+        );
+
+        corpus.stream()
+            .collect(Collectors.toMap(
+                WordSequence :: getDocumentID, WordSequence :: getDocumentTitle,
+                (title1, title2) -> {
+                    if(!title1.equals(title2)) {
+                        logger_.warning(
+                            "Found 2 documents with the same id but different title.\n" +
+                                "This should not happen since a document is an e-mail," +
+                                " the title is the subject of the e-mail and the id is the" +
+                                " unix time stamp of the received date.");
+                    }
+                    return title1;
+                }
+            ))
+            .entrySet()
+            .forEach(
+                entry -> documentTitlesPrintWriter.println(entry.getKey() + " " + entry.getValue())
+            );
+
+        documentTitlesPrintWriter.close();
     }
 
     private void saveDictionaryToDirectory(Dictionary dictionary, File directory)
@@ -143,6 +171,19 @@ public class DataBase {
     }
 
     private Corpus loadCorpusFromDirectory (File directory) throws FileNotFoundException {
+        Map<Long, String> documentTitleMap = new HashMap<>();
+
+        Scanner documentTitleScanner = new Scanner(new File(directory, "document_titles.txt"));
+        while(documentTitleScanner.hasNextLine()){
+            Matcher matcher = Pattern.compile("([0-9]+) (.+)")
+                .matcher(documentTitleScanner.nextLine());
+
+            if(matcher.matches()){
+                documentTitleMap.put(Long.parseLong(matcher.group(1)), matcher.group(2));
+            }
+        }
+        documentTitleScanner.close();
+
         ArrayList<WordSequence> sentences = new ArrayList<>();
 
         Pattern sentencePattern = Pattern.compile("<s> (.*) </s>");
@@ -154,15 +195,22 @@ public class DataBase {
             Matcher matcher = sentencePattern.matcher(sentencesScanner.nextLine());
 
             if(matcher.find()){
-                int documentID;
+                long documentID;
                 if(documentIDSScanner.hasNextLine()){
-                    documentID = Integer.parseInt(documentIDSScanner.nextLine());
+                    documentID = Long.parseLong(documentIDSScanner.nextLine());
                 }
                 else{
                     documentID = -1;
                 }
 
-                sentences.add(new WordSequence(matcher.group(1), documentID));
+                if(documentTitleMap.containsKey(documentID)) {
+                    sentences.add(new WordSequence(
+                        matcher.group(1), documentID, documentTitleMap.get(documentID)
+                    ));
+                }
+                else {
+                    sentences.add(new WordSequence(matcher.group(1), documentID, ""));
+                }
             }
         }
         sentencesScanner.close();
@@ -273,5 +321,7 @@ public class DataBase {
     private static final org.pasr.database.audio.Index audioIndex_;
 
     private static DataBase instance_ = new DataBase();
+
+    private static final Logger logger_ = Logger.getLogger(DataBase.class.getName());
 
 }

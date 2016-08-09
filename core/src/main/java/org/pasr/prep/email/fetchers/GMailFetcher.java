@@ -205,9 +205,9 @@ public class GMailFetcher extends EmailFetcher{
                     continue;
                 }
 
-                String messageReceivedDate;
+                long messageReceivedDate;
                 try {
-                    messageReceivedDate = message.getSentDate().toString();
+                    messageReceivedDate = message.getSentDate().getTime();
                 } catch (MessagingException e) {
                     logger.log(Level.WARNING, "Could not get sent date of a message", e);
                     console.postMessage(
@@ -301,10 +301,12 @@ public class GMailFetcher extends EmailFetcher{
     private void killThread(){
         run_ = false;
 
-        try {
-            thread_.join(3000);
-        } catch (InterruptedException e) {
-            getLogger().warning("Interrupted while joining GmailFetcher thread.");
+        if(thread_ != null && thread_.isAlive()) {
+            try {
+                thread_.join(3000);
+            } catch (InterruptedException e) {
+                getLogger().warning("Interrupted while joining GmailFetcher thread.");
+            }
         }
     }
 

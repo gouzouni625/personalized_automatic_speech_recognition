@@ -250,7 +250,7 @@ public class LDAController extends Controller {
 
             LDA lda;
             try {
-                lda = new LDA(corpus_.getDocumentsText(), topicsSpinner.getValue(),
+                lda = new LDA(corpus_.getDocuments(), topicsSpinner.getValue(),
                     iterationsSpinner.getValue(), threadsSpinner.getValue());
             } catch(IllegalArgumentException e){
                 getLogger().log(Level.SEVERE, "An illegal argument was provided to the LDA.\n" +

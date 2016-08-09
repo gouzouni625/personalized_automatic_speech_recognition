@@ -10,8 +10,9 @@ import java.util.stream.Collectors;
 
 
 public class WordSequence implements Iterable<Word> {
-    public WordSequence(String text, int documentID) {
+    public WordSequence(String text, long documentID, String documentTitle) {
         documentID_ = documentID;
+        documentTitle_ = documentTitle;
 
         text = text.toLowerCase();
 
@@ -27,12 +28,16 @@ public class WordSequence implements Iterable<Word> {
         }
     }
 
-    public WordSequence(List<Word> words, int documentID){
-        this(StringUtils.join(words, " "), documentID);
+    public WordSequence(List<Word> words, long documentID, String documentTitle){
+        this(StringUtils.join(words, " "), documentID, documentTitle);
     }
 
-    public int getDocumentID(){
+    public long getDocumentID(){
         return documentID_;
+    }
+
+    public String getDocumentTitle(){
+        return documentTitle_;
     }
 
     public String getText() {
@@ -92,7 +97,7 @@ public class WordSequence implements Iterable<Word> {
             throw new IndexOutOfBoundsException("beginIndex should not be greater than endIndex");
         }
 
-        return new WordSequence(words_.subList(beginIndex, endIndex), documentID_);
+        return new WordSequence(words_.subList(beginIndex, endIndex), documentID_, documentTitle_);
     }
 
     public WordSequence subSequence (int beginIndex){
@@ -109,7 +114,7 @@ public class WordSequence implements Iterable<Word> {
         ArrayList<WordSequence> tokens = new ArrayList<>();
         for(String token : tokensText){
             if(!token.isEmpty()){
-                tokens.add(new WordSequence(token, documentID_));
+                tokens.add(new WordSequence(token, documentID_, documentTitle_));
             }
         }
 
@@ -185,18 +190,22 @@ public class WordSequence implements Iterable<Word> {
         words_.add(0, word);
     }
 
-    public void appendSequence(WordSequence wordSequence){
+    public WordSequence appendSequence(WordSequence wordSequence){
         for(Word word : wordSequence){
             appendWord(word);
         }
+
+        return this;
     }
 
-    public void prependSequence(WordSequence wordSequence){
+    public WordSequence prependSequence(WordSequence wordSequence){
         List<Word> words = wordSequence.getWords();
 
         for(int i = words.size() - 1;i >= 0;i--){
             prependWord(words.get(i));
         }
+
+        return this;
     }
 
     public boolean equals(String text){
@@ -247,7 +256,8 @@ public class WordSequence implements Iterable<Word> {
         return words_.iterator();
     }
 
-    private final int documentID_;
+    private final long documentID_;
+    private final String documentTitle_;
 
     private List<Word> words_;
 

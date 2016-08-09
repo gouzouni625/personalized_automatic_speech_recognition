@@ -237,7 +237,7 @@ public class MainView extends Application implements MainController.API,
         emailFetcher_.terminate();
 
         corpus_ = new Corpus(emails.stream()
-            .map(email -> new Document(email.getID(), email.getBody()))
+            .map(email -> new Document(email.getID(), email.getSubject(), email.getBody()))
             .collect(Collectors.toList())
         );
 

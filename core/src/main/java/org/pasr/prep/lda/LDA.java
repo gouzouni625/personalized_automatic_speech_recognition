@@ -8,6 +8,7 @@ import cc.mallet.pipe.TokenSequenceLowercase;
 import cc.mallet.pipe.iterator.StringArrayIterator;
 import cc.mallet.topics.ParallelTopicModel;
 import cc.mallet.types.InstanceList;
+import org.pasr.prep.corpus.Document;
 import org.pasr.utilities.Utilities;
 
 import java.io.IOException;
@@ -23,10 +24,11 @@ import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 
 public class LDA extends Observable {
-    public LDA(List<String> documents, int numberOfTopics, int numberOfIterations,
+    public LDA(List<Document> documents, int numberOfTopics, int numberOfIterations,
                int numberOfThreads){
         if(documents == null){
             throw new IllegalArgumentException("documents should not be null.");
@@ -53,7 +55,11 @@ public class LDA extends Observable {
 
         numberOfThreads_ = numberOfThreads;
 
-        StringArrayIterator iterator = new StringArrayIterator(documents.toArray(new String[0]));
+        StringArrayIterator iterator = new StringArrayIterator(
+            documents.stream()
+            .map(Document :: getContent)
+            .collect(Collectors.toList()).toArray(new String[0])
+        );
 
         instances_ = new InstanceList(buildPipe());
         instances_.addThruPipe(iterator);
