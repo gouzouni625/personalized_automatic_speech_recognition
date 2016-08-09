@@ -2,7 +2,7 @@ package org.pasr.prep.email.fetchers;
 
 
 public class Email {
-    public Email(String[] senders, String[] tORecipients, String[] cCRecipients,
+    Email(String[] senders, String[] tORecipients, String[] cCRecipients,
                  String[] bCCRecipients, String receivedDate, String subject, String body){
         senders_ = senders != null ? senders : new String[0];
 

@@ -7,11 +7,11 @@ public class Document {
         content_ = content;
     }
 
-    public int getID(){
+    int getID(){
         return id_;
     }
 
-    public String getContent(){
+    String getContent(){
         return content_;
     }
 

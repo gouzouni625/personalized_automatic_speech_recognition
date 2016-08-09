@@ -11,6 +11,8 @@ import org.pasr.gui.controllers.scene.EmailListController;
 import org.pasr.gui.controllers.scene.LDAController;
 import org.pasr.gui.controllers.scene.MainController;
 import org.pasr.gui.controllers.scene.RecordController;
+import org.pasr.prep.corpus.Corpus;
+import org.pasr.prep.corpus.Document;
 import org.pasr.prep.email.fetchers.Email;
 import org.pasr.prep.email.fetchers.EmailFetcher;
 import org.pasr.prep.email.fetchers.GMailFetcher;
@@ -26,6 +28,7 @@ import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import static org.pasr.utilities.Utilities.getResourceStream;
 
@@ -39,11 +42,11 @@ public class MainView extends Application implements MainController.API,
 
     private Stage primaryStage_;
 
-    private EmailFetcher emailFetcher_ = null;
-    private String emailAddress_ = null;
-    private String password_ = null;
+    private EmailFetcher emailFetcher_;
+    private String emailAddress_;
+    private String password_;
 
-    private List<Email> emails_;
+    private Corpus corpus_;
 
     private int corpusID_;
 
@@ -231,19 +234,28 @@ public class MainView extends Application implements MainController.API,
 
     @Override
     public void processEmail(List<Email> emails){
-        emails_ = emails;
+        emailFetcher_.terminate();
+
+        corpus_ = new Corpus(emails.stream()
+            .map(email -> new Document(email.getID(), email.getBody()))
+            .collect(Collectors.toList())
+        );
 
         try {
             primaryStage_.setScene(sceneFactory_.create(SceneFactory.Scenes.LDA_SCENE, this));
         } catch (IOException e) {
-            // TODO Act appropriately
-            e.printStackTrace();
+            logger_.severe("Could not load resource:" +
+                SceneFactory.Scenes.LDA_SCENE.getFXMLResource() + "\n" +
+                "The file might be missing or be corrupted.\n" +
+                "Application will terminate.\n" +
+                "Exception Message: " + e.getMessage());
+            Platform.exit();
         }
     }
 
     @Override
-    public List<Email> getEmails(){
-        return emails_;
+    public Corpus getCorpus(){
+        return corpus_;
     }
 
     @Override

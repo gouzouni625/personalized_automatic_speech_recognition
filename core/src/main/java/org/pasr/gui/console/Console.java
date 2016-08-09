@@ -44,8 +44,9 @@ public class Console extends Stage implements Runnable {
             Platform.exit();
         }
 
-        setX(owner.getX());
-        setY(owner.getY() + owner.getHeight());
+
+        setX(owner.getX() + owner.getWidth() / 4);
+        setY(owner.getY() + owner.getHeight() / 4);
 
         messageQueue_ = new LinkedBlockingQueue<>();
 

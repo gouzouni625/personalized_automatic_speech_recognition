@@ -47,7 +47,8 @@ public class GMailFetcher extends EmailFetcher{
 
         for(Folder folder : folders_){
             if (! run_){
-                break;
+                getLogger().info("GmailFetcher thread shut down gracefully!");
+                return;
             }
 
             if(notUsableFolder(folder)){
@@ -92,6 +93,11 @@ public class GMailFetcher extends EmailFetcher{
             ArrayList<Email> emails = new ArrayList<>();
 
             for (Message message : messages) {
+                if (! run_){
+                    getLogger().info("GmailFetcher thread shut down gracefully!");
+                    return;
+                }
+
                 String messageSubject;
                 try {
                     messageSubject = message.getSubject();
@@ -230,7 +236,7 @@ public class GMailFetcher extends EmailFetcher{
                     logger.log(Level.WARNING, "Could not get the body of a message", e);
                     console.postMessage(
                         "There was an error processing the body of email: " +
-                            messageSubject + "in folder: " + folderFullName +
+                            messageSubject + " in folder: " + folderFullName +
                             ". Email will not be used."
                     );
                     continue;
@@ -303,12 +309,14 @@ public class GMailFetcher extends EmailFetcher{
     }
 
     private void close(){
-        try {
-            store_.close();
-        } catch (MessagingException e) {
-            getLogger().log(
-                Level.WARNING, "There were errors when trying to close the email store", e
-            );
+        if(store_.isConnected()) {
+            try {
+                store_.close();
+            } catch (MessagingException e) {
+                getLogger().log(
+                    Level.WARNING, "There were errors when trying to close the email store", e
+                );
+            }
         }
     }
 

@@ -1,6 +1,7 @@
 package org.pasr.gui.controllers.scene;
 
 
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -21,16 +22,13 @@ import org.pasr.database.DataBase;
 import org.pasr.gui.dialog.CorpusNameDialog;
 import org.pasr.gui.dialog.YesNoDialog;
 import org.pasr.prep.corpus.Corpus;
-import org.pasr.prep.corpus.Document;
-import org.pasr.prep.email.fetchers.Email;
 import org.pasr.prep.lda.LDA;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Date;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.Observable;
+import java.util.Observer;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 
@@ -38,23 +36,19 @@ public class LDAController extends Controller {
     public LDAController (Controller.API api) {
         super(api);
 
-        unknownWords_ = FXCollections.observableArrayList();
-        candidateWords_ = FXCollections.observableArrayList();
-
-        corpus_ = new Corpus(((API) api_).getEmails().stream()
-            .map(email -> new Document(email.getID(), email.getBody()))
-            .collect(Collectors.toList())
-        );
+        corpus_ = ((API) api_).getCorpus();
     }
 
     @FXML
     public void initialize(){
+        unknownWords_ = FXCollections.observableArrayList();
+        candidateWords_ = FXCollections.observableArrayList();
+
         startDictionaryThread();
-        startLDAThread();
 
         removeButton.setOnAction(this :: removeButtonOnAction);
         chooseButton.setOnAction(this :: chooseButtonOnAction);
-        runAgainButton.setOnAction(this :: runAgainButtonOnAction);
+        runButton.setOnAction(this :: runButtonOnAction);
         doneButton.setOnAction(this :: doneButtonOnAction);
 
         iterationsSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(
@@ -88,6 +82,7 @@ public class LDAController extends Controller {
         // The dictionary thread will run only once during the life cycle of this controller
         if(dictionaryThread_ == null){
             dictionaryThread_ = new DictionaryThread();
+            dictionaryThread_.setDaemon(true);
             dictionaryThread_.start();
         }
     }
@@ -133,7 +128,7 @@ public class LDAController extends Controller {
         }
     }
 
-    private void runAgainButtonOnAction(ActionEvent actionEvent){
+    private void runButtonOnAction (ActionEvent actionEvent){
         startLDAThread();
     }
 
@@ -179,7 +174,7 @@ public class LDAController extends Controller {
     private class DictionaryThread extends Thread{
         DictionaryThread (){
             progressIndicator_ = new ProgressIndicator(
-                wordsPane, wordsProgressBar, wordsProgressPane
+                wordsPane, wordsProgressBar, wordsProgressPane, corpus_
             );
         }
 
@@ -196,11 +191,13 @@ public class LDAController extends Controller {
                     .map(FXCollections :: observableArrayList)
                     .collect(Collectors.toList()));
             } catch (FileNotFoundException e) {
-                // TODO Act appropriately: Set a flag that will indicate that something went wrong
-                e.printStackTrace();
+                getLogger().log(Level.SEVERE, "Default dictionary was not found.\n" +
+                    "Application will exit.", e);
+                Platform.exit();
             }
 
             progressIndicator_.hideProgress();
+            lDAPane.setDisable(false);
         }
 
         private final ProgressIndicator progressIndicator_;
@@ -208,7 +205,7 @@ public class LDAController extends Controller {
 
     private class LDAThread extends Thread{
         LDAThread (){
-            progressIndicator_ = new ProgressIndicator(lDAPane, lDAProgressBar, lDAProgressPane);
+            progressIndicator_ = new ProgressIndicator(lDAPane, lDAProgressBar, lDAProgressPane, null);
         }
 
         @Override
@@ -243,51 +240,42 @@ public class LDAController extends Controller {
         private final ProgressIndicator progressIndicator_;
     }
 
-    private class ProgressIndicator{
-        ProgressIndicator(Node waitingNode, ProgressBar progressBar, Node progressNode){
+    private class ProgressIndicator implements Observer{
+        ProgressIndicator(Node waitingNode, ProgressBar progressBar, Node progressNode,
+                          Observable observable){
             waitingNode_ = waitingNode;
             progressBar_ = progressBar;
             progressNode_ = progressNode;
+
+            observable.addObserver(this);
         }
 
         void showProgress (){
             waitingNode_.setDisable(true);
 
-            timer_ = new Timer();
-            timer_.scheduleAtFixedRate(new TimerTask() {
-                @Override
-                public void run () {
-                    double currentProgress = progressBar_.getProgress();
-
-                    if(currentProgress >= 1){
-                        progressBar_.setProgress(0.0);
-                    }
-                    else{
-                        progressBar_.setProgress(currentProgress + 0.25);
-                    }
-                }
-            }, new Date(System.currentTimeMillis()), 1000);
+            progressBar_.setProgress(0.0);
 
             progressNode_.setVisible(true);
         }
 
         void hideProgress (){
-            timer_.cancel();
-
             waitingNode_.setDisable(false);
 
             progressNode_.setVisible(false);
         }
 
+        @Override
+        public void update (Observable o, Object arg) {
+            progressBar_.setProgress((Double) arg);
+        }
+
         private final Node waitingNode_;
         private final ProgressBar progressBar_;
         private final Node progressNode_;
-
-        private Timer timer_;
     }
 
     public interface API extends Controller.API{
-        List<Email> getEmails();
+        Corpus getCorpus();
         void record(int corpusID);
         void dictate(int corpusID);
     }
@@ -329,7 +317,7 @@ public class LDAController extends Controller {
     private Spinner<Integer> topicsSpinner;
 
     @FXML
-    private Button runAgainButton;
+    private Button runButton;
 
     @FXML
     private TextArea resultsTextArea;
@@ -353,10 +341,10 @@ public class LDAController extends Controller {
     private ObservableList<ObservableList<String>> candidateWords_;
 
     private Corpus corpus_;
-    private Dictionary dictionary_ = null;
+    private Dictionary dictionary_;
 
-    private DictionaryThread dictionaryThread_ = null;
-    private LDAThread lDAThread_ = null;
+    private DictionaryThread dictionaryThread_;
+    private LDAThread lDAThread_;
 
     private static final String USE_LDA_CHECK_BOX_TOOLTIP = "Create more than one corpora" +
         " according to the LDA e-mail grouping";

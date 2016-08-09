@@ -70,7 +70,7 @@
                 <Font name="System Bold" size="20.0"/>
             </font>
         </Label>
-        <AnchorPane fx:id="lDAPane" layoutX="10.0" layoutY="50.0" prefHeight="900.0"
+        <AnchorPane fx:id="lDAPane" disable="true" layoutX="10.0" layoutY="50.0" prefHeight="900.0"
                     prefWidth="660.0" style="-fx-background-color: #D3D3D3;"
                     AnchorPane.bottomAnchor="50.0" AnchorPane.leftAnchor="10.0"
                     AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="50.0">
@@ -92,8 +92,8 @@
             <Spinner fx:id="topicsSpinner" editable="false" layoutX="10.0" layoutY="664.0"
                      prefHeight="30.0" prefWidth="150.0" AnchorPane.leftAnchor="160.0"
                      AnchorPane.topAnchor="50.0"/>
-            <Button fx:id="runAgainButton" layoutX="530.0" layoutY="10.0" mnemonicParsing="false"
-                    prefHeight="30.0" prefWidth="80.0" text="run again"
+            <Button fx:id="runButton" layoutX="530.0" layoutY="10.0" mnemonicParsing="false"
+                    prefHeight="30.0" prefWidth="80.0" text="run"
                     AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="50.0"/>
             <TextArea fx:id="resultsTextArea" editable="false" prefHeight="800.0" prefWidth="640.0"
                       AnchorPane.bottomAnchor="50.0" AnchorPane.leftAnchor="10.0"
@@ -108,8 +108,8 @@
         <Button fx:id="doneButton" layoutX="564.0" layoutY="760.0" mnemonicParsing="false"
                 prefHeight="30.0" prefWidth="60.0" text="done" AnchorPane.bottomAnchor="10.0"
                 AnchorPane.rightAnchor="10.0"/>
-        <AnchorPane fx:id="lDAProgressPane" layoutX="32.0" layoutY="675.0" prefHeight="30.0"
-                    AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0">
+        <AnchorPane fx:id="lDAProgressPane" visible="false" layoutX="32.0" layoutY="675.0"
+                    prefHeight="30.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0">
             <Label layoutX="94.0" layoutY="8.0" prefHeight="30.0" prefWidth="230.0"
                    text="Please wait while L.D.A. is running" AnchorPane.bottomAnchor="0.0"
                    AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
