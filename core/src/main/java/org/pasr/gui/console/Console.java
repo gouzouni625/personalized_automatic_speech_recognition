@@ -45,8 +45,8 @@ public class Console extends Stage implements Runnable {
         }
 
 
-        setX(owner.getX() + owner.getWidth() / 4);
-        setY(owner.getY() + owner.getHeight() / 4);
+        setX(owner.getX() + owner.getWidth() / 8);
+        setY(owner.getY() + owner.getHeight() / 2);
 
         messageQueue_ = new LinkedBlockingQueue<>();
 
@@ -86,7 +86,7 @@ public class Console extends Stage implements Runnable {
             }
         }
 
-        logger_.fine("Console thread shut down gracefully!");
+        logger_.info("Console thread shut down gracefully!");
     }
 
     public static Console create(Window owner){

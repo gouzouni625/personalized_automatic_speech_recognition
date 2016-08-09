@@ -7,18 +7,11 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.ListView;
-import javafx.scene.control.ProgressBar;
-import javafx.scene.control.Spinner;
-import javafx.scene.control.SpinnerValueFactory;
-import javafx.scene.control.SplitPane;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.Tooltip;
+import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
 import org.pasr.asr.dictionary.Dictionary;
 import org.pasr.database.DataBase;
+import org.pasr.gui.console.Console;
 import org.pasr.gui.dialog.CorpusNameDialog;
 import org.pasr.gui.dialog.YesNoDialog;
 import org.pasr.prep.corpus.Corpus;
@@ -49,6 +42,7 @@ public class LDAController extends Controller {
         removeButton.setOnAction(this :: removeButtonOnAction);
         chooseButton.setOnAction(this :: chooseButtonOnAction);
         runButton.setOnAction(this :: runButtonOnAction);
+        backButton.setOnAction(this :: backButtonOnAction);
         doneButton.setOnAction(this :: doneButtonOnAction);
 
         iterationsSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(
@@ -60,7 +54,7 @@ public class LDAController extends Controller {
         ));
 
         threadsSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(
-            1, 64, 2, 1 // min, max, default, step
+            1, 64, 1, 1 // min, max, default, step
         ));
 
         wordsListView.setItems(unknownWords_);
@@ -87,10 +81,9 @@ public class LDAController extends Controller {
         }
     }
 
-    private void startLDAThread(){
-        if(lDAThread_ == null || !lDAThread_.isAlive()){
-            lDAThread_ = new LDAThread();
-            lDAThread_.start();
+    private void stopDictionaryThread(){
+        if(dictionaryThread_ != null && dictionaryThread_.isAlive()){
+            dictionaryThread_.terminate();
         }
     }
 
@@ -132,6 +125,26 @@ public class LDAController extends Controller {
         startLDAThread();
     }
 
+    private void startLDAThread(){
+        if(dictionaryThread_ != null && dictionaryThread_.isAlive()){
+            Console.getInstance().postMessage("Cannot start LDA while your e-mails are being" +
+                " processed.\nPlease try again when the processing has finished.");
+            return;
+        }
+
+        if(lDAThread_ == null || !lDAThread_.isAlive()){
+            lDAThread_ = new LDAThread();
+            lDAThread_.setDaemon(true);
+            lDAThread_.start();
+        }
+    }
+
+    private void backButtonOnAction(ActionEvent actionEvent){
+        terminate();
+
+        ((API) api_).initialScene();
+    }
+
     private void doneButtonOnAction(ActionEvent actionEvent){
         DataBase database = DataBase.getInstance();
 
@@ -160,10 +173,14 @@ public class LDAController extends Controller {
             yesNoDialog.showAndWait();
 
             if(yesNoDialog.getValue()){
-                ((API)api_).record(corpus_.getID());
+                terminate();
+
+                ((API) api_).record(corpus_.getID());
             }
             else{
-                ((API)api_).dictate(corpus_.getID());
+                terminate();
+
+                ((API) api_).dictate(corpus_.getID());
             }
         } catch (IOException e) {
             // TODO
@@ -197,7 +214,22 @@ public class LDAController extends Controller {
             }
 
             progressIndicator_.hideProgress();
-            lDAPane.setDisable(false);
+            setLDAApplicability();
+
+            getLogger().info("LDAController DictionaryThread shut down gracefully!");
+        }
+
+        private void setLDAApplicability (){
+            if(corpus_.numberOfDocuments() > 1){
+                Platform.runLater(() -> lDAPane.setDisable(false));
+            }
+            else{
+                Platform.runLater(() -> disabledLDALabel.setVisible(true));
+            }
+        }
+
+        public void terminate(){
+            corpus_.cancelProcess();
         }
 
         private final ProgressIndicator progressIndicator_;
@@ -205,63 +237,84 @@ public class LDAController extends Controller {
 
     private class LDAThread extends Thread{
         LDAThread (){
-            progressIndicator_ = new ProgressIndicator(lDAPane, lDAProgressBar, lDAProgressPane, null);
+            progressIndicator_ = new ProgressIndicator(lDAPane, lDAProgressBar, lDAProgressPane);
         }
 
         @Override
         public void run(){
             progressIndicator_.showProgress();
-            doneButton.setDisable(true);
 
+            LDA lda;
             try {
-                // Wait for the dictionary thread to finish before starting the lda thread so
-                // that the data needed from the second are available.
-                // Note that the dictionary thread will run only once during the life cycle of this
-                // controller
-                dictionaryThread_.join();
-            } catch (InterruptedException e) {
-                // TODO Act appropriately
-                e.printStackTrace();
+                lda = new LDA(corpus_.getDocumentsText(), topicsSpinner.getValue(),
+                    iterationsSpinner.getValue(), threadsSpinner.getValue());
+            } catch(IllegalArgumentException e){
+                getLogger().log(Level.SEVERE, "An illegal argument was provided to the LDA.\n" +
+                    "LDA should not be used.", e);
+
+                Console.getInstance().postMessage("There appears to be a problem with LDA.\n" +
+                    "Please, refrain from using it.");
+
+                beforeExit();
+
+                return;
             }
 
-            LDA lda = new LDA(corpus_.getDocumentsText(), topicsSpinner.getValue(),
-                iterationsSpinner.getValue(), threadsSpinner.getValue());
+            progressIndicator_.observe(lda);
+
             try {
                 lda.start();
             } catch (IOException e) {
-                // TODO Act appropriately: Set a flag that will indicate that something went wrong
-                e.printStackTrace();
-            }
+                getLogger().log(Level.WARNING, "lda threw an IOException", e);
 
-            doneButton.setDisable(false);
+                Console.getInstance().postMessage("An error has occurred while running LDA.\n" +
+                    "Please try again in a few moments");
+            }
+            finally {
+                beforeExit();
+            }
+        }
+
+        private void beforeExit (){
             progressIndicator_.hideProgress();
+
+            getLogger().info("LDAController LDAThread shut down gracefully!");
         }
 
         private final ProgressIndicator progressIndicator_;
     }
 
     private class ProgressIndicator implements Observer{
-        ProgressIndicator(Node waitingNode, ProgressBar progressBar, Node progressNode,
-                          Observable observable){
+        ProgressIndicator(Node waitingNode, ProgressBar progressBar, Node progressNode){
             waitingNode_ = waitingNode;
             progressBar_ = progressBar;
             progressNode_ = progressNode;
+        }
 
+        ProgressIndicator(Node waitingNode, ProgressBar progressBar, Node progressNode,
+                          Observable observable){
+            this(waitingNode, progressBar, progressNode);
+
+            observe(observable);
+        }
+
+        void observe(Observable observable){
             observable.addObserver(this);
         }
 
         void showProgress (){
             waitingNode_.setDisable(true);
-
             progressBar_.setProgress(0.0);
-
             progressNode_.setVisible(true);
+
+            setButtonsDisable(true);
         }
 
         void hideProgress (){
             waitingNode_.setDisable(false);
-
             progressNode_.setVisible(false);
+
+            setButtonsDisable(false);
         }
 
         @Override
@@ -274,8 +327,24 @@ public class LDAController extends Controller {
         private final Node progressNode_;
     }
 
+    private void setButtonsDisable(boolean disable){
+        removeButton.setDisable(disable);
+        pronounceButton.setDisable(disable);
+        chooseButton.setDisable(disable);
+        chooseButton.setDisable(disable);
+        runButton.setDisable(disable);
+        backButton.setDisable(disable);
+        doneButton.setDisable(disable);
+    }
+
+    @Override
+    public void terminate(){
+        stopDictionaryThread();
+    }
+
     public interface API extends Controller.API{
         Corpus getCorpus();
+        void initialScene();
         void record(int corpusID);
         void dictate(int corpusID);
     }
@@ -285,6 +354,7 @@ public class LDAController extends Controller {
 
     @FXML
     private ListView<String> wordsListView;
+    private ObservableList<String> unknownWords_;
 
     @FXML
     private Button removeButton;
@@ -294,6 +364,7 @@ public class LDAController extends Controller {
 
     @FXML
     private ListView<String> candidatesListView;
+    private ObservableList<ObservableList<String>> candidateWords_;
 
     @FXML
     private Button chooseButton;
@@ -320,16 +391,15 @@ public class LDAController extends Controller {
     private Button runButton;
 
     @FXML
-    private TextArea resultsTextArea;
+    private Label resultsLabel;
+
+    @FXML
+    private Label disabledLDALabel;
 
     @FXML
     private CheckBox useLDACheckBox;
-
-    @FXML
-    private Button backButton;
-
-    @FXML
-    private Button doneButton;
+    private static final String USE_LDA_CHECK_BOX_TOOLTIP = "Create more than one corpora" +
+        " according to the LDA e-mail grouping";
 
     @FXML
     private AnchorPane lDAProgressPane;
@@ -337,17 +407,17 @@ public class LDAController extends Controller {
     @FXML
     private ProgressBar lDAProgressBar;
 
-    private ObservableList<String> unknownWords_;
-    private ObservableList<ObservableList<String>> candidateWords_;
+    @FXML
+    private Button backButton;
+
+    @FXML
+    private Button doneButton;
 
     private Corpus corpus_;
     private Dictionary dictionary_;
 
     private DictionaryThread dictionaryThread_;
     private LDAThread lDAThread_;
-
-    private static final String USE_LDA_CHECK_BOX_TOOLTIP = "Create more than one corpora" +
-        " according to the LDA e-mail grouping";
 
     private static final String YES_NO_DIALOG_PROMPT_TEXT = "Record voice samples for acoustic" +
         " model adaptation?";

@@ -16,14 +16,38 @@ import java.io.PipedOutputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Observable;
 import java.util.Scanner;
-import java.util.logging.Level;
+import java.util.logging.Handler;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
-public class LDA {
+public class LDA extends Observable {
     public LDA(List<String> documents, int numberOfTopics, int numberOfIterations,
                int numberOfThreads){
+        if(documents == null){
+            throw new IllegalArgumentException("documents should not be null.");
+        }
+
+        if(documents.size() <= 1){
+            throw new IllegalArgumentException("documents size should be greater than one.");
+        }
+
+        if(numberOfTopics <= 1){
+            throw new IllegalArgumentException("numberOfTopics should be greater than one.");
+        }
+
+        if(numberOfIterations <= 0){
+            throw new IllegalArgumentException("numberOfIterations should be greater than zero.");
+        }
+
+        if(numberOfThreads <= 0){
+            throw new IllegalArgumentException("numberOfThreads should be greater than zero.");
+        }
+
         numberOfTopics_ = numberOfTopics;
         numberOfIterations_ = numberOfIterations;
 
@@ -34,8 +58,7 @@ public class LDA {
         instances_ = new InstanceList(buildPipe());
         instances_.addThruPipe(iterator);
 
-        // Disable the LDA logger for now.
-        ParallelTopicModel.logger.setLevel(Level.OFF);
+        handleParallelTopicModelLogger();
     }
 
     private Pipe buildPipe(){
@@ -46,6 +69,36 @@ public class LDA {
         pipeList.add(new TokenSequence2FeatureSequence());
 
         return new SerialPipes(pipeList);
+    }
+
+    private void handleParallelTopicModelLogger(){
+        Logger logger = ParallelTopicModel.logger;
+
+        logger.setUseParentHandlers(false);
+
+        for(Handler handler : logger.getHandlers()){
+            logger.removeHandler(handler);
+        }
+
+        logger.addHandler(new Handler() {
+            @Override
+            public void publish (LogRecord record) {
+                Matcher matcher = Pattern.compile("<([0-9]+)> LL/token: .*")
+                    .matcher(record.getMessage());
+
+                if(matcher.matches()){
+                    setChanged();
+                    // group(1) is guaranteed to be a parsable double because of the pattern
+                    notifyObservers(Double.parseDouble(matcher.group(1)) / numberOfIterations_);
+                }
+            }
+
+            @Override
+            public void flush () {}
+
+            @Override
+            public void close () throws SecurityException {}
+        });
     }
 
     public List<List<String>> getTopWords(int numberOfWords){

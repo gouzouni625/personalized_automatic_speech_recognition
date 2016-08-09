@@ -7,115 +7,110 @@
 <?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.control.Spinner?>
 <?import javafx.scene.control.SplitPane?>
-<?import javafx.scene.control.TextArea?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.text.Font?>
 
 <HBox prefHeight="800.0" prefWidth="1280.0" xmlns:fx="http://javafx.com/fxml">
     <AnchorPane prefHeight="800.0" prefWidth="640.0" HBox.hgrow="ALWAYS">
-        <Label layoutX="228.0" layoutY="14.0" text="Unknown Words" textAlignment="CENTER">
+        <Label alignment="CENTER" prefHeight="30.0" text="Unknown Words"
+               AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0"
+               AnchorPane.topAnchor="10.0">
             <font>
                 <Font name="System Bold" size="20.0"/>
             </font>
         </Label>
-        <SplitPane fx:id="wordsPane" dividerPositions="0.5" layoutX="190.0" layoutY="230.0"
-                   prefHeight="800.0" prefWidth="640.0" style="-fx-background-color: #D3D3D3;"
+        <SplitPane fx:id="wordsPane" dividerPositions="0.5" style="-fx-background-color: #D3D3D3;"
                    AnchorPane.bottomAnchor="50.0" AnchorPane.leftAnchor="10.0"
                    AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="50.0">
-            <AnchorPane prefHeight="160.0" prefWidth="100.0">
-                <Label layoutX="126.0" layoutY="14.0" text="Words" textAlignment="CENTER">
+            <AnchorPane>
+                <Label alignment="CENTER" prefHeight="30.0" text="Words"
+                       AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0"
+                       AnchorPane.topAnchor="10.0">
                     <font>
                         <Font name="System Bold" size="15.0"/>
                     </font>
                 </Label>
-                <ListView fx:id="wordsListView" layoutX="17.0" layoutY="45.0" prefHeight="599.0"
-                          prefWidth="274.0" AnchorPane.bottomAnchor="60.0"
+                <ListView fx:id="wordsListView" AnchorPane.bottomAnchor="60.0"
                           AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0"
                           AnchorPane.topAnchor="60.0"/>
-                <Button fx:id="removeButton" layoutX="24.5" layoutY="662.0" mnemonicParsing="false"
-                        prefHeight="30.0" prefWidth="90.0" text="remove"
+                <Button fx:id="removeButton" prefHeight="30.0" prefWidth="90.0" text="remove"
                         AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0"/>
-                <Button fx:id="pronounceButton" layoutX="193.0" layoutY="659.0"
-                        mnemonicParsing="false" prefHeight="30.0" prefWidth="90.0" text="pronounce"
+                <Button fx:id="pronounceButton" prefHeight="30.0" prefWidth="90.0" text="pronounce"
                         AnchorPane.bottomAnchor="10.0" AnchorPane.rightAnchor="10.0"/>
             </AnchorPane>
-            <AnchorPane prefHeight="160.0" prefWidth="100.0">
-                <Label layoutX="105.0" layoutY="14.0" text="Candidates" textAlignment="CENTER">
+            <AnchorPane>
+                <Label alignment="CENTER" prefHeight="30.0" text="Candidates"
+                       AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0"
+                       AnchorPane.topAnchor="10.0">
                     <font>
                         <Font name="System Bold" size="15.0"/>
                     </font>
                 </Label>
-                <ListView fx:id="candidatesListView" layoutX="16.0" layoutY="50.0"
-                          prefHeight="599.0" prefWidth="274.0" AnchorPane.bottomAnchor="60.0"
+                <ListView fx:id="candidatesListView" AnchorPane.bottomAnchor="60.0"
                           AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0"
                           AnchorPane.topAnchor="60.0"/>
-                <Button fx:id="chooseButton" layoutX="109.0" layoutY="650.0" mnemonicParsing="false"
-                        prefHeight="30.0" prefWidth="90.0" text="choose"
+                <Button fx:id="chooseButton" prefHeight="30.0" prefWidth="90.0" text="choose"
                         AnchorPane.bottomAnchor="10.0" AnchorPane.rightAnchor="10.0"/>
             </AnchorPane>
         </SplitPane>
-        <AnchorPane fx:id="wordsProgressPane" layoutX="10.0" layoutY="760.0"
-                    AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0">
+        <AnchorPane fx:id="wordsProgressPane" AnchorPane.bottomAnchor="10.0"
+                    AnchorPane.leftAnchor="10.0">
             <Label prefHeight="30.0" prefWidth="340.0"
-                   text="Please wait while your e-mails are being processed"
-                   textAlignment="CENTER"/>
-            <ProgressBar fx:id="wordsProgressBar" layoutX="350.0" prefHeight="30.0"
-                         prefWidth="100.0" progress="0.0" AnchorPane.leftAnchor="350.0"/>
+                   text="Please wait while your e-mails are being processed"/>
+            <ProgressBar fx:id="wordsProgressBar" prefHeight="30.0" prefWidth="100.0" progress="0.0"
+                         AnchorPane.leftAnchor="350.0"/>
         </AnchorPane>
     </AnchorPane>
     <AnchorPane prefHeight="800.0" prefWidth="640.0" HBox.hgrow="ALWAYS">
-        <Label layoutX="241.0" layoutY="14.0" text="L.D.A. Results" textAlignment="CENTER">
+        <Label alignment="CENTER" prefHeight="30.0" text="L.D.A. Results"
+               AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0"
+               AnchorPane.topAnchor="10.0">
             <font>
                 <Font name="System Bold" size="20.0"/>
             </font>
         </Label>
-        <AnchorPane fx:id="lDAPane" disable="true" layoutX="10.0" layoutY="50.0" prefHeight="900.0"
-                    prefWidth="660.0" style="-fx-background-color: #D3D3D3;"
+        <AnchorPane fx:id="lDAPane" disable="true" style="-fx-background-color: #D3D3D3;"
                     AnchorPane.bottomAnchor="50.0" AnchorPane.leftAnchor="10.0"
                     AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="50.0">
-            <Label layoutX="22.0" layoutY="17.0" prefHeight="30.0" prefWidth="140.0"
-                   text="Number of iterations:" textAlignment="CENTER" AnchorPane.leftAnchor="10.0"
-                   AnchorPane.topAnchor="10.0"/>
-            <Spinner fx:id="iterationsSpinner" editable="false" layoutX="10.0" layoutY="46.0"
-                     prefHeight="30.0" prefWidth="150.0" AnchorPane.leftAnchor="160.0"
-                     AnchorPane.topAnchor="10.0"/>
-            <Label layoutX="388.0" layoutY="17.0" prefHeight="30.0" prefWidth="130.0"
-                   text="Number of threads:" AnchorPane.leftAnchor="320.0"
-                   AnchorPane.topAnchor="10.0"/>
-            <Spinner fx:id="threadsSpinner" editable="false" layoutX="445.0" layoutY="12.0"
-                     prefHeight="30.0" prefWidth="150.0" AnchorPane.rightAnchor="10.0"
-                     AnchorPane.topAnchor="10.0"/>
-            <Label layoutX="43.0" layoutY="57.0" prefHeight="30.0" prefWidth="140.0"
-                   text="Number of topics:" AnchorPane.leftAnchor="10.0"
-                   AnchorPane.topAnchor="50.0"/>
-            <Spinner fx:id="topicsSpinner" editable="false" layoutX="10.0" layoutY="664.0"
-                     prefHeight="30.0" prefWidth="150.0" AnchorPane.leftAnchor="160.0"
-                     AnchorPane.topAnchor="50.0"/>
-            <Button fx:id="runButton" layoutX="530.0" layoutY="10.0" mnemonicParsing="false"
-                    prefHeight="30.0" prefWidth="80.0" text="run"
+            <Label prefHeight="30.0" prefWidth="140.0" text="Number of iterations:"
+                   AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="10.0"/>
+            <Spinner fx:id="iterationsSpinner" editable="false" prefHeight="30.0" prefWidth="150.0"
+                     AnchorPane.leftAnchor="160.0" AnchorPane.topAnchor="10.0"/>
+            <Label prefHeight="30.0" prefWidth="130.0" text="Number of threads:"
+                   AnchorPane.leftAnchor="320.0" AnchorPane.topAnchor="10.0"/>
+            <Spinner fx:id="threadsSpinner" editable="false" prefHeight="30.0" prefWidth="150.0"
+                     AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0"/>
+            <Label prefHeight="30.0" prefWidth="140.0" text="Number of topics:"
+                   AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="50.0"/>
+            <Spinner fx:id="topicsSpinner" editable="false" prefHeight="30.0" prefWidth="150.0"
+                     AnchorPane.leftAnchor="160.0" AnchorPane.topAnchor="50.0"/>
+            <Button fx:id="runButton" prefHeight="30.0" prefWidth="80.0" text="run"
                     AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="50.0"/>
-            <TextArea fx:id="resultsTextArea" editable="false" prefHeight="800.0" prefWidth="640.0"
-                      AnchorPane.bottomAnchor="50.0" AnchorPane.leftAnchor="10.0"
-                      AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="90.0"/>
-            <CheckBox fx:id="useLDACheckBox" layoutX="385.0" layoutY="666.0" mnemonicParsing="false"
-                      prefHeight="30.0" prefWidth="140.0" text="Use L.D.A. results"
-                      AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="240.0"/>
+            <Label fx:id="resultsLabel" alignment="CENTER" textAlignment="CENTER" wrapText="true"
+                   AnchorPane.bottomAnchor="50.0" AnchorPane.leftAnchor="10.0"
+                   AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="90.0"/>
+            <Label fx:id="disabledLDALabel" alignment="CENTER" prefHeight="30.0"
+                   text="LDA cannot be applied on a single e-mail" visible="false"
+                   AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0"
+                   AnchorPane.topAnchor="335.0">
+                <font>
+                    <Font name="Carlito Bold" size="20.0"/>
+                </font>
+            </Label>
+            <CheckBox fx:id="useLDACheckBox" prefHeight="30.0" prefWidth="140.0"
+                      text="Use L.D.A. results" AnchorPane.bottomAnchor="10.0"
+                      AnchorPane.leftAnchor="240.0"/>
         </AnchorPane>
-        <Button fx:id="backButton" layoutX="502.0" layoutY="760.0" mnemonicParsing="false"
-                prefHeight="30.0" prefWidth="60.0" text="back" AnchorPane.bottomAnchor="10.0"
-                AnchorPane.rightAnchor="80.0"/>
-        <Button fx:id="doneButton" layoutX="564.0" layoutY="760.0" mnemonicParsing="false"
-                prefHeight="30.0" prefWidth="60.0" text="done" AnchorPane.bottomAnchor="10.0"
-                AnchorPane.rightAnchor="10.0"/>
-        <AnchorPane fx:id="lDAProgressPane" visible="false" layoutX="32.0" layoutY="675.0"
-                    prefHeight="30.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0">
-            <Label layoutX="94.0" layoutY="8.0" prefHeight="30.0" prefWidth="230.0"
-                   text="Please wait while L.D.A. is running" AnchorPane.bottomAnchor="0.0"
-                   AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
-                   AnchorPane.topAnchor="0.0"/>
-            <ProgressBar fx:id="lDAProgressBar" layoutX="116.0" layoutY="4.0" prefHeight="30.0"
-                         prefWidth="100.0" progress="0.0" AnchorPane.leftAnchor="240.0"/>
+        <AnchorPane fx:id="lDAProgressPane" prefHeight="30.0" visible="false"
+                    AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0">
+            <Label prefHeight="30.0" prefWidth="230.0" text="Please wait while L.D.A. is running"/>
+            <ProgressBar fx:id="lDAProgressBar" prefHeight="30.0" prefWidth="100.0" progress="0.0"
+                         AnchorPane.leftAnchor="240.0"/>
         </AnchorPane>
+        <Button fx:id="backButton" prefHeight="30.0" prefWidth="60.0" text="back"
+                AnchorPane.bottomAnchor="10.0" AnchorPane.rightAnchor="80.0"/>
+        <Button fx:id="doneButton" prefHeight="30.0" prefWidth="60.0" text="done"
+                AnchorPane.bottomAnchor="10.0" AnchorPane.rightAnchor="10.0"/>
     </AnchorPane>
 </HBox>

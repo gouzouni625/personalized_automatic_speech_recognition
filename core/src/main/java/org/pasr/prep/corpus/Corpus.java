@@ -42,6 +42,12 @@ public class Corpus extends Observable implements Iterable<WordSequence> {
         return wordSequenceList_.size();
     }
 
+    public int numberOfDocuments(){
+        return wordSequenceList_.stream()
+            .map(WordSequence :: getDocumentID)
+            .collect(Collectors.toSet()).size();
+    }
+
     private List<Word> getUniqueWords (){
         HashSet<Word> uniqueWords = new HashSet<>();
 
@@ -53,7 +59,13 @@ public class Corpus extends Observable implements Iterable<WordSequence> {
     }
 
     public Dictionary process(Dictionary dictionary) {
+        cancelProcess_ = false;
+
         for(int i = 0, n = documentList_.size();i < n;i++){
+            if(cancelProcess_){
+                return new Dictionary();
+            }
+
             String processedContent = processNumbers(documentList_.get(i).getContent());
             wordSequenceList_.addAll(createWordSequences(
                 processedContent, documentList_.get(i).getID())
@@ -68,6 +80,10 @@ public class Corpus extends Observable implements Iterable<WordSequence> {
         List<Word> uniqueWords = getUniqueWords();
 
         for(int i = 0, n = uniqueWords.size();i < n;i++){
+            if(cancelProcess_){
+                return reducedDictionary;
+            }
+
             String wordText = uniqueWords.get(i).getText();
 
             Map<String, String> entries = dictionary.getEntriesByKey(wordText);
@@ -87,6 +103,10 @@ public class Corpus extends Observable implements Iterable<WordSequence> {
         documentList_ = null;
 
         return reducedDictionary;
+    }
+
+    public void cancelProcess(){
+        cancelProcess_ = true;
     }
 
     /**
@@ -281,5 +301,7 @@ public class Corpus extends Observable implements Iterable<WordSequence> {
 
     private int id_;
     private String name_;
+
+    private volatile boolean cancelProcess_;
 
 }
