@@ -19,6 +19,7 @@ import org.pasr.prep.lda.LDA;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.logging.Level;
@@ -118,6 +119,9 @@ public class LDAController extends Controller {
 
             unknownWords_.remove(wrongWordIndex);
             candidateWords_.remove(wrongWordIndex);
+
+            // Clear the selection so that the user is forced to select a new word
+            wordsListView.getSelectionModel().clearSelection();
         }
     }
 
@@ -221,10 +225,10 @@ public class LDAController extends Controller {
 
         private void setLDAApplicability (){
             if(corpus_.numberOfDocuments() > 1){
-                Platform.runLater(() -> lDAPane.setDisable(false));
+                lDAPane.setDisable(false);
             }
             else{
-                Platform.runLater(() -> disabledLDALabel.setVisible(true));
+                disabledLDALabel.setVisible(true);
             }
         }
 
@@ -264,6 +268,9 @@ public class LDAController extends Controller {
 
             try {
                 lda.start();
+
+                // Show results to the user
+                showResults(lda);
             } catch (IOException e) {
                 getLogger().log(Level.WARNING, "lda threw an IOException", e);
 
@@ -279,6 +286,41 @@ public class LDAController extends Controller {
             progressIndicator_.hideProgress();
 
             getLogger().info("LDAController LDAThread shut down gracefully!");
+            Console.getInstance().postMessage("Hello World");
+        }
+
+        private void showResults(LDA lda){
+            StringBuilder stringBuilder = new StringBuilder();
+
+            int numberOfTopics = lda.getNumberOfTopics();
+
+            stringBuilder.append("LDA algorithm has given the following results:\n\n")
+                .append("Number of topics: ").append(numberOfTopics).append("\n")
+                .append("Number of iterations: ").append(lda.getNumberOfIterations()).append("\n\n")
+                .append("Ten most common words for each topic:\n\n");
+
+            List<List<String>> topWords = lda.getTopWords(10);
+
+            for(int i = 0;i < numberOfTopics;i++){
+                stringBuilder.append("topic ").append(String.valueOf(i)).append(": ");
+
+                List<String> currentTopicTopWords = topWords.get(i);
+                for(int j = 0, m = currentTopicTopWords.size() - 1;j < m;j++){
+                    stringBuilder.append(currentTopicTopWords.get(j)).append(" ");
+                }
+                // Do not append a space for the last word
+                stringBuilder.append(currentTopicTopWords.get(currentTopicTopWords.size() - 1));
+
+                stringBuilder.append("\n");
+            }
+
+            stringBuilder.append("\nTo see how your e-mails are distributed across the topics")
+                .append(", press the \"interact\" button");
+
+            Platform.runLater(() -> {
+                interactButton.setDisable(false);
+                resultTextArea.setText(stringBuilder.toString());
+            });
         }
 
         private final ProgressIndicator progressIndicator_;
@@ -391,10 +433,13 @@ public class LDAController extends Controller {
     private Button runButton;
 
     @FXML
-    private Label resultsLabel;
+    private TextArea resultTextArea;
 
     @FXML
     private Label disabledLDALabel;
+
+    @FXML
+    private Button interactButton;
 
     @FXML
     private CheckBox useLDACheckBox;

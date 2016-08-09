@@ -101,6 +101,14 @@ public class LDA extends Observable {
         });
     }
 
+    public int getNumberOfTopics(){
+        return numberOfTopics_;
+    }
+
+    public int getNumberOfIterations(){
+        return numberOfIterations_;
+    }
+
     public List<List<String>> getTopWords(int numberOfWords){
         Object[][] topWordsArray = lda_.getTopWords(numberOfWords);
 

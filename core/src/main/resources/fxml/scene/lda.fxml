@@ -7,11 +7,13 @@
 <?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.control.Spinner?>
 <?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.TextArea?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.text.Font?>
 
-<HBox prefHeight="800.0" prefWidth="1280.0" xmlns:fx="http://javafx.com/fxml">
+<HBox prefHeight="800.0" prefWidth="1280.0" xmlns:fx="http://javafx.com/fxml/1"
+      xmlns="http://javafx.com/javafx/8.0.91">
     <AnchorPane prefHeight="800.0" prefWidth="640.0" HBox.hgrow="ALWAYS">
         <Label alignment="CENTER" prefHeight="30.0" text="Unknown Words"
                AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0"
@@ -87,9 +89,9 @@
                      AnchorPane.leftAnchor="160.0" AnchorPane.topAnchor="50.0"/>
             <Button fx:id="runButton" prefHeight="30.0" prefWidth="80.0" text="run"
                     AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="50.0"/>
-            <Label fx:id="resultsLabel" alignment="CENTER" textAlignment="CENTER" wrapText="true"
-                   AnchorPane.bottomAnchor="50.0" AnchorPane.leftAnchor="10.0"
-                   AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="90.0"/>
+            <TextArea fx:id="resultTextArea" editable="false" AnchorPane.bottomAnchor="50.0"
+                      AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0"
+                      AnchorPane.topAnchor="90.0"/>
             <Label fx:id="disabledLDALabel" alignment="CENTER" prefHeight="30.0"
                    text="LDA cannot be applied on a single e-mail" visible="false"
                    AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0"
@@ -98,6 +100,8 @@
                     <Font name="Carlito Bold" size="20.0"/>
                 </font>
             </Label>
+            <Button fx:id="interactButton" disable="true" prefHeight="30.0" prefWidth="90.0"
+                    text="interact" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="20.0"/>
             <CheckBox fx:id="useLDACheckBox" prefHeight="30.0" prefWidth="140.0"
                       text="Use L.D.A. results" AnchorPane.bottomAnchor="10.0"
                       AnchorPane.leftAnchor="240.0"/>
