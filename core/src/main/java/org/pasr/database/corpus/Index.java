@@ -15,6 +15,8 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Optional;
+import java.util.function.BinaryOperator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -59,6 +61,19 @@ public class Index extends ArrayList<Index.Entry>{
 
         private final int id;
         private final String name;
+    }
+
+    public int nextId(){
+        Optional<Integer> maxId = stream()
+            .map(Entry :: getId)
+            .reduce(BinaryOperator.maxBy(Integer :: compare));
+
+        if(maxId.isPresent()){
+            return maxId.get() + 1;
+        }
+        else{
+            return 1;
+        }
     }
 
     public boolean containsID(int id){

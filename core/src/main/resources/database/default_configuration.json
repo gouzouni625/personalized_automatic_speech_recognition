@@ -1,4 +1,6 @@
 {
+  "dataBaseDirectoryPath": "database/",
+
   "corpusDirectoryPath": "database/corpora/",
   "corpusIndexPath": "database/corpora/index.json",
 

@@ -29,6 +29,10 @@ public class Configuration {
         return instance_;
     }
 
+    public String getDataBaseDirectoryPath(){
+        return dataBaseDirectoryPath;
+    }
+
     public String getCorpusDirectoryPath(){
         return corpusDirectoryPath;
     }
@@ -94,6 +98,8 @@ public class Configuration {
     }
 
     private static Configuration instance_;
+
+    private String dataBaseDirectoryPath;
 
     private String corpusDirectoryPath;
     private String corpusIndexPath;

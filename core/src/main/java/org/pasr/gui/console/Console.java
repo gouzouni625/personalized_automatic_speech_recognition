@@ -78,7 +78,7 @@ public class Console extends Stage implements Runnable {
             try {
                 String message = messageQueue_.take();
 
-                textArea.appendText("\n" + message);
+                textArea.appendText("\n\n" + message);
                 textArea.setScrollTop(Double.MAX_VALUE);
             } catch (InterruptedException e) {
                 // If interrupted while waiting on the queue, return

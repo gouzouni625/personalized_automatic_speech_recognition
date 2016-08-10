@@ -199,9 +199,19 @@ public class LDAController extends Controller {
 
                 Dictionary dictionary = corpus.process(dictionary_);
 
-                corpusInformation.put(
-                    DataBase.getInstance().newCorpusEntry(corpus, dictionary), corpus.getName()
-                );
+                try {
+                    corpusInformation.put(
+                        DataBase.getInstance().newCorpusEntry(corpus, dictionary), corpus.getName()
+                    );
+                } catch (IOException e) {
+                    Console.getInstance().postMessage("There was an error trying to save the a" +
+                        " corpus.\n" +
+                        "Check the permissions inside the directory: " +
+                        database.getConfiguration().getDataBaseDirectoryPath() + "\n" +
+                        "Exception Message: " + e.getMessage());
+
+                    return;
+                }
             }
         }
         else {
@@ -212,11 +222,6 @@ public class LDAController extends Controller {
                 corpusNameDialog.showAndWait();
 
                 corpus_.setName(corpusNameDialog.getValue());
-
-                corpusInformation.put(
-                    DataBase.getInstance().newCorpusEntry(corpus_, dictionary_), corpus_.getName()
-                );
-
             } catch (IOException e) {
                 getLogger().severe("Could not load resource:/fxml/dialog/corpus_name.fxml\n" +
                     "The file might be missing or be corrupted.\n" +
@@ -226,8 +231,21 @@ public class LDAController extends Controller {
                 Platform.exit();
                 return;
             }
-        }
 
+            try {
+                corpusInformation.put(
+                    DataBase.getInstance().newCorpusEntry(corpus_, dictionary_), corpus_.getName()
+                );
+            } catch (IOException e) {
+                Console.getInstance().postMessage("There was an error trying to save the a" +
+                    " corpus.\n" +
+                    "Check the permissions inside the: " +
+                    database.getConfiguration().getDataBaseDirectoryPath() + "\n" +
+                    "Exception Message: " + e.getMessage());
+
+                return;
+            }
+        }
 
         YesNoDialog yesNoDialog;
         try {

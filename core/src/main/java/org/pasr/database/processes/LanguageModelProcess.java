@@ -15,9 +15,16 @@ public class LanguageModelProcess extends Process{
 
         String inputFileName = inputFile.getName();
 
-        File freqFile = Files.createTempFile(inputFileName, "freq").toFile();
-        File vocabFile = Files.createTempFile(inputFileName, "vocab").toFile();
-        File idngramFile = Files.createTempFile(inputFileName, "idngram").toFile();
+        File freqFile;
+        File vocabFile;
+        File idngramFile;
+        try {
+            freqFile = Files.createTempFile(inputFileName, "freq").toFile();
+            vocabFile = Files.createTempFile(inputFileName, "vocab").toFile();
+            idngramFile = Files.createTempFile(inputFileName, "idngram").toFile();
+        } catch (IOException e) {
+            throw new IOException("Could not create temporary file.");
+        }
 
         Configuration configuration = Configuration.getInstance();
 

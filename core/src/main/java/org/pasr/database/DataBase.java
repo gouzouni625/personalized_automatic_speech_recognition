@@ -1,6 +1,7 @@
 package org.pasr.database;
 
 
+import org.apache.commons.io.FileUtils;
 import org.pasr.asr.dictionary.Dictionary;
 import org.pasr.database.corpus.Index;
 import org.pasr.database.processes.AcousticModelProcess;
@@ -44,6 +45,10 @@ public class DataBase {
         if(instance_ == null) {
             instance_ = new DataBase();
         }
+    }
+
+    public Configuration getConfiguration(){
+        return configuration_;
     }
 
     public List<org.pasr.database.corpus.Index.Entry> getCorpusEntryList (){
@@ -155,30 +160,40 @@ public class DataBase {
         }
     }
 
-    public int newCorpusEntry (Corpus corpus, Dictionary dictionary){
+    public int newCorpusEntry (Corpus corpus, Dictionary dictionary) throws IOException {
         File corpusDirectory = new File(configuration_.getCorpusDirectoryPath());
 
-        int newCorpusID = corpusIndex_.size() + 1;
+        int newCorpusID = corpusIndex_.nextId();
         corpus.setID(newCorpusID);
 
         File newCorpusDirectory = new File(corpusDirectory, String.valueOf(newCorpusID));
+        if(newCorpusDirectory.exists()){
+            if(newCorpusDirectory.isFile()){
+                if(!newCorpusDirectory.delete()){
+                    throw new IOException("Could not delete file: " + newCorpusDirectory.getPath());
+                }
+            }
+            else if(newCorpusDirectory.isDirectory()){
+                try {
+                    FileUtils.deleteDirectory(newCorpusDirectory);
+                } catch (IOException e) {
+                    throw new IOException(
+                        "Could not delete directory: " + newCorpusDirectory.getPath()
+                    );
+                }
+            }
+            else{
+                throw new IOException("Unknown file type: " + newCorpusDirectory.getPath());
+            }
+        }
+
         if(!newCorpusDirectory.mkdir()){
-            throw new RuntimeException("Could not create the directory to save the new corpus");
+            throw new IOException("Could not create directory: " + newCorpusDirectory.getPath());
         }
 
-        try {
-            saveCorpusToDirectory(corpus, newCorpusDirectory);
-        } catch (FileNotFoundException e) {
-            // TODO
-            e.printStackTrace();
-        }
+        saveCorpusToDirectory(corpus, newCorpusDirectory);
 
-        try {
-            saveDictionaryToDirectory(dictionary, newCorpusDirectory);
-        } catch (IOException e) {
-            // TODO
-            e.printStackTrace();
-        }
+        saveDictionaryToDirectory(dictionary, newCorpusDirectory);
 
         // Create language model for this corpus
         try {
@@ -188,8 +203,8 @@ public class DataBase {
                 3
             ).startAndWaitFor();
         } catch (IOException | InterruptedException e) {
-            // TODO
-            e.printStackTrace();
+            throw new IOException("Could not create language model.\n" +
+                "Exception Message: " + e.getMessage());
         }
 
         corpusIndex_.add(new Index.Entry(newCorpusID, corpus.getName()));
@@ -198,10 +213,21 @@ public class DataBase {
     }
 
     private void saveCorpusToDirectory(Corpus corpus, File directory) throws FileNotFoundException {
-        PrintWriter sentencesPrintWriter = new PrintWriter(new File(directory, "sentences.txt"));
-        PrintWriter documentIDSPrintWriter = new PrintWriter(
-            new File(directory, "document_ids.txt")
-        );
+        PrintWriter sentencesPrintWriter;
+        try {
+            sentencesPrintWriter = new PrintWriter(new File(directory, "sentences.txt"));
+        } catch (FileNotFoundException e) {
+            throw new FileNotFoundException("sentences.txt");
+        }
+
+        PrintWriter documentIDSPrintWriter;
+        try {
+            documentIDSPrintWriter = new PrintWriter(
+                new File(directory, "document_ids.txt")
+            );
+        } catch (FileNotFoundException e) {
+            throw new FileNotFoundException("document_ids.txt");
+        }
 
         corpus.forEach(sentence -> {
             sentencesPrintWriter.println("<s> " + sentence + " </s>");
@@ -211,9 +237,14 @@ public class DataBase {
         sentencesPrintWriter.close();
         documentIDSPrintWriter.close();
 
-        PrintWriter documentTitlesPrintWriter = new PrintWriter(
-            new File(directory, "document_titles.txt")
-        );
+        PrintWriter documentTitlesPrintWriter;
+        try {
+            documentTitlesPrintWriter = new PrintWriter(
+                new File(directory, "document_titles.txt")
+            );
+        } catch (FileNotFoundException e) {
+            throw new FileNotFoundException("document_titles.txt");
+        }
 
         corpus.stream()
             .collect(Collectors.toMap(
@@ -240,17 +271,27 @@ public class DataBase {
     private void saveDictionaryToDirectory(Dictionary dictionary, File directory)
         throws IOException {
 
-        FileOutputStream dictionaryOutputStream = new FileOutputStream(
-            new File(directory, "dictionary.dict")
-        );
-        dictionary.exportToStream(dictionaryOutputStream);
-        dictionaryOutputStream.close();
+        try {
+            FileOutputStream dictionaryOutputStream = new FileOutputStream(
+                new File(directory, "dictionary.dict")
+            );
 
-        PrintWriter unknownWordPrintWriter = new PrintWriter(
-            new File(directory, "unknown_words.txt")
-        );
-        dictionary.getUnknownWords().forEach(unknownWordPrintWriter :: println);
-        unknownWordPrintWriter.close();
+            dictionary.exportToStream(dictionaryOutputStream);
+            dictionaryOutputStream.close();
+        } catch (IOException e) {
+            throw new IOException("dictionary.dict");
+        }
+
+        try {
+            PrintWriter unknownWordPrintWriter = new PrintWriter(
+                new File(directory, "unknown_words.txt")
+            );
+
+            dictionary.getUnknownWords().forEach(unknownWordPrintWriter :: println);
+            unknownWordPrintWriter.close();
+        } catch (FileNotFoundException e) {
+            throw new FileNotFoundException("unknown_words.txt");
+        }
     }
 
     public void newAudioEntry(byte[] audioData, String sentence, int corpusID){

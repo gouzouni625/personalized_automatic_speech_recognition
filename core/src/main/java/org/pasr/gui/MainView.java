@@ -76,6 +76,19 @@ public class MainView extends Application implements MainController.API,
                 "Exception Message: " + e.getMessage());
         }
 
+        try {
+            DataBase.create();
+        } catch (IOException e) {
+            logger_.log(Level.SEVERE,
+                "Could not load resource:/database/default_configuration.json.\n" +
+                    "The file might be missing or be corrupted.\n" +
+                    "Application will terminate.\n" +
+                    "Exception Message: " + e.getMessage());
+
+            Platform.exit();
+            return;
+        }
+
         launch(args);
     }
 
@@ -197,7 +210,8 @@ public class MainView extends Application implements MainController.API,
             emailFetcher_.open(emailAddress, password);
         } catch (NoSuchProviderException e) {
             logger_.log(Level.SEVERE, "A provided for the given email protocol was not found.\n" +
-                "Application will terminate.", e);
+                "Application will terminate.\n" +
+                "Exception Message: " + e.getMessage());
 
             Platform.exit();
 
@@ -212,14 +226,16 @@ public class MainView extends Application implements MainController.API,
             Console.getInstance().postMessage("Something went wrong with the email service.\n" +
                 "Please try logging in again!");
 
-            logger_.log(Level.WARNING, "The email service is already connected.", e);
+            logger_.log(Level.WARNING, "The email service is already connected.\n" +
+                "Exception Message: " + e.getMessage());
 
             return false;
         } catch (MessagingException e) {
             Console.getInstance().postMessage("Something went wrong with the email service.\n" +
                 "Please try logging in again!");
 
-            logger_.log(Level.WARNING, "Something went wrong with the email service.", e);
+            logger_.log(Level.WARNING, "Something went wrong with the email service.\n" +
+                "Exception Message: " + e.getMessage());
 
             return false;
         }
@@ -290,14 +306,19 @@ public class MainView extends Application implements MainController.API,
     }
 
     @Override
-    public void stop() throws Exception {
+    public void stop() {
         if(emailFetcher_ != null){
             emailFetcher_.terminate();
         }
 
-        sceneFactory_.getCurrentController().terminate();
+        try {
+            sceneFactory_.getCurrentController().terminate();
+        } catch (Exception e) {
+            // TODO
+            e.printStackTrace();
+        }
 
-        DataBase.getInstance().close();
+       DataBase.getInstance().close();
     }
 
 }
