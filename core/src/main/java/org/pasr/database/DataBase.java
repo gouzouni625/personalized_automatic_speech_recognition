@@ -49,7 +49,7 @@ public class DataBase {
         return audioIndex_;
     }
 
-    public void newCorpusEntry (Corpus corpus, Dictionary dictionary){
+    public int newCorpusEntry (Corpus corpus, Dictionary dictionary){
         File corpusDirectory = new File(configuration_.getCorpusDirectoryPath());
 
         int newCorpusID = corpusIndex_.size() + 1;
@@ -87,6 +87,8 @@ public class DataBase {
         }
 
         corpusIndex_.add(new Index.Entry(newCorpusID, corpus.getName()));
+
+        return newCorpusID;
     }
 
     private void saveCorpusToDirectory(Corpus corpus, File directory) throws FileNotFoundException {

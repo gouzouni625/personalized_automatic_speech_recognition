@@ -8,7 +8,7 @@ public class Document {
         content_ = content;
     }
 
-    long getID(){
+    public long getID(){
         return id_;
     }
 

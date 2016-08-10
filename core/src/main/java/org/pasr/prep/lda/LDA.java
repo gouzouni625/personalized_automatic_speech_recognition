@@ -50,21 +50,27 @@ public class LDA extends Observable {
             throw new IllegalArgumentException("numberOfThreads should be greater than zero.");
         }
 
+        documents_ = documents;
+
         numberOfTopics_ = numberOfTopics;
         numberOfIterations_ = numberOfIterations;
 
         numberOfThreads_ = numberOfThreads;
 
+        createInstances(documents_);
+
+        handleParallelTopicModelLogger();
+    }
+
+    private void createInstances(List<Document> documents){
         StringArrayIterator iterator = new StringArrayIterator(
             documents.stream()
-            .map(Document :: getContent)
-            .collect(Collectors.toList()).toArray(new String[0])
+                .map(Document :: getContent)
+                .collect(Collectors.toList()).toArray(new String[0])
         );
 
         instances_ = new InstanceList(buildPipe());
         instances_.addThruPipe(iterator);
-
-        handleParallelTopicModelLogger();
     }
 
     private Pipe buildPipe(){
@@ -190,12 +196,53 @@ public class LDA extends Observable {
     }
 
     public void start() throws IOException {
-        lda_ = new ParallelTopicModel(numberOfTopics_);
+        hasRun_ = false;
+
+        if(lda_ == null) {
+            lda_ = new ParallelTopicModel(numberOfTopics_);
+        }
+        else{
+            lda_.setNumTopics(numberOfTopics_);
+        }
         lda_.setNumIterations(numberOfIterations_);
         lda_.setNumThreads(numberOfThreads_);
         lda_.addInstances(instances_);
         lda_.estimate();
+
+        hasRun_ = true;
     }
+
+    public LDA setDocuments(List<Document> documents){
+        documents_ = documents;
+
+        createInstances(documents_);
+
+        return this;
+    }
+
+    public LDA setNumberOfTopics(int numberOfTopics){
+        numberOfTopics_ = numberOfTopics;
+
+        return this;
+    }
+
+    public LDA setNumberOfIterations(int numberOfIterations){
+        numberOfIterations_ = numberOfIterations;
+
+        return this;
+    }
+
+    public LDA setNumberOfThreads(int numberOfThreads){
+        numberOfThreads_ = numberOfThreads;
+
+        return this;
+    }
+
+    public boolean hasRun(){
+        return hasRun_;
+    }
+
+    private List<Document> documents_;
 
     private InstanceList instances_;
 
@@ -205,5 +252,7 @@ public class LDA extends Observable {
     private int numberOfThreads_;
 
     private ParallelTopicModel lda_;
+
+    private volatile boolean hasRun_ = false;
 
 }

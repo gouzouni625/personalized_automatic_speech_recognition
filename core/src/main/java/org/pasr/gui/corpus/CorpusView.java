@@ -35,7 +35,7 @@ public class CorpusView extends SplitPane {
                 }
                 else{
                     textArea.setText(
-                        DataBase.getInstance().getCorpusByID(newValue.getId()).getText()
+                        DataBase.getInstance().getCorpusByID(newValue.getId()).getPrettyText()
                     );
                 }
         });

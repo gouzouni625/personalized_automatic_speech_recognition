@@ -9,20 +9,28 @@ import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
+import org.apache.commons.collections4.MultiValuedMap;
 import org.pasr.asr.dictionary.Dictionary;
 import org.pasr.database.DataBase;
 import org.pasr.gui.console.Console;
 import org.pasr.gui.dialog.CorpusNameDialog;
+import org.pasr.gui.dialog.LDAInteractDialog;
+import org.pasr.gui.dialog.ListDialog;
 import org.pasr.gui.dialog.YesNoDialog;
 import org.pasr.prep.corpus.Corpus;
+import org.pasr.prep.corpus.Document;
 import org.pasr.prep.lda.LDA;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.logging.Level;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 
@@ -43,6 +51,7 @@ public class LDAController extends Controller {
         removeButton.setOnAction(this :: removeButtonOnAction);
         chooseButton.setOnAction(this :: chooseButtonOnAction);
         runButton.setOnAction(this :: runButtonOnAction);
+        interactButton.setOnAction(this :: interactButtonOnAction);
         backButton.setOnAction(this :: backButtonOnAction);
         doneButton.setOnAction(this :: doneButtonOnAction);
 
@@ -143,6 +152,28 @@ public class LDAController extends Controller {
         }
     }
 
+    private void interactButtonOnAction(ActionEvent actionEvent){
+        LDAInteractDialog lDAInteractDialog;
+        try {
+            lDAInteractDialog = new LDAInteractDialog(lda_);
+            lDAInteractDialog.showAndWait();
+        } catch (IllegalArgumentException e){
+            Console.getInstance().postMessage("You should first run the LDA algorithm before" +
+                "interacting with the results (press \"run\" button before \"interact\" button)");
+            return;
+        } catch (IOException e) {
+            getLogger().severe("Could not load resource:/fxml/dialog/lda_interact.fxml\n" +
+                "The file might be missing or be corrupted.\n" +
+                "Application will terminate.\n" +
+                "Exception Message: " + e.getMessage());
+
+            Platform.exit();
+            return;
+        }
+
+        ldaResults_ = lDAInteractDialog.getValue();
+    }
+
     private void backButtonOnAction(ActionEvent actionEvent){
         terminate();
 
@@ -152,8 +183,26 @@ public class LDAController extends Controller {
     private void doneButtonOnAction(ActionEvent actionEvent){
         DataBase database = DataBase.getInstance();
 
-        if(useLDACheckBox.isSelected()){
+        Map<Integer, String> corpusInformation = new LinkedHashMap<>();
 
+        if(useLDACheckBox.isSelected()){
+            List<Document> documents = corpus_.getDocuments();
+
+            for(Map.Entry<String, List<Long>> entry : ldaResults_.entries()){
+                List<Long> documentIDs = entry.getValue();
+
+                Corpus corpus = new Corpus(documents.stream()
+                    .filter(document -> documentIDs.contains(document.getID()))
+                    .collect(Collectors.toList()));
+
+                corpus.setName(entry.getKey());
+
+                Dictionary dictionary = corpus.process(dictionary_);
+
+                corpusInformation.put(
+                    DataBase.getInstance().newCorpusEntry(corpus, dictionary), corpus.getName()
+                );
+            }
         }
         else {
             try {
@@ -164,31 +213,76 @@ public class LDAController extends Controller {
 
                 corpus_.setName(corpusNameDialog.getValue());
 
-                DataBase.getInstance().newCorpusEntry(corpus_, dictionary_);
+                corpusInformation.put(
+                    DataBase.getInstance().newCorpusEntry(corpus_, dictionary_), corpus_.getName()
+                );
 
             } catch (IOException e) {
-                // TODO
-                e.printStackTrace();
+                getLogger().severe("Could not load resource:/fxml/dialog/corpus_name.fxml\n" +
+                    "The file might be missing or be corrupted.\n" +
+                    "Application will terminate.\n" +
+                    "Exception Message: " + e.getMessage());
+
+                Platform.exit();
+                return;
             }
         }
 
+
+        YesNoDialog yesNoDialog;
         try {
-            YesNoDialog yesNoDialog = new YesNoDialog(true, YES_NO_DIALOG_PROMPT_TEXT);
+            yesNoDialog = new YesNoDialog(true, YES_NO_DIALOG_PROMPT_TEXT);
             yesNoDialog.showAndWait();
-
-            if(yesNoDialog.getValue()){
-                terminate();
-
-                ((API) api_).record(corpus_.getID());
-            }
-            else{
-                terminate();
-
-                ((API) api_).dictate(corpus_.getID());
-            }
         } catch (IOException e) {
-            // TODO
-            e.printStackTrace();
+            getLogger().severe("Could not load resource:/fxml/dialog/yes_no.fxml\n" +
+                "The file might be missing or be corrupted.\n" +
+                "Application will terminate.\n" +
+                "Exception Message: " + e.getMessage());
+
+            Platform.exit();
+            return;
+        }
+
+        // Get the first corpus id
+        int selectedCorpusID = corpusInformation.entrySet().iterator().next().getKey();
+
+        if (corpusInformation.size() > 1) {
+            ListDialog<String> listDialog;
+            try {
+                listDialog = new ListDialog<>(
+                    String.valueOf(selectedCorpusID), CORPUS_CHOOSE_DIALOG_PROMPT_TEXT,
+                    corpusInformation.entrySet().stream()
+                        .map(entry -> entry.getKey() + " " + entry.getValue())
+                        .collect(Collectors.toList())
+                );
+                listDialog.showAndWait();
+            } catch (IOException e) {
+                getLogger().severe("Could not load resource:/fxml/dialog/list.fxml\n" +
+                    "The file might be missing or be corrupted.\n" +
+                    "Application will terminate.\n" +
+                    "Exception Message: " + e.getMessage());
+
+                Platform.exit();
+                return;
+            }
+
+
+            // Do not split(" ") the result since the name of the corpus might begin with space
+            Matcher matcher = Pattern.compile("([0-9]+) .+").matcher(listDialog.getValue());
+            if (matcher.matches()) {
+                selectedCorpusID = Integer.parseInt(matcher.group(1));
+            }
+        }
+
+        if (yesNoDialog.getValue()) {
+            terminate();
+
+            ((API) api_).record(selectedCorpusID);
+        }
+        else {
+            terminate();
+
+            ((API) api_).dictate(selectedCorpusID);
         }
     }
 
@@ -214,7 +308,9 @@ public class LDAController extends Controller {
             } catch (FileNotFoundException e) {
                 getLogger().log(Level.SEVERE, "Default dictionary was not found.\n" +
                     "Application will exit.", e);
+
                 Platform.exit();
+                return;
             }
 
             progressIndicator_.hideProgress();
@@ -248,10 +344,17 @@ public class LDAController extends Controller {
         public void run(){
             progressIndicator_.showProgress();
 
-            LDA lda;
             try {
-                lda = new LDA(corpus_.getDocuments(), topicsSpinner.getValue(),
-                    iterationsSpinner.getValue(), threadsSpinner.getValue());
+                if(lda_ == null) {
+                    lda_ = new LDA(corpus_.getDocuments(), topicsSpinner.getValue(),
+                        iterationsSpinner.getValue(), threadsSpinner.getValue());
+                }
+                else{
+                    lda_.setDocuments(corpus_.getDocuments())
+                        .setNumberOfTopics(topicsSpinner.getValue())
+                        .setNumberOfIterations(iterationsSpinner.getValue())
+                        .setNumberOfThreads(threadsSpinner.getValue());
+                }
             } catch(IllegalArgumentException e){
                 getLogger().log(Level.SEVERE, "An illegal argument was provided to the LDA.\n" +
                     "LDA should not be used.", e);
@@ -264,13 +367,13 @@ public class LDAController extends Controller {
                 return;
             }
 
-            progressIndicator_.observe(lda);
+            progressIndicator_.observe(lda_);
 
             try {
-                lda.start();
+                lda_.start();
 
                 // Show results to the user
-                showResults(lda);
+                showResults(lda_);
             } catch (IOException e) {
                 getLogger().log(Level.WARNING, "lda threw an IOException", e);
 
@@ -375,6 +478,7 @@ public class LDAController extends Controller {
         chooseButton.setDisable(disable);
         chooseButton.setDisable(disable);
         runButton.setDisable(disable);
+        interactButton.setDisable(disable);
         backButton.setDisable(disable);
         doneButton.setDisable(disable);
     }
@@ -464,7 +568,13 @@ public class LDAController extends Controller {
     private DictionaryThread dictionaryThread_;
     private LDAThread lDAThread_;
 
+    private LDA lda_;
+
+    private MultiValuedMap<String, List<Long>> ldaResults_;
+
     private static final String YES_NO_DIALOG_PROMPT_TEXT = "Record voice samples for acoustic" +
         " model adaptation?";
+
+    private static final String CORPUS_CHOOSE_DIALOG_PROMPT_TEXT = "Choose the corpus to use";
 
 }

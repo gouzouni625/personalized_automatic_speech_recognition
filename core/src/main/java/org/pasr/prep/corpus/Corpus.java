@@ -192,11 +192,17 @@ public class Corpus extends Observable implements Iterable<WordSequence> {
 
     public List<Document> getDocuments () {
         return wordSequenceList_.stream()
-            .collect(Collectors.groupingBy(WordSequence:: getDocumentID, Collectors.toList()))
+            .map(wordSequence -> new Document(wordSequence.getDocumentID(),
+                wordSequence.getDocumentTitle(), wordSequence.getText()
+            ))
+            .collect(Collectors.groupingBy(Document:: getID, Collectors.toList()))
             .values().stream()
-            .map(WordSequenceList -> {
-                Optional<WordSequence> r = WordSequenceList.stream()
-                    .reduce(WordSequence:: appendSequence);
+            .map(documentList -> {
+                Optional<Document> r = documentList.stream()
+                    .reduce((document1, document2) -> new Document(
+                        document1.getID(), document1.getTitle(),
+                        document1.getContent() + "." + document2.getContent()
+                    ));
 
                 if (r.isPresent()) {
                     return r.get();
@@ -206,20 +212,21 @@ public class Corpus extends Observable implements Iterable<WordSequence> {
                 }
             })
             .filter(wordSequence -> wordSequence != null)
-            .map(wordSequence -> new Document(wordSequence.getDocumentID(),
-                wordSequence.getDocumentTitle(), wordSequence.getText()
-            ))
             .collect(Collectors.toList());
     }
 
-    public String getText(){
+    public String getText() {
         StringBuilder stringBuilder = new StringBuilder();
 
         for(WordSequence wordSequence : wordSequenceList_){
-            stringBuilder.append(wordSequence.getText()).append("\n");
+            stringBuilder.append(wordSequence.getText()).append(".");
         }
 
         return stringBuilder.toString();
+    }
+
+    public String getPrettyText(){
+        return getText().replaceAll("\\.", ".\n");
     }
 
     public boolean contains(WordSequence wordSequence){
