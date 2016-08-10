@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -32,21 +33,126 @@ import java.util.stream.Collectors;
 
 
 public class DataBase {
-    static{
-        configuration_ = Configuration.getInstance();
+    private DataBase () throws IOException {
+        configuration_ = Configuration.create();
         corpusIndex_ = org.pasr.database.corpus.Index.getInstance();
         arcticIndex_ = org.pasr.database.arctic.Index.getInstance();
         audioIndex_ = org.pasr.database.audio.Index.getInstance();
     }
 
-    private DataBase () {}
+    public static void create() throws IOException {
+        if(instance_ == null) {
+            instance_ = new DataBase();
+        }
+    }
 
     public List<org.pasr.database.corpus.Index.Entry> getCorpusEntryList (){
         return corpusIndex_;
     }
 
+    public int getNumberOfCorpora(){
+        return corpusIndex_.size();
+    }
+
     public List<org.pasr.database.audio.Index.Entry> getAudioEntryList() {
         return audioIndex_;
+    }
+
+    public Corpus getCorpusByID(int corpusID){
+        if(! corpusIndex_.containsID(corpusID)){
+            return null;
+        }
+
+        Corpus corpus = null;
+
+        try {
+            corpus = loadCorpusFromDirectory(
+                new File(configuration_.getCorpusDirectoryPath(), String.valueOf(corpusID))
+            );
+
+            corpus.setID(corpusID);
+        } catch (FileNotFoundException e) {
+            // TODO
+            e.printStackTrace();
+        }
+
+        return corpus;
+    }
+
+    private Corpus loadCorpusFromDirectory (File directory) throws FileNotFoundException {
+        Map<Long, String> documentTitleMap = new HashMap<>();
+
+        Scanner documentTitleScanner = new Scanner(new File(directory, "document_titles.txt"));
+        while(documentTitleScanner.hasNextLine()){
+            Matcher matcher = Pattern.compile("([0-9]+) (.+)")
+                .matcher(documentTitleScanner.nextLine());
+
+            if(matcher.matches()){
+                documentTitleMap.put(Long.parseLong(matcher.group(1)), matcher.group(2));
+            }
+        }
+        documentTitleScanner.close();
+
+        ArrayList<WordSequence> sentences = new ArrayList<>();
+
+        Pattern sentencePattern = Pattern.compile("<s> (.*) </s>");
+
+        Scanner sentencesScanner = new Scanner(new File(directory, "sentences.txt"));
+        Scanner documentIDSScanner = new Scanner(new File(directory, "document_ids.txt"));
+
+        while(sentencesScanner.hasNextLine()){
+            Matcher matcher = sentencePattern.matcher(sentencesScanner.nextLine());
+
+            if(matcher.find()){
+                long documentID;
+                if(documentIDSScanner.hasNextLine()){
+                    documentID = Long.parseLong(documentIDSScanner.nextLine());
+                }
+                else{
+                    documentID = -1;
+                }
+
+                if(documentTitleMap.containsKey(documentID)) {
+                    sentences.add(new WordSequence(
+                        matcher.group(1), documentID, documentTitleMap.get(documentID)
+                    ));
+                }
+                else {
+                    sentences.add(new WordSequence(matcher.group(1), documentID, ""));
+                }
+            }
+        }
+        sentencesScanner.close();
+        documentIDSScanner.close();
+
+        Corpus corpus = new Corpus(null);
+        corpus.setWordSequences(sentences);
+
+        return corpus;
+    }
+
+    public String getDictionaryPathByID(int id){
+        return configuration_.getCorpusDirectoryPath() + String.valueOf(id) + "/dictionary.dict";
+    }
+
+    public String getLanguageModelPathByID(int id){
+        return configuration_.getCorpusDirectoryPath() + String.valueOf(id) + "/language_model.lm";
+    }
+
+    public List<String> getUnUsedArcticSentences(int count){
+        List<String> sentences = arcticIndex_.stream()
+            .filter(entry -> !entry.isUsed())
+            .map(org.pasr.database.arctic.Index.Entry :: getSentence)
+            .collect(Collectors.toList());
+
+        Collections.shuffle(sentences);
+
+        if(count < 0 || count > sentences.size()){
+            return sentences;
+        }
+        else{
+            return sentences.subList(0, count);
+        }
     }
 
     public int newCorpusEntry (Corpus corpus, Dictionary dictionary){
@@ -147,113 +253,6 @@ public class DataBase {
         unknownWordPrintWriter.close();
     }
 
-    public int getNumberOfCorpora(){
-        return corpusIndex_.size();
-    }
-
-    public Corpus getCorpusByID(int corpusID){
-        if(! corpusIndex_.containsID(corpusID)){
-            return null;
-        }
-
-        Corpus corpus = null;
-
-        try {
-            corpus = loadCorpusFromDirectory(
-                new File(configuration_.getCorpusDirectoryPath(), String.valueOf(corpusID))
-            );
-
-            corpus.setID(corpusID);
-        } catch (FileNotFoundException e) {
-            // TODO
-            e.printStackTrace();
-        }
-
-        return corpus;
-    }
-
-    private Corpus loadCorpusFromDirectory (File directory) throws FileNotFoundException {
-        Map<Long, String> documentTitleMap = new HashMap<>();
-
-        Scanner documentTitleScanner = new Scanner(new File(directory, "document_titles.txt"));
-        while(documentTitleScanner.hasNextLine()){
-            Matcher matcher = Pattern.compile("([0-9]+) (.+)")
-                .matcher(documentTitleScanner.nextLine());
-
-            if(matcher.matches()){
-                documentTitleMap.put(Long.parseLong(matcher.group(1)), matcher.group(2));
-            }
-        }
-        documentTitleScanner.close();
-
-        ArrayList<WordSequence> sentences = new ArrayList<>();
-
-        Pattern sentencePattern = Pattern.compile("<s> (.*) </s>");
-
-        Scanner sentencesScanner = new Scanner(new File(directory, "sentences.txt"));
-        Scanner documentIDSScanner = new Scanner(new File(directory, "document_ids.txt"));
-
-        while(sentencesScanner.hasNextLine()){
-            Matcher matcher = sentencePattern.matcher(sentencesScanner.nextLine());
-
-            if(matcher.find()){
-                long documentID;
-                if(documentIDSScanner.hasNextLine()){
-                    documentID = Long.parseLong(documentIDSScanner.nextLine());
-                }
-                else{
-                    documentID = -1;
-                }
-
-                if(documentTitleMap.containsKey(documentID)) {
-                    sentences.add(new WordSequence(
-                        matcher.group(1), documentID, documentTitleMap.get(documentID)
-                    ));
-                }
-                else {
-                    sentences.add(new WordSequence(matcher.group(1), documentID, ""));
-                }
-            }
-        }
-        sentencesScanner.close();
-        documentIDSScanner.close();
-
-        Corpus corpus = new Corpus(null);
-        corpus.setWordSequences(sentences);
-
-        return corpus;
-    }
-
-    public String getDictionaryPathByID(int id){
-        return configuration_.getCorpusDirectoryPath() + String.valueOf(id) + "/dictionary.dict";
-    }
-
-    public String getLanguageModelPathByID(int id){
-        return configuration_.getCorpusDirectoryPath() + String.valueOf(id) + "/language_model.lm";
-    }
-
-    public List<String> getUnUsedArcticSentences(int count){
-        List<String> sentences = arcticIndex_.stream()
-            .filter(entry -> !entry.isUsed())
-            .map(org.pasr.database.arctic.Index.Entry :: getSentence)
-            .collect(Collectors.toList());
-
-        Collections.shuffle(sentences);
-
-        if(count < 0 || count > sentences.size()){
-            return sentences;
-        }
-        else{
-            return sentences.subList(0, count);
-        }
-    }
-
-    public void setArcticSentenceAsUsed(String sentence){
-        arcticIndex_.stream()
-            .filter(entry -> entry.getSentence().equals(sentence))
-            .forEach(entry -> entry.setUsed(true));
-    }
-
     public void newAudioEntry(byte[] audioData, String sentence, int corpusID){
         int newEntryID = audioIndex_.size() + 1;
 
@@ -290,26 +289,41 @@ public class DataBase {
         }
     }
 
+    public void setArcticSentenceAsUsed(String sentence){
+        arcticIndex_.stream()
+            .filter(entry -> entry.getSentence().equals(sentence))
+            .forEach(entry -> entry.setUsed(true));
+    }
+
     public void close(){
         try {
             corpusIndex_.save();
         } catch (FileNotFoundException e) {
-            // TODO could not save database
-            e.printStackTrace();
+            logger_.log(Level.SEVERE, "Could not save to " + configuration_.getCorpusIndexPath() +
+                "\nThe following information need to be copied in the above file:\n\n" +
+                corpusIndex_.toJson() + "\n\n" +
+                "You should check your permissions on this file.\n" +
+                e.getMessage());
         }
 
         try {
             arcticIndex_.save();
         } catch (FileNotFoundException e) {
-            // TODO could not save database
-            e.printStackTrace();
+            logger_.log(Level.SEVERE, "Could not save to " + configuration_.getArcticIndexPath() +
+                "\nThe following information need to be copied in the above file:\n\n" +
+                arcticIndex_.toJson() + "\n\n" +
+                "You should check your permissions on this file.\n" +
+                e.getMessage());
         }
 
         try {
             audioIndex_.save();
         } catch (FileNotFoundException e) {
-            // TODO could not save database
-            e.printStackTrace();
+            logger_.log(Level.SEVERE, "Could not save to " + configuration_.getAudioIndexPath() +
+                "\nThe following information need to be copied in the above file:\n\n" +
+                audioIndex_.toJson() + "\n\n" +
+                "You should check your permissions on this file.\n" +
+                e.getMessage());
         }
     }
 
@@ -317,13 +331,13 @@ public class DataBase {
         return instance_;
     }
 
-    private static final Configuration configuration_;
-    private static final org.pasr.database.corpus.Index corpusIndex_;
-    private static final org.pasr.database.arctic.Index arcticIndex_;
-    private static final org.pasr.database.audio.Index audioIndex_;
+    private final Configuration configuration_;
+    private final org.pasr.database.corpus.Index corpusIndex_;
+    private final org.pasr.database.arctic.Index arcticIndex_;
+    private final org.pasr.database.audio.Index audioIndex_;
 
-    private static DataBase instance_ = new DataBase();
+    private static DataBase instance_;
 
-    private static final Logger logger_ = Logger.getLogger(DataBase.class.getName());
+    private final Logger logger_ = Logger.getLogger(DataBase.class.getName());
 
 }

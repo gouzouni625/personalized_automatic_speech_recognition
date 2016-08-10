@@ -3,19 +3,31 @@ package org.pasr.database;
 
 import com.google.gson.Gson;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 
 import static org.pasr.utilities.Utilities.getResourceStream;
 
 
 public class Configuration {
-    static{
-        instance_ = new Gson().fromJson(new InputStreamReader(getResourceStream(
-            "/database/default_configuration.json"
-        )), Configuration.class);
-    }
+    private Configuration (){}
 
-    private Configuration () {}
+    public static Configuration create() throws IOException {
+        if(instance_ == null) {
+            InputStream inputStream = getResourceStream("/database/default_configuration.json");
+
+            if(inputStream == null){
+                throw new IOException("Could not find configuration file");
+            }
+
+            instance_ = new Gson().fromJson(
+                new InputStreamReader(inputStream), Configuration.class
+            );
+        }
+
+        return instance_;
+    }
 
     public String getCorpusDirectoryPath(){
         return corpusDirectoryPath;

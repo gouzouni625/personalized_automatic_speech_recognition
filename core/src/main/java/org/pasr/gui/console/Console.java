@@ -90,7 +90,9 @@ public class Console extends Stage implements Runnable {
     }
 
     public static Console create(Window owner){
-        instance_ = new Console(owner);
+        if(instance_ == null) {
+            instance_ = new Console(owner);
+        }
 
         return instance_;
     }

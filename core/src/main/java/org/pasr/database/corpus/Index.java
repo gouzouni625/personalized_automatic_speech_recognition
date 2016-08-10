@@ -3,6 +3,9 @@ package org.pasr.database.corpus;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonSyntaxException;
+import com.google.gson.stream.MalformedJsonException;
 import org.pasr.database.Configuration;
 
 import java.io.FileInputStream;
@@ -12,17 +15,25 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 public class Index extends ArrayList<Index.Entry>{
+    private static final Logger logger_ = Logger.getLogger(Index.class.getName());
+
     static{
+        Index instance;
         try {
-            instance_ = new Gson().fromJson(new InputStreamReader(new FileInputStream(
+            instance = new Gson().fromJson(new InputStreamReader(new FileInputStream(
                 Configuration.getInstance().getCorpusIndexPath()
             )), Index.class);
-        } catch (FileNotFoundException e) {
-            instance_ = new Index();
+        } catch (FileNotFoundException | JsonIOException | JsonSyntaxException e) {
+            logger_.warning("Could not load Index.");
+            instance = new Index();
         }
+
+        instance_ = instance == null ? new Index() : instance;
     }
 
     private Index(){}
@@ -60,12 +71,16 @@ public class Index extends ArrayList<Index.Entry>{
         return false;
     }
 
+    public String toJson(){
+        return serializer_.toJson(this);
+    }
+
     public void save () throws FileNotFoundException {
         PrintWriter printWriter = new PrintWriter(new OutputStreamWriter(new FileOutputStream(
             Configuration.getInstance().getCorpusIndexPath()
         )));
 
-        new GsonBuilder().setPrettyPrinting().create().toJson(this, printWriter);
+        serializer_.toJson(this, printWriter);
 
         printWriter.close();
     }
@@ -75,5 +90,7 @@ public class Index extends ArrayList<Index.Entry>{
     }
 
     private static Index instance_;
+
+    private static Gson serializer_ = new GsonBuilder().setPrettyPrinting().create();
 
 }
