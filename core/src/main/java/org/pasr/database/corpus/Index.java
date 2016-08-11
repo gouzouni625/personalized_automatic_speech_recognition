@@ -5,7 +5,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
-import com.google.gson.stream.MalformedJsonException;
 import org.pasr.database.Configuration;
 
 import java.io.FileInputStream;
@@ -17,8 +16,8 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Optional;
 import java.util.function.BinaryOperator;
-import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 
 public class Index extends ArrayList<Index.Entry>{
@@ -76,7 +75,7 @@ public class Index extends ArrayList<Index.Entry>{
         }
     }
 
-    public boolean containsID(int id){
+    public boolean containsId (int id){
         for(Entry entry : this){
             if(entry.getId() == id){
                 return true;
@@ -88,6 +87,12 @@ public class Index extends ArrayList<Index.Entry>{
 
     public String toJson(){
         return serializer_.toJson(this);
+    }
+
+    public void removeById(int id){
+        removeAll(stream()
+            .filter(entry -> entry.getId() == id)
+            .collect(Collectors.toList()));
     }
 
     public void save () throws FileNotFoundException {

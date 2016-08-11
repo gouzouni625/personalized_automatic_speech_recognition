@@ -1,7 +1,9 @@
 package org.pasr.gui.corpus;
 
 
+import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
+import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.ListView;
@@ -9,6 +11,7 @@ import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextArea;
 import org.pasr.database.DataBase;
 import org.pasr.database.corpus.Index;
+import org.pasr.gui.console.Console;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -27,18 +30,41 @@ public class CorpusView extends SplitPane {
 
     @FXML
     public void initialize(){
-        entryListView.getItems().addAll(DataBase.getInstance().getCorpusEntryList());
+        fillEntryListView();
         entryListView.getSelectionModel().selectedItemProperty().addListener(
             (observable, oldValue, newValue) -> {
                 if(newValue == null){
-                    textArea.setText("");
+                    textArea.clear();
                 }
                 else{
-                    textArea.setText(
-                        DataBase.getInstance().getCorpusByID(newValue.getId()).getPrettyText()
-                    );
+
+                    try {
+                        textArea.setText(DataBase.getInstance()
+                            .getCorpusByID(newValue.getId()).getPrettyText());
+                    } catch (IOException e) {
+                        Console.getInstance().postMessage("Could not load corpus with id: " +
+                            newValue + ".");
+
+                        textArea.clear();
+                        // Run later to avoid modified the list view from inside the listener
+                        Platform.runLater(this :: fillEntryListView);
+                    } catch (IllegalArgumentException e) {
+                        Console.getInstance().postMessage("The selected corpus does not exist.");
+
+                        textArea.clear();
+                        // Run later to avoid modified the list view from inside the listener
+                        Platform.runLater(this :: fillEntryListView);
+                    }
                 }
         });
+    }
+
+    private void fillEntryListView(){
+        entryListView.setItems(
+            FXCollections.observableArrayList(
+                DataBase.getInstance().getCorpusEntryList()
+            )
+        );
     }
 
     public int getSelectedCorpusID(){

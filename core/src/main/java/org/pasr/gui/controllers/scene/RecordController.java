@@ -35,7 +35,12 @@ public class RecordController extends Controller{
     public RecordController(Controller.API api){
         super(api);
 
-        corpus_ = DataBase.getInstance().getCorpusByID(((API) api_).getCorpusID());
+        try {
+            corpus_ = DataBase.getInstance().getCorpusByID(((API) api_).getCorpusID());
+        } catch (IOException e) {
+            // TODO
+            e.printStackTrace();
+        }
         corpusSentences_ = FXCollections.observableArrayList();
         fillCorpusSentences();
 

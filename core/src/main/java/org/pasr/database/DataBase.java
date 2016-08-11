@@ -63,58 +63,78 @@ public class DataBase {
         return audioIndex_;
     }
 
-    public Corpus getCorpusByID(int corpusID){
-        if(! corpusIndex_.containsID(corpusID)){
-            return null;
+    public Corpus getCorpusByID(int corpusId) throws IOException {
+        if(! corpusIndex_.containsId(corpusId)){
+            throw new IllegalArgumentException("Id does not exist.");
         }
 
-        Corpus corpus = null;
-
+        Corpus corpus;
         try {
             corpus = loadCorpusFromDirectory(
-                new File(configuration_.getCorpusDirectoryPath(), String.valueOf(corpusID))
+                new File(configuration_.getCorpusDirectoryPath(), String.valueOf(corpusId))
             );
 
-            corpus.setID(corpusID);
-        } catch (FileNotFoundException e) {
-            // TODO
-            e.printStackTrace();
-        }
+            corpus.setID(corpusId);
 
-        return corpus;
+            return corpus;
+        } catch (FileNotFoundException e) {
+            corpusIndex_.removeById(corpusId);
+
+            throw new FileNotFoundException("Error while loading corpus with id: " + corpusId +
+                "\nCould not find file: " + e.getMessage());
+        } catch (IOException e) {
+            corpusIndex_.removeById(corpusId);
+
+            throw new IOException("Error while loading corpus with id: " + corpusId + "\n" +
+                "Exception Message: " + e.getMessage());
+        }
     }
 
-    private Corpus loadCorpusFromDirectory (File directory) throws FileNotFoundException {
+    private Corpus loadCorpusFromDirectory (File directory) throws IOException {
         Map<Long, String> documentTitleMap = new HashMap<>();
 
-        Scanner documentTitleScanner = new Scanner(new File(directory, "document_titles.txt"));
-        while(documentTitleScanner.hasNextLine()){
-            Matcher matcher = Pattern.compile("([0-9]+) (.+)")
-                .matcher(documentTitleScanner.nextLine());
+        try {
+            Scanner documentTitleScanner = new Scanner(new File(directory, "document_titles.txt"));
+            while(documentTitleScanner.hasNextLine()){
+                Matcher matcher = Pattern.compile("([0-9]+) (.+)")
+                    .matcher(documentTitleScanner.nextLine());
 
-            if(matcher.matches()){
-                documentTitleMap.put(Long.parseLong(matcher.group(1)), matcher.group(2));
+                if(matcher.matches()){
+                    documentTitleMap.put(Long.parseLong(matcher.group(1)), matcher.group(2));
+                }
             }
+            documentTitleScanner.close();
+        } catch (FileNotFoundException e) {
+            throw new FileNotFoundException("document_titles.txt");
         }
-        documentTitleScanner.close();
 
         ArrayList<WordSequence> sentences = new ArrayList<>();
 
         Pattern sentencePattern = Pattern.compile("<s> (.*) </s>");
 
-        Scanner sentencesScanner = new Scanner(new File(directory, "sentences.txt"));
-        Scanner documentIDSScanner = new Scanner(new File(directory, "document_ids.txt"));
+        Scanner sentencesScanner;
+        try {
+            sentencesScanner = new Scanner(new File(directory, "sentences.txt"));
+        } catch (FileNotFoundException e) {
+            throw new FileNotFoundException("sentences.txt");
+        }
+        Scanner documentIDSScanner;
+        try {
+            documentIDSScanner = new Scanner(new File(directory, "document_ids.txt"));
+        } catch (FileNotFoundException e) {
+            throw new FileNotFoundException("document_ids.txt");
+        }
 
         while(sentencesScanner.hasNextLine()){
             Matcher matcher = sentencePattern.matcher(sentencesScanner.nextLine());
 
-            if(matcher.find()){
+            if(matcher.matches()){
                 long documentID;
                 if(documentIDSScanner.hasNextLine()){
                     documentID = Long.parseLong(documentIDSScanner.nextLine());
                 }
                 else{
-                    documentID = -1;
+                    throw new IOException("Malformed file: document_ids.txt");
                 }
 
                 if(documentTitleMap.containsKey(documentID)) {
@@ -123,10 +143,11 @@ public class DataBase {
                     ));
                 }
                 else {
-                    sentences.add(new WordSequence(matcher.group(1), documentID, ""));
+                    throw new IOException("Malformed file: document_titles.txt");
                 }
             }
         }
+
         sentencesScanner.close();
         documentIDSScanner.close();
 
