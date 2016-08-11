@@ -3,6 +3,7 @@ package org.pasr.gui.dialog;
 
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.stage.Modality;
 import org.pasr.gui.controllers.dialog.CorpusNameController;
 
 import java.io.IOException;
@@ -25,7 +26,9 @@ public class CorpusNameDialog extends Dialog<String> {
         CorpusNameController controller = new CorpusNameController(this);
         loader.setController(controller);
 
-        stage_.setScene(new Scene(loader.load()));
+        initModality(Modality.APPLICATION_MODAL);
+
+        setScene(new Scene(loader.load()));
     }
 
 }
