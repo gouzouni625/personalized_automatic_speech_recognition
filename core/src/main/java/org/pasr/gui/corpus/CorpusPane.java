@@ -14,18 +14,34 @@ import org.pasr.database.corpus.Index;
 import org.pasr.gui.console.Console;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.Optional;
+import java.util.logging.Logger;
 
 import static org.pasr.utilities.Utilities.getResource;
 
 
-public class CorpusView extends SplitPane {
-    public CorpusView () throws IOException {
-        FXMLLoader loader = new FXMLLoader(getResource("/fxml/corpus/view.fxml"));
-        loader.setRoot(this);
-        loader.setController(this);
+public class CorpusPane extends SplitPane {
+    public CorpusPane () {
+        try {
+            URL location = getResource("/fxml/corpus/pane.fxml");
 
-        loader.load();
+            if (location == null) {
+                throw new IOException("getResource(\"/fxml/corpus/pane.fxml\") returned null");
+            }
+
+            FXMLLoader loader = new FXMLLoader(location);
+            loader.setRoot(this);
+            loader.setController(this);
+
+            loader.load();
+        } catch (IOException e) {
+            logger_.severe("Could not load resource:/fxml/corpus/pane.fxml\n" +
+                "The file might be missing or be corrupted.\n" +
+                "Application will terminate.\n" +
+                "Exception Message: " + e.getMessage());
+            Platform.exit();
+        }
     }
 
     @FXML
@@ -99,5 +115,7 @@ public class CorpusView extends SplitPane {
 
     @FXML
     private TextArea textArea;
+
+    private final Logger logger_ = Logger.getLogger(getClass().getName());
 
 }

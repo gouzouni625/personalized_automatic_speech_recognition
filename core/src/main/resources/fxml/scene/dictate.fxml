@@ -8,10 +8,10 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.text.Font?>
 
-<?import org.pasr.gui.corpus.CorpusView?>
+<?import org.pasr.gui.corpus.CorpusPane?>
 
 <HBox prefHeight="800.0" prefWidth="1280.0" xmlns:fx="http://javafx.com/fxml">
-    <CorpusView fx:id="corpusView" orientation="VERTICAL" prefHeight="800.0" prefWidth="700.0"/>
+    <CorpusPane fx:id="CorpusPane" orientation="VERTICAL" prefHeight="800.0" prefWidth="700.0"/>
     <AnchorPane prefHeight="800.0" prefWidth="580.0">
         <AnchorPane fx:id="dictatePane" layoutX="10.0" layoutY="14.0" prefHeight="800.0"
                     prefWidth="580.0" AnchorPane.bottomAnchor="46.0" AnchorPane.leftAnchor="10.0"

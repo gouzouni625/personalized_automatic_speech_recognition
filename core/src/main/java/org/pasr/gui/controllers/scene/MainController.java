@@ -10,7 +10,7 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import org.pasr.gui.console.Console;
-import org.pasr.gui.corpus.CorpusView;
+import org.pasr.gui.corpus.CorpusPane;
 
 
 public class MainController extends Controller{
@@ -20,7 +20,7 @@ public class MainController extends Controller{
 
     @FXML
     public void initialize() {
-        corpusView.addSelectionListener((observable, oldValue, newValue) -> {
+        corpusPane.addSelectionListener((observable, oldValue, newValue) -> {
             if(newValue == null){
                 dictateButtonAccessHandling(false);
             }
@@ -84,7 +84,7 @@ public class MainController extends Controller{
     private void dictateButtonOnAction (ActionEvent actionEvent){
         // There is no need to check if the provided id is valid since dictateButton can be fired
         // only when a valid corpus is chosen
-        ((API) api_).dictate(corpusView.getSelectedCorpusID());
+        ((API) api_).dictate(corpusPane.getSelectedCorpusID());
     }
 
     public interface API extends Controller.API{
@@ -95,7 +95,7 @@ public class MainController extends Controller{
     }
 
     @FXML
-    private CorpusView corpusView;
+    private CorpusPane corpusPane;
 
     @FXML
     private TextField emailAddressTextField;

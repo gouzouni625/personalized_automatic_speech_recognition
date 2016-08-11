@@ -7,11 +7,11 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
 
-<?import org.pasr.gui.corpus.CorpusView?>
+<?import org.pasr.gui.corpus.CorpusPane?>
 
 <SplitPane dividerPositions="0.45" prefHeight="800.0" prefWidth="1280.0"
            xmlns:fx="http://javafx.com/fxml">
-    <CorpusView fx:id="corpusView" orientation="VERTICAL" prefHeight="800.0" prefWidth="576.0"/>
+    <CorpusPane fx:id="corpusPane" orientation="VERTICAL" prefHeight="800.0" prefWidth="576.0"/>
     <AnchorPane>
         <TextField fx:id="emailAddressTextField" layoutX="250.0" prefHeight="30.0" prefWidth="180.0"
                    promptText="E-mail address" AnchorPane.topAnchor="160.0"/>

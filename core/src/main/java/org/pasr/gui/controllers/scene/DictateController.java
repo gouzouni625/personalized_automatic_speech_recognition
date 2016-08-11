@@ -13,7 +13,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import org.pasr.asr.recognizers.StreamSpeechRecognizer;
 import org.pasr.database.DataBase;
-import org.pasr.gui.corpus.CorpusView;
+import org.pasr.gui.corpus.CorpusPane;
 
 import java.io.IOException;
 
@@ -44,7 +44,7 @@ public class DictateController extends Controller{
 
     @FXML
     public void initialize(){
-        corpusView.selectCorpus(((API) api_).getCorpusID());
+        corpusPane.selectCorpus(((API) api_).getCorpusID());
 
         dictateToggleButton.setGraphic(dictateToggleButtonDefaultGraphic);
         dictateToggleButton.selectedProperty().addListener((observable, oldValue, newValue) -> {
@@ -95,7 +95,7 @@ public class DictateController extends Controller{
     }
 
     @FXML
-    private CorpusView corpusView;
+    private CorpusPane corpusPane;
 
     @FXML
     private AnchorPane dictatePane;
