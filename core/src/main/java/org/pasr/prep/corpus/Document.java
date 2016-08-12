@@ -13,7 +13,7 @@ public class Document implements Serializable {
         content_ = content;
     }
 
-    public long getID(){
+    public long getId (){
         return id_;
     }
 

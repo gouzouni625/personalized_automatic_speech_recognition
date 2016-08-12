@@ -2,7 +2,6 @@ package org.pasr.gui.lda;
 
 
 import javafx.event.ActionEvent;
-import javafx.event.Event;
 import javafx.scene.Parent;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.input.DataFormat;
@@ -28,7 +27,7 @@ public class Interactable extends ToggleButton {
         document_ = document;
 
         String text = "subject: " + document.getTitle() + "\n" +
-            "date: " + new Date(document.getID());
+            "date: " + new Date(document.getId());
 
         setText(text);
         setPrefHeight(50);
@@ -106,6 +105,10 @@ public class Interactable extends ToggleButton {
             }
         }
         dragEvent.consume();
+    }
+
+    public Document getDocument(){
+        return document_;
     }
 
     private final LDAInteractableDialog dialog_;

@@ -3,9 +3,11 @@ package org.pasr.gui.controllers.dialog;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.layout.VBox;
 import org.apache.commons.collections4.MultiValuedMap;
+import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.pasr.database.DataBase;
 import org.pasr.gui.console.Console;
 import org.pasr.gui.dialog.LDAInteractDialog;
@@ -62,6 +64,26 @@ public class LDAInteractController extends Controller<MultiValuedMap<String, Lis
     }
 
     private void buttonOnAction(ActionEvent actionEvent){
+        MultiValuedMap<String, List<Long>> map = new ArrayListValuedHashMap<>();
+
+        for(Node interactPaneNode : vBox.getChildren()){
+            InteractPane interactPane = (InteractPane) interactPaneNode;
+
+            String corpusName = interactPane.getName();
+
+            ArrayList<Long> documentIds = new ArrayList<>();
+            for(Node interactableNode : interactPane.getDocumentNodeList()){
+                Interactable interactable = (Interactable) interactableNode;
+
+                documentIds.add(interactable.getDocument().getId());
+            }
+
+            if(!documentIds.isEmpty()) {
+                map.put(corpusName, documentIds);
+            }
+        }
+
+        dialog_.setValue(map);
     }
 
     public void terminate(){

@@ -74,7 +74,7 @@ public class Corpus extends Observable implements Iterable<WordSequence> {
 
             String processedContent = processNumbers(documentList_.get(i).getContent());
             wordSequenceList_.addAll(createWordSequences(
-                processedContent, documentList_.get(i).getID(), documentList_.get(i).getTitle())
+                processedContent, documentList_.get(i).getId(), documentList_.get(i).getTitle())
             );
 
             setChanged();
@@ -195,12 +195,12 @@ public class Corpus extends Observable implements Iterable<WordSequence> {
             .map(wordSequence -> new Document(wordSequence.getDocumentID(),
                 wordSequence.getDocumentTitle(), wordSequence.getText()
             ))
-            .collect(Collectors.groupingBy(Document:: getID, Collectors.toList()))
+            .collect(Collectors.groupingBy(Document:: getId, Collectors.toList()))
             .values().stream()
             .map(documentList -> {
                 Optional<Document> r = documentList.stream()
                     .reduce((document1, document2) -> new Document(
-                        document1.getID(), document1.getTitle(),
+                        document1.getId(), document1.getTitle(),
                         document1.getContent() + ".\n" + document2.getContent()
                     ));
 

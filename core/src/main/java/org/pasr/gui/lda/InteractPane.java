@@ -4,6 +4,7 @@ package org.pasr.gui.lda;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.input.DragEvent;
@@ -14,6 +15,7 @@ import org.pasr.prep.corpus.Document;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.List;
 import java.util.logging.Logger;
 
 import static org.pasr.utilities.Utilities.getResource;
@@ -85,6 +87,21 @@ public class InteractPane extends AnchorPane {
 
     public void addChild(Interactable interactable){
         hBox.getChildren().add(interactable);
+    }
+
+    public List<Node> getDocumentNodeList(){
+        return hBox.getChildren();
+    }
+
+    public String getName(){
+        String textFieldText = textField.getText();
+
+        if(textFieldText.isEmpty()){
+            return defaultName_;
+        }
+        else{
+            return textFieldText;
+        }
     }
 
     @FXML
