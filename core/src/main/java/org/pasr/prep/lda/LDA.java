@@ -142,16 +142,10 @@ public class LDA extends Observable {
         return topWordsList;
     }
 
-    double[][] getDocumentTopicProbabilities(){
+    private double[][] getDocumentTopicProbabilities() throws IOException {
         PipedInputStream pipedInputStream = new PipedInputStream();
         PipedOutputStream pipedOutputStream;
-        try {
-            pipedOutputStream = new PipedOutputStream(pipedInputStream);
-        } catch (IOException e) {
-            // TODO Act appropriately
-            e.printStackTrace();
-            return null;
-        }
+        pipedOutputStream = new PipedOutputStream(pipedInputStream);
 
         // Use another thread to write data to the piped output stream so that this thread doesn't
         // deadlock (See https://docs.oracle.com/javase/8/docs/api/java/io/PipedInputStream.html)
@@ -186,7 +180,7 @@ public class LDA extends Observable {
         return probabilities;
     }
 
-    public int[] getDocumentTopic(){
+    public int[] getDocumentTopic() throws IOException {
         double[][] documentTopicProbabilities = getDocumentTopicProbabilities();
 
         int numberOfDocuments = instances_.size();
@@ -202,12 +196,7 @@ public class LDA extends Observable {
     public void start() throws IOException {
         hasRun_ = false;
 
-        if(lda_ == null) {
-            lda_ = new ParallelTopicModel(numberOfTopics_);
-        }
-        else{
-            lda_.setNumTopics(numberOfTopics_);
-        }
+        lda_ = new ParallelTopicModel(numberOfTopics_);
         lda_.setNumIterations(numberOfIterations_);
         lda_.setNumThreads(numberOfThreads_);
         lda_.addInstances(instances_);
