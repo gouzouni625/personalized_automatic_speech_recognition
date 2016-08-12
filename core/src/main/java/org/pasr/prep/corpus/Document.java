@@ -1,7 +1,12 @@
 package org.pasr.prep.corpus;
 
 
-public class Document {
+import javafx.scene.input.DataFormat;
+
+import java.io.Serializable;
+
+
+public class Document implements Serializable {
     public Document(long id, String title, String content){
         id_ = id;
         title_ = title;
@@ -28,5 +33,8 @@ public class Document {
     private final long id_;
     private final String title_;
     private final String content_;
+
+    // Used for drag and drop
+    public static final DataFormat DATA_FORMAT = new DataFormat("org.pasr.prep.corpus.Document");
 
 }

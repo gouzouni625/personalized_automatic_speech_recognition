@@ -2,18 +2,30 @@ package org.pasr.gui.lda;
 
 
 import javafx.event.ActionEvent;
+import javafx.scene.Parent;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.input.DataFormat;
+import javafx.scene.input.DragEvent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.input.TransferMode;
+import javafx.scene.layout.Pane;
 import org.pasr.gui.console.Console;
 import org.pasr.gui.dialog.LDAInteractableDialog;
 import org.pasr.prep.corpus.Document;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.Hashtable;
+import java.util.Map;
 import java.util.logging.Logger;
 
 
 public class Interactable extends ToggleButton {
     public Interactable (Document document){
+        document_ = document;
+
         String text = "subject: " + document.getTitle() + "\n" +
             "date: " + new Date(document.getID());
 
@@ -39,6 +51,9 @@ public class Interactable extends ToggleButton {
         }
 
         setOnAction(this :: onAction);
+
+        setOnDragDetected(this :: onDragDetected);
+        setOnDragDone(this :: onDragDone);
     }
 
     private void onAction(ActionEvent actionEvent){
@@ -52,7 +67,41 @@ public class Interactable extends ToggleButton {
         }
     }
 
+    private void onDragDetected(MouseEvent mouseEvent){
+        Dragboard dragboard;
+
+        if(mouseEvent.getButton() == MouseButton.PRIMARY) {
+            dragboard = startDragAndDrop(TransferMode.MOVE);
+        } else if(mouseEvent.getButton() == MouseButton.SECONDARY){
+            dragboard = startDragAndDrop(TransferMode.COPY);
+        }
+        else{
+            return;
+        }
+
+        // Could not serialize Interactable itself, so will serialize the document
+        Map<DataFormat, Object> content = new Hashtable<>();
+        content.put(Document.DATA_FORMAT, document_);
+        dragboard.setContent(content);
+
+        mouseEvent.consume();
+    }
+
+    private void onDragDone(DragEvent dragEvent){
+        if(dragEvent.getTransferMode() == TransferMode.MOVE){
+            Parent parent = getParent();
+
+            if (parent != null && parent instanceof Pane) {
+                ((Pane) parent).getChildren().remove(this);
+            }
+        }
+
+        dragEvent.consume();
+    }
+
     private final LDAInteractableDialog dialog_;
+
+    private final Document document_;
 
     private final Logger logger_ = Logger.getLogger(getClass().getName());
 

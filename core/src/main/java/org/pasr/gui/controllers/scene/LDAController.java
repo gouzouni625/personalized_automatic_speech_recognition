@@ -407,7 +407,6 @@ public class LDAController extends Controller {
             progressIndicator_.hideProgress();
 
             getLogger().info("LDAController LDAThread shut down gracefully!");
-            Console.getInstance().postMessage("Hello World");
         }
 
         private void showResults(LDA lda){
