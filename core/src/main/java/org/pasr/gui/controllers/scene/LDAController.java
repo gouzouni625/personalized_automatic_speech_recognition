@@ -192,7 +192,7 @@ public class LDAController extends Controller {
                 List<Long> documentIDs = entry.getValue();
 
                 Corpus corpus = new Corpus(documents.stream()
-                    .filter(document -> documentIDs.contains(document.getID()))
+                    .filter(document -> documentIDs.contains(document.getId()))
                     .collect(Collectors.toList()));
 
                 corpus.setName(entry.getKey());
@@ -258,6 +258,17 @@ public class LDAController extends Controller {
                 "Exception Message: " + e.getMessage());
 
             Platform.exit();
+            return;
+        }
+
+        if(corpusInformation.size() == 0){
+            getLogger().severe("Corpus information is empty");
+
+            Console.getInstance().postMessage(
+                "There has been an error while creating your corpora.\n" +
+                    "Try running LDA algorithm again."
+            );
+
             return;
         }
 
