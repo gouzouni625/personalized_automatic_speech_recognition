@@ -201,7 +201,7 @@ public class Corpus extends Observable implements Iterable<WordSequence> {
                 Optional<Document> r = documentList.stream()
                     .reduce((document1, document2) -> new Document(
                         document1.getID(), document1.getTitle(),
-                        document1.getContent() + "." + document2.getContent()
+                        document1.getContent() + ".\n" + document2.getContent()
                     ));
 
                 if (r.isPresent()) {

@@ -496,7 +496,6 @@ public class LDAController extends Controller {
         chooseButton.setDisable(disable);
         chooseButton.setDisable(disable);
         runButton.setDisable(disable);
-        interactButton.setDisable(disable);
         backButton.setDisable(disable);
         doneButton.setDisable(disable);
     }

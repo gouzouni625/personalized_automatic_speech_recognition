@@ -12,7 +12,7 @@ public class Document {
         return id_;
     }
 
-    String getTitle(){
+    public String getTitle(){
         return title_;
     }
 

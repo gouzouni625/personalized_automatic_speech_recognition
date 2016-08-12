@@ -113,6 +113,10 @@ public class LDA extends Observable {
         });
     }
 
+    public List<Document> getDocuments(){
+        return documents_;
+    }
+
     public int getNumberOfTopics(){
         return numberOfTopics_;
     }
@@ -138,7 +142,7 @@ public class LDA extends Observable {
         return topWordsList;
     }
 
-    public double[][] getDocumentTopicProbabilities(){
+    double[][] getDocumentTopicProbabilities(){
         PipedInputStream pipedInputStream = new PipedInputStream();
         PipedOutputStream pipedOutputStream;
         try {
