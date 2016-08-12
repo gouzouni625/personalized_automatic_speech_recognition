@@ -1,15 +1,19 @@
 package org.pasr.gui.controllers.dialog;
 
 
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.layout.VBox;
 import org.apache.commons.collections4.MultiValuedMap;
+import org.pasr.gui.console.Console;
 import org.pasr.gui.dialog.LDAInteractDialog;
 import org.pasr.gui.lda.InteractPane;
 import org.pasr.gui.lda.Interactable;
 import org.pasr.prep.corpus.Document;
 import org.pasr.prep.lda.LDA;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,17 +37,40 @@ public class LDAInteractController extends Controller<MultiValuedMap<String, Lis
         }
 
         List<Document> documentList = lda_.getDocuments();
-        int[] documentTopicArray = lda_.getDocumentTopic();
+
+        int[] documentTopicArray;
+        try {
+            documentTopicArray = lda_.getDocumentTopic();
+        } catch (IOException e) {
+            Console.getInstance().postMessage("There appears to be a problem with LDA.\n" +
+                "Please, refrain from using it.");
+
+            dialog_.hide();
+            return;
+        }
+
         for(int i = 0, n = documentTopicArray.length;i < n;i++){
             interactPaneList.get(documentTopicArray[i])
                 .addChild(new Interactable(documentList.get(i)));
         }
 
         vBox.getChildren().addAll(interactPaneList);
+
+        button.setOnAction(this :: buttonOnAction);
+    }
+
+    private void buttonOnAction(ActionEvent actionEvent){
+    }
+
+    public void terminate(){
+        button.fire();
     }
 
     @FXML
     private VBox vBox;
+
+    @FXML
+    private Button button;
 
     private final LDA lda_;
 

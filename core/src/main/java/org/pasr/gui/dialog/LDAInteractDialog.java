@@ -37,6 +37,8 @@ public class LDAInteractDialog extends Dialog<MultiValuedMap<String, List<Long>>
         initModality(Modality.APPLICATION_MODAL);
 
         setScene(new Scene(loader.load()));
+
+        setOnCloseRequest(event -> controller.terminate());
     }
 
 }

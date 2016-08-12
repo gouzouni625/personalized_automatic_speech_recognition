@@ -9,7 +9,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.HBox;
 import org.pasr.prep.corpus.Document;
 
 import java.io.IOException;
@@ -56,25 +56,22 @@ public class InteractPane extends AnchorPane {
         setOnDragDropped(this :: onDragDropped);
     }
 
-    private void onDragOver(DragEvent dragEvent){
+    private void onDragOver (DragEvent dragEvent){
         dragEvent.acceptTransferModes(TransferMode.COPY_OR_MOVE);
-
         dragEvent.consume();
     }
 
-    private void onDragEntered(DragEvent dragEvent){
+    private void onDragEntered (DragEvent dragEvent){
         setStyle("-fx-background-color: green;");
-
         dragEvent.consume();
     }
 
-    private void onDragExited(DragEvent dragEvent){
+    private void onDragExited (DragEvent dragEvent){
         setStyle("");
-
         dragEvent.consume();
     }
 
-    private void onDragDropped(DragEvent dragEvent){
+    private void onDragDropped (DragEvent dragEvent){
         addChild(new Interactable(
             (Document) dragEvent.getDragboard().getContent(Document.DATA_FORMAT)
         ));
@@ -84,7 +81,7 @@ public class InteractPane extends AnchorPane {
     }
 
     public void addChild(Interactable interactable){
-        vBox.getChildren().add(interactable);
+        hBox.getChildren().add(interactable);
     }
 
     @FXML
@@ -92,7 +89,7 @@ public class InteractPane extends AnchorPane {
     private String title_;
 
     @FXML
-    private VBox vBox;
+    private HBox hBox;
 
     @FXML
     private TextField textField;

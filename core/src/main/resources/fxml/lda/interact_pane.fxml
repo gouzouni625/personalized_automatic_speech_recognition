@@ -3,16 +3,16 @@
 <?import javafx.scene.layout.AnchorPane?>
 
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.layout.VBox?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.ScrollPane?>
 
+<?import javafx.scene.layout.HBox?>
 <fx:root type="javafx.scene.layout.AnchorPane" xmlns:fx="http://javafx.com/fxml">
     <Label fx:id="label" alignment="CENTER" prefHeight="30.0" AnchorPane.leftAnchor="10.0"
            AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0"/>
     <ScrollPane AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0"
                 AnchorPane.topAnchor="50.0" AnchorPane.bottomAnchor="50.0">
-        <VBox fx:id="vBox" fillWidth="true" spacing="10.0"/>
+        <HBox fx:id="hBox" prefHeight="70" spacing="10.0"/>
     </ScrollPane>
     <TextField fx:id="textField" prefHeight="30.0" promptText="new corpus name"
                AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0"

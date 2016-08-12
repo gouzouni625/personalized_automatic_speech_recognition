@@ -2,6 +2,7 @@ package org.pasr.gui.lda;
 
 
 import javafx.event.ActionEvent;
+import javafx.event.Event;
 import javafx.scene.Parent;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.input.DataFormat;
@@ -30,6 +31,7 @@ public class Interactable extends ToggleButton {
             "date: " + new Date(document.getID());
 
         setText(text);
+        setPrefHeight(50);
 
         LDAInteractableDialog dialog;
         try {
@@ -68,6 +70,12 @@ public class Interactable extends ToggleButton {
     }
 
     private void onDragDetected(MouseEvent mouseEvent){
+        logger_.fine("onDragDetected called");
+
+        if(isSelected()){
+            fire();
+        }
+
         Dragboard dragboard;
 
         if(mouseEvent.getButton() == MouseButton.PRIMARY) {
@@ -88,6 +96,8 @@ public class Interactable extends ToggleButton {
     }
 
     private void onDragDone(DragEvent dragEvent){
+        logger_.fine("onDragDone called");
+
         if(dragEvent.getTransferMode() == TransferMode.MOVE){
             Parent parent = getParent();
 
@@ -95,7 +105,6 @@ public class Interactable extends ToggleButton {
                 ((Pane) parent).getChildren().remove(this);
             }
         }
-
         dragEvent.consume();
     }
 

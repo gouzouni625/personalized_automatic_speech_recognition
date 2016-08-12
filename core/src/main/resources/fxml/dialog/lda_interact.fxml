@@ -1,13 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.VBox?>
 
-<ScrollPane prefHeight="800.0" prefWidth="1280.0" xmlns:fx="http://javafx.com/fxml"
-            vbarPolicy="AS_NEEDED">
-    <AnchorPane prefHeight="780.0" prefWidth="1260.0">
-        <VBox fx:id="vBox" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
-              AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
-    </AnchorPane>
-</ScrollPane>
+<AnchorPane prefHeight="920.0" prefWidth="800.0" xmlns:fx="http://javafx.com/fxml/">
+    <Label alignment="CENTER" prefHeight="100.0" textAlignment="CENTER" wrapText="true"
+           text="Below you can find your e-mails, grouped in topics by the LDA algorithm. You can rearrange the grouping to fit your needs. Drag and drop an e-mail to move in from a group to another. Drag and drop using the right mouse button to copy an e-mail to a group. Add a name for each corpus int the corresponding text field. When you are done, hit the done button. Click on an e-mail to see its contents."
+           AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0"/>
+    <ScrollPane vbarPolicy="AS_NEEDED" AnchorPane.bottomAnchor="50.0" AnchorPane.leftAnchor="10.0"
+                AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="120.0">
+        <VBox fx:id="vBox" maxHeight="Infinity" maxWidth="Infinity" minHeight="-Infinity"
+              minWidth="-Infinity" prefHeight="720.0" prefWidth="760.0"/>
+    </ScrollPane>
+    <Button fx:id="button" prefHeight="30.0" prefWidth="100.0" text="done"
+            AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="350.0"/>
+</AnchorPane>
