@@ -6,6 +6,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.layout.VBox;
 import org.apache.commons.collections4.MultiValuedMap;
+import org.pasr.database.DataBase;
 import org.pasr.gui.console.Console;
 import org.pasr.gui.dialog.LDAInteractDialog;
 import org.pasr.gui.lda.InteractPane;
@@ -32,7 +33,8 @@ public class LDAInteractController extends Controller<MultiValuedMap<String, Lis
         List<InteractPane> interactPaneList = new ArrayList<>();
         for(int i = 0, n = topWords.size();i < n;i++){
             interactPaneList.add(new InteractPane(
-                "topic " + i + ": " + String.join(" ", topWords.get(i))
+                "topic " + i + ": " + String.join(" ", topWords.get(i)),
+                "corpus " + String.valueOf(DataBase.getInstance().getCorpusEntryList().nextId() + i)
             ));
         }
 

@@ -20,8 +20,9 @@ import static org.pasr.utilities.Utilities.getResource;
 
 
 public class InteractPane extends AnchorPane {
-    public InteractPane(String title){
+    public InteractPane(String title, String defaultName){
         title_ = title;
+        defaultName_ = defaultName;
 
         try {
             URL location = getResource("/fxml/lda/interact_pane.fxml");
@@ -49,6 +50,8 @@ public class InteractPane extends AnchorPane {
     @FXML
     public void initialize(){
         label.setText(title_);
+
+        textField.setText(defaultName_);
 
         setOnDragOver(this :: onDragOver);
         setOnDragEntered(this :: onDragEntered);
@@ -93,6 +96,7 @@ public class InteractPane extends AnchorPane {
 
     @FXML
     private TextField textField;
+    private String defaultName_;
 
     private final Logger logger_ = Logger.getLogger(getClass().getName());
 

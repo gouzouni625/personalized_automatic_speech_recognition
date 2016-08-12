@@ -51,7 +51,7 @@ public class DataBase {
         return configuration_;
     }
 
-    public List<org.pasr.database.corpus.Index.Entry> getCorpusEntryList (){
+    public org.pasr.database.corpus.Index getCorpusEntryList (){
         return corpusIndex_;
     }
 
