@@ -7,6 +7,8 @@ import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 import javax.sound.sampled.LineUnavailableException;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static org.pasr.utilities.Utilities.rootMeanSquare;
 
@@ -16,23 +18,39 @@ public class BufferedRecorder extends Recorder implements Runnable {
         super();
 
         byteArrayOutputStream_ = new ByteArrayOutputStream();
+
+        thread_ = new Thread(this);
+        thread_.setDaemon(true);
     }
 
     @Override
     public synchronized void startRecording() {
-        notify();
+        if(!thread_.isAlive()){
+            // Start the thread
+            thread_.start();
 
-        try {
-            wait();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+            // wait for the thread to go to sleep in a while loop to avoid a spurious wake up
+            while(!ready_) {
+                try {
+                    wait();
+                } catch (InterruptedException e) {
+                    logger_.info("Woke up while waiting for thread to be ready.");
+                }
+            }
+
+            live_ = true;
         }
+
+        run_ = true;
+
+        // Notify the thread to wake up
+        notify();
 
         super.startRecording();
     }
 
     @Override
-    public void stopRecording(){
+    public synchronized void stopRecording(){
         super.stopRecording();
 
         run_ = false;
@@ -40,14 +58,18 @@ public class BufferedRecorder extends Recorder implements Runnable {
 
     @Override
     public void run(){
+        // Upon start, go to wait immediately after you signal that you are ready to
         synchronized (this){
-            try {
-                wait();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
+            ready_ = true;
             notify();
+
+            while(!live_){
+                try {
+                    wait();
+                } catch (InterruptedException e) {
+                    logger_.info("Thread woke up while waiting to become alive.");
+                }
+            }
         }
 
         // for buffer size see https://docs.oracle.com/javase/tutorial/sound/capturing.html
@@ -66,17 +88,20 @@ public class BufferedRecorder extends Recorder implements Runnable {
 
             level_ = 0;
 
-            synchronized(this) {
-                try {
-                    wait();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-
-                notify();
+            // There is no need to go to wait if you should die
+            if(!live_){
+                break;
             }
 
-            run_ = true;
+            synchronized(this) {
+                while(!run_){
+                    try {
+                        wait();
+                    } catch (InterruptedException e) {
+                        logger_.info("Thread woke up while waiting to run.");
+                    }
+                }
+            }
         }
     }
 
@@ -84,8 +109,8 @@ public class BufferedRecorder extends Recorder implements Runnable {
         return level_;
     }
 
-    public void flush(){
-        byteArrayOutputStream_.reset();
+    public byte[] getData(){
+        return byteArrayOutputStream_.toByteArray();
     }
 
     public Clip getClip() throws LineUnavailableException {
@@ -97,27 +122,45 @@ public class BufferedRecorder extends Recorder implements Runnable {
         return clip;
     }
 
-    public byte[] getData(){
-        return byteArrayOutputStream_.toByteArray();
+    public void flush(){
+        byteArrayOutputStream_.reset();
     }
 
     @Override
-    public synchronized void terminate() throws IOException {
+    public synchronized void terminate() {
         super.terminate();
 
         // Make sure that the thread that runs the run method can terminate
+        run_ = false;
         live_ = false;
 
         notify();
 
-        byteArrayOutputStream_.close();
+        try {
+            // Don't wait forever on this thread since it is a daemon and will not block the JVM
+            // from shutting down
+            thread_.join(3000);
+        } catch (InterruptedException e) {
+            logger_.warning("Interrupted while joining thread.");
+        }
+
+        try {
+            byteArrayOutputStream_.close();
+        } catch (IOException e) {
+            logger_.log(Level.WARNING, "Could not close the ByteArrayOutputStream instance.", e);
+        }
     }
 
-    private volatile ByteArrayOutputStream byteArrayOutputStream_;
+    private Thread thread_;
+
+    private volatile boolean ready_ = false;
+    private volatile boolean live_ = false;
+    private volatile boolean run_ = false;
 
     private volatile double level_ = 0;
 
-    private volatile boolean run_ = true;
-    private volatile boolean live_ = true;
+    private volatile ByteArrayOutputStream byteArrayOutputStream_;
+
+    private final Logger logger_ = Logger.getLogger(getClass().getName());
 
 }

@@ -5,7 +5,6 @@ import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.TargetDataLine;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
@@ -23,20 +22,20 @@ public class Recorder {
         targetDataLine_.flush();
     }
 
-    public void startRecording(){
+    public synchronized void startRecording(){
         targetDataLine_.start();
     }
 
-    public void stopRecording(){
+    public synchronized void stopRecording(){
         targetDataLine_.stop();
         targetDataLine_.flush();
     }
 
-    int read(byte[] buffer){
+    synchronized int read(byte[] buffer){
         return targetDataLine_.read(buffer, 0, buffer.length);
     }
 
-    public int read(short[] buffer){
+    public synchronized int read(short[] buffer){
         byte[] byteArray = new byte[buffer.length * 2];
 
         int bytesRead = read(byteArray);
@@ -48,14 +47,14 @@ public class Recorder {
         return bytesRead / 2;
     }
 
-    public void terminate () throws IOException {
+    public int getSampleRate(){
+        return SAMPLE_RATE;
+    }
+
+    public synchronized void terminate () {
         stopRecording();
 
         targetDataLine_.close();
-    }
-
-    public int getSampleRate(){
-        return SAMPLE_RATE;
     }
 
     volatile TargetDataLine targetDataLine_;
