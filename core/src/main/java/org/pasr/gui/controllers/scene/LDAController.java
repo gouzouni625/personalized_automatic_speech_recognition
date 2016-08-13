@@ -86,7 +86,6 @@ public class LDAController extends Controller {
         // The dictionary thread will run only once during the life cycle of this controller
         if(dictionaryThread_ == null){
             dictionaryThread_ = new DictionaryThread();
-            dictionaryThread_.setDaemon(true);
             dictionaryThread_.start();
         }
     }
@@ -147,7 +146,6 @@ public class LDAController extends Controller {
 
         if(lDAThread_ == null || !lDAThread_.isAlive()){
             lDAThread_ = new LDAThread();
-            lDAThread_.setDaemon(true);
             lDAThread_.start();
         }
     }
@@ -266,7 +264,7 @@ public class LDAController extends Controller {
 
             Console.getInstance().postMessage(
                 "There has been an error while creating your corpora.\n" +
-                    "Try running LDA algorithm again."
+                    "Try choosing more e-mail and running LDA algorithm again."
             );
 
             return;
@@ -320,6 +318,8 @@ public class LDAController extends Controller {
             progressIndicator_ = new ProgressIndicator(
                 wordsPane, wordsProgressBar, wordsProgressPane, corpus_
             );
+
+            setDaemon(true);
         }
 
         @Override
@@ -367,6 +367,8 @@ public class LDAController extends Controller {
     private class LDAThread extends Thread{
         LDAThread (){
             progressIndicator_ = new ProgressIndicator(lDAPane, lDAProgressBar, lDAProgressPane);
+
+            setDaemon(true);
         }
 
         @Override
