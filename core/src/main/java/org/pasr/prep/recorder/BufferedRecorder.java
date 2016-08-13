@@ -51,9 +51,9 @@ public class BufferedRecorder extends Recorder implements Runnable {
 
     @Override
     public synchronized void stopRecording(){
-        super.stopRecording();
-
         run_ = false;
+
+        super.stopRecording();
     }
 
     @Override
@@ -129,8 +129,6 @@ public class BufferedRecorder extends Recorder implements Runnable {
 
     @Override
     public synchronized void terminate() {
-        super.terminate();
-
         // Make sure that the thread that runs the run method can terminate
         run_ = false;
         live_ = false;
@@ -150,6 +148,8 @@ public class BufferedRecorder extends Recorder implements Runnable {
         } catch (IOException e) {
             logger_.log(Level.WARNING, "Could not close the ByteArrayOutputStream instance.", e);
         }
+
+        super.terminate();
     }
 
     private Thread thread_;
