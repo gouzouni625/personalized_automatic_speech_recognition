@@ -14,7 +14,7 @@ public abstract class Controller {
 
     API api_;
 
-    public void terminate() throws Exception {}
+    public void terminate() {}
 
     protected Logger getLogger(){
         return logger_;

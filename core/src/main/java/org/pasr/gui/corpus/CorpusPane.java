@@ -56,7 +56,7 @@ public class CorpusPane extends SplitPane {
 
                     try {
                         textArea.setText(DataBase.getInstance()
-                            .getCorpusByID(newValue.getId()).getPrettyText());
+                            .getCorpusById(newValue.getId()).getPrettyText());
                     } catch (IOException e) {
                         Console.getInstance().postMessage("Could not load corpus with id: " +
                             newValue + ".");
@@ -83,7 +83,7 @@ public class CorpusPane extends SplitPane {
         );
     }
 
-    public int getSelectedCorpusID(){
+    public int getSelectedCorpusId (){
         Index.Entry selectedEntry = entryListView.getSelectionModel().getSelectedItem();
 
         if(selectedEntry == null){
@@ -94,9 +94,9 @@ public class CorpusPane extends SplitPane {
         }
     }
 
-    public void selectCorpus(int corpusID){
+    public void selectCorpus(int corpusId){
         Optional<Index.Entry> selectedEntry = entryListView.getItems().stream()
-            .filter(entry -> entry.getId() == corpusID)
+            .filter(entry -> entry.getId() == corpusId)
             .findFirst();
 
         if(selectedEntry.isPresent()){

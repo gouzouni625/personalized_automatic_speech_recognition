@@ -32,7 +32,7 @@ public class WordSequence implements Iterable<Word> {
         this(StringUtils.join(words, " "), documentID, documentTitle);
     }
 
-    public long getDocumentID(){
+    public long getDocumentId (){
         return documentID_;
     }
 

@@ -101,7 +101,7 @@ public class AcousticModelProcess extends Process{
         org.pasr.database.Configuration dataBaseConfiguration = org.pasr.database.Configuration
             .getInstance();
 
-        PrintWriter fileIDsPrintWriter = new PrintWriter(new OutputStreamWriter(
+        PrintWriter fileIdsPrintWriter = new PrintWriter(new OutputStreamWriter(
             new FileOutputStream(
                 dataBaseConfiguration.getAcousticModelDirectoryPath() + "sentences.fileids"
             )
@@ -121,15 +121,15 @@ public class AcousticModelProcess extends Process{
                 new File(dataBaseConfiguration.getAcousticModelDirectoryPath() + filename)
             );
 
-            String fileID = FilenameUtils.getBaseName(filename);
+            String fileId = FilenameUtils.getBaseName(filename);
 
-            fileIDsPrintWriter.println(fileID);
+            fileIdsPrintWriter.println(fileId);
             transcriptionPrintWriter.println(
-                entry.getSentence() + " (" + fileID + ")"
+                entry.getSentence() + " (" + fileId + ")"
             );
         }
 
-        fileIDsPrintWriter.close();
+        fileIdsPrintWriter.close();
         transcriptionPrintWriter.close();
     }
 

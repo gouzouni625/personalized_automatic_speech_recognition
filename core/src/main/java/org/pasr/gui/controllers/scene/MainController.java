@@ -84,7 +84,7 @@ public class MainController extends Controller{
     private void dictateButtonOnAction (ActionEvent actionEvent){
         // There is no need to check if the provided id is valid since dictateButton can be fired
         // only when a valid corpus is chosen
-        ((API) api_).dictate(corpusPane.getSelectedCorpusID());
+        ((API) api_).dictate(corpusPane.getSelectedCorpusId());
     }
 
     public interface API extends Controller.API{

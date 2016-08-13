@@ -38,7 +38,11 @@ public class MainView extends Application implements MainController.API,
 
     private static Logger logger_ = Logger.getLogger(MainView.class.getName());
 
-    private SceneFactory sceneFactory_ = SceneFactory.getInstance();
+    private static SceneFactory sceneFactory_ = SceneFactory.getInstance();
+
+    private static DataBase dataBase_;
+
+    private static Console console_;
 
     private Stage primaryStage_;
 
@@ -47,8 +51,6 @@ public class MainView extends Application implements MainController.API,
     private String password_;
 
     private Corpus corpus_;
-
-    private int corpusID_;
 
     public static void main(String[] args){
         logger_.info("Initializing logger...");
@@ -77,7 +79,7 @@ public class MainView extends Application implements MainController.API,
         }
 
         try {
-            DataBase.create();
+            dataBase_ = DataBase.create();
         } catch (IOException e) {
             logger_.log(Level.SEVERE,
                 "Could not load resource:/database/default_configuration.json.\n" +
@@ -102,7 +104,8 @@ public class MainView extends Application implements MainController.API,
 
         primaryStage.show();
 
-        Console.create(primaryStage).show();
+        console_ = Console.create(primaryStage);
+        console_.show();
 
         primaryStage.requestFocus();
     }
@@ -144,9 +147,8 @@ public class MainView extends Application implements MainController.API,
         }
 
         if(!emailAddress.endsWith("@gmail.com")){
-            Console console = Console.getInstance();
-            console.postMessage("At the moment, only gmail addresses are supported.");
-            console.postMessage(
+            console_.postMessage("At the moment, only gmail addresses are supported.");
+            console_.postMessage(
                 "Please, make sure that the provided address ends with @gmail.com" +
                     " and is a valid gmail address."
             );
@@ -217,13 +219,13 @@ public class MainView extends Application implements MainController.API,
 
             return false;
         } catch (AuthenticationFailedException e) {
-            Console.getInstance().postMessage(
+            console_.postMessage(
                 "The provided email address and password were incorrect"
             );
 
             return false;
         } catch (IllegalStateException e) {
-            Console.getInstance().postMessage("Something went wrong with the email service.\n" +
+            console_.postMessage("Something went wrong with the email service.\n" +
                 "Please try logging in again!");
 
             logger_.log(Level.WARNING, "The email service is already connected.\n" +
@@ -231,7 +233,7 @@ public class MainView extends Application implements MainController.API,
 
             return false;
         } catch (MessagingException e) {
-            Console.getInstance().postMessage("Something went wrong with the email service.\n" +
+            console_.postMessage("Something went wrong with the email service.\n" +
                 "Please try logging in again!");
 
             logger_.log(Level.WARNING, "Something went wrong with the email service.\n" +
@@ -253,7 +255,7 @@ public class MainView extends Application implements MainController.API,
         emailFetcher_.terminate();
 
         corpus_ = new Corpus(emails.stream()
-            .map(email -> new Document(email.getID(), email.getSubject(), email.getBody()))
+            .map(email -> new Document(email.getId(), email.getSubject(), email.getBody()))
             .collect(Collectors.toList())
         );
 
@@ -275,50 +277,73 @@ public class MainView extends Application implements MainController.API,
     }
 
     @Override
-    public void record(int corpusID){
-        corpusID_ = corpusID;
+    public void record(int corpusId){
+        setCorpus(corpusId);
 
         try {
             primaryStage_.setScene(sceneFactory_.create(SceneFactory.Scenes.RECORD_SCENE, this));
         } catch (IOException e) {
-            // TODO
-            e.printStackTrace();
+            logger_.severe("Could not load resource:" +
+                SceneFactory.Scenes.RECORD_SCENE.getFXMLResource() + "\n" +
+                "The file might be missing or be corrupted.\n" +
+                "Application will terminate.\n" +
+                "Exception Message: " + e.getMessage());
+            Platform.exit();
         }
     }
 
     @Override
-    public void dictate(int corpusID){
-        DataBase.getInstance().newAcousticModel();
+    public void dictate(int corpusId){
+        setCorpus(corpusId);
 
-        corpusID_ = corpusID;
+        try {
+            DataBase.getInstance().newAcousticModel();
+        } catch (IOException e) {
+            console_.postMessage("Could not create an adapted acoustic model.\n" +
+                "You should check your user permissions inside the directory " +
+                dataBase_.getConfiguration().getDataBaseDirectoryPath() + ".\n" +
+                "Dictation will be possible only with the default acoustic model.");
+        } catch (InterruptedException e) {
+            console_.postMessage("Could not create an adapted acoustic model.\n" +
+                "Dictation will be possible only with the default acoustic model.");
+
+            logger_.log(Level.WARNING, "Interrupted while creating new acoustic model.", e);
+        }
 
         try {
             primaryStage_.setScene(sceneFactory_.create(SceneFactory.Scenes.DICTATE_SCENE, this));
         } catch (IOException e) {
-            // TODO
-            e.printStackTrace();
+            logger_.severe("Could not load resource:" +
+                SceneFactory.Scenes.DICTATE_SCENE.getFXMLResource() + "\n" +
+                "The file might be missing or be corrupted.\n" +
+                "Application will terminate.\n" +
+                "Exception Message: " + e.getMessage());
+            Platform.exit();
+        }
+    }
+
+    private void setCorpus (int corpusId) {
+        try {
+            corpus_ = dataBase_.getCorpusById(corpusId);
+        } catch (IOException e) {
+            console_.postMessage("Could not load corpus with id: " + corpusId + ".\n" +
+                "Exception Message: " + e.getMessage());
+
+            logger_.log(Level.WARNING, "Could not load corpus with id: " + corpusId, e);
+
+            corpus_ = null;
         }
     }
 
     @Override
-    public int getCorpusID(){
-        return corpusID_;
-    }
-
-    @Override
-    public void stop() {
-        if(emailFetcher_ != null){
+    public void stop () {
+        if (emailFetcher_ != null) {
             emailFetcher_.terminate();
         }
 
-        try {
-            sceneFactory_.getCurrentController().terminate();
-        } catch (Exception e) {
-            // TODO
-            e.printStackTrace();
-        }
+        sceneFactory_.getCurrentController().terminate();
 
-       DataBase.getInstance().close();
+        dataBase_.close();
     }
 
 }

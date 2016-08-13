@@ -80,13 +80,13 @@ public class BufferedRecorder extends Recorder implements Runnable {
                 int readSize = read(buffer);
 
                 if (readSize > 0) {
-                    level_ = rootMeanSquare(buffer) / 10000;
+                    setLevel(rootMeanSquare(buffer) / 10000);
 
                     byteArrayOutputStream_.write(buffer, 0, readSize);
                 }
             }
 
-            level_ = 0;
+            setLevel(0);
 
             // There is no need to go to wait if you should die
             if(!live_){
@@ -105,10 +105,6 @@ public class BufferedRecorder extends Recorder implements Runnable {
         }
     }
 
-    public double getLevel(){
-        return level_;
-    }
-
     public byte[] getData(){
         return byteArrayOutputStream_.toByteArray();
     }
@@ -120,6 +116,11 @@ public class BufferedRecorder extends Recorder implements Runnable {
         clip.open(AUDIO_FORMAT, array, 0, array.length);
 
         return clip;
+    }
+
+    private void setLevel(double level){
+        setChanged();
+        notifyObservers(level);
     }
 
     public void flush(){
@@ -156,8 +157,6 @@ public class BufferedRecorder extends Recorder implements Runnable {
     private volatile boolean ready_ = false;
     private volatile boolean live_ = false;
     private volatile boolean run_ = false;
-
-    private volatile double level_ = 0;
 
     private volatile ByteArrayOutputStream byteArrayOutputStream_;
 

@@ -41,10 +41,12 @@ public class DataBase {
         audioIndex_ = org.pasr.database.audio.Index.getInstance();
     }
 
-    public static void create() throws IOException {
+    public static DataBase create() throws IOException {
         if(instance_ == null) {
             instance_ = new DataBase();
         }
+
+        return instance_;
     }
 
     public Configuration getConfiguration(){
@@ -63,7 +65,7 @@ public class DataBase {
         return audioIndex_;
     }
 
-    public Corpus getCorpusByID(int corpusId) throws IOException {
+    public Corpus getCorpusById (int corpusId) throws IOException {
         if(! corpusIndex_.containsId(corpusId)){
             throw new IllegalArgumentException("Id does not exist.");
         }
@@ -74,7 +76,7 @@ public class DataBase {
                 new File(configuration_.getCorpusDirectoryPath(), String.valueOf(corpusId))
             );
 
-            corpus.setID(corpusId);
+            corpus.setId(corpusId);
 
             return corpus;
         } catch (FileNotFoundException e) {
@@ -118,9 +120,9 @@ public class DataBase {
         } catch (FileNotFoundException e) {
             throw new FileNotFoundException("sentences.txt");
         }
-        Scanner documentIDSScanner;
+        Scanner documentIdsScanner;
         try {
-            documentIDSScanner = new Scanner(new File(directory, "document_ids.txt"));
+            documentIdsScanner = new Scanner(new File(directory, "document_ids.txt"));
         } catch (FileNotFoundException e) {
             throw new FileNotFoundException("document_ids.txt");
         }
@@ -129,17 +131,17 @@ public class DataBase {
             Matcher matcher = sentencePattern.matcher(sentencesScanner.nextLine());
 
             if(matcher.matches()){
-                long documentID;
-                if(documentIDSScanner.hasNextLine()){
-                    documentID = Long.parseLong(documentIDSScanner.nextLine());
+                long documentId;
+                if(documentIdsScanner.hasNextLine()){
+                    documentId = Long.parseLong(documentIdsScanner.nextLine());
                 }
                 else{
                     throw new IOException("Malformed file: document_ids.txt");
                 }
 
-                if(documentTitleMap.containsKey(documentID)) {
+                if(documentTitleMap.containsKey(documentId)) {
                     sentences.add(new WordSequence(
-                        matcher.group(1), documentID, documentTitleMap.get(documentID)
+                        matcher.group(1), documentId, documentTitleMap.get(documentId)
                     ));
                 }
                 else {
@@ -149,7 +151,7 @@ public class DataBase {
         }
 
         sentencesScanner.close();
-        documentIDSScanner.close();
+        documentIdsScanner.close();
 
         Corpus corpus = new Corpus(null);
         corpus.setWordSequences(sentences);
@@ -157,11 +159,11 @@ public class DataBase {
         return corpus;
     }
 
-    public String getDictionaryPathByID(int id){
+    public String getDictionaryPathById (int id){
         return configuration_.getCorpusDirectoryPath() + String.valueOf(id) + "/dictionary.dict";
     }
 
-    public String getLanguageModelPathByID(int id){
+    public String getLanguageModelPathById (int id){
         return configuration_.getCorpusDirectoryPath() + String.valueOf(id) + "/language_model.lm";
     }
 
@@ -184,10 +186,10 @@ public class DataBase {
     public int newCorpusEntry (Corpus corpus, Dictionary dictionary) throws IOException {
         File corpusDirectory = new File(configuration_.getCorpusDirectoryPath());
 
-        int newCorpusID = corpusIndex_.nextId();
-        corpus.setID(newCorpusID);
+        int newCorpusId = corpusIndex_.nextId();
+        corpus.setId(newCorpusId);
 
-        File newCorpusDirectory = new File(corpusDirectory, String.valueOf(newCorpusID));
+        File newCorpusDirectory = new File(corpusDirectory, String.valueOf(newCorpusId));
         if(newCorpusDirectory.exists()){
             if(newCorpusDirectory.isFile()){
                 if(!newCorpusDirectory.delete()){
@@ -228,9 +230,9 @@ public class DataBase {
                 "Exception Message: " + e.getMessage());
         }
 
-        corpusIndex_.add(new Index.Entry(newCorpusID, corpus.getName()));
+        corpusIndex_.add(new Index.Entry(newCorpusId, corpus.getName()));
 
-        return newCorpusID;
+        return newCorpusId;
     }
 
     private void saveCorpusToDirectory(Corpus corpus, File directory) throws FileNotFoundException {
@@ -241,9 +243,9 @@ public class DataBase {
             throw new FileNotFoundException("sentences.txt");
         }
 
-        PrintWriter documentIDSPrintWriter;
+        PrintWriter documentIdSPrintWriter;
         try {
-            documentIDSPrintWriter = new PrintWriter(
+            documentIdSPrintWriter = new PrintWriter(
                 new File(directory, "document_ids.txt")
             );
         } catch (FileNotFoundException e) {
@@ -252,11 +254,11 @@ public class DataBase {
 
         corpus.forEach(sentence -> {
             sentencesPrintWriter.println("<s> " + sentence + " </s>");
-            documentIDSPrintWriter.println(sentence.getDocumentID());
+            documentIdSPrintWriter.println(sentence.getDocumentId());
         });
 
         sentencesPrintWriter.close();
-        documentIDSPrintWriter.close();
+        documentIdSPrintWriter.close();
 
         PrintWriter documentTitlesPrintWriter;
         try {
@@ -269,7 +271,7 @@ public class DataBase {
 
         corpus.stream()
             .collect(Collectors.toMap(
-                WordSequence :: getDocumentID, WordSequence :: getDocumentTitle,
+                WordSequence :: getDocumentId, WordSequence :: getDocumentTitle,
                 (title1, title2) -> {
                     if(!title1.equals(title2)) {
                         logger_.warning(
@@ -315,10 +317,10 @@ public class DataBase {
         }
     }
 
-    public void newAudioEntry(byte[] audioData, String sentence, int corpusID){
-        int newEntryID = audioIndex_.size() + 1;
+    public void newAudioEntry(byte[] audioData, String sentence, int corpusId) throws IOException {
+        int newEntryId = audioIndex_.size() + 1;
 
-        File newEntryFile = new File(configuration_.getAudioDirectoryPath(), newEntryID + ".wav");
+        File newEntryFile = new File(configuration_.getAudioDirectoryPath(), newEntryId + ".wav");
 
         long numberOfFrames = (long)(audioData.length / Recorder.AUDIO_FORMAT.getFrameSize());
 
@@ -328,27 +330,16 @@ public class DataBase {
             numberOfFrames
         );
 
-        try {
-            AudioSystem.write(audioInputStream, AudioFileFormat.Type.WAVE, newEntryFile);
-            audioInputStream.close();
-        } catch (IOException e) {
-            // TODO
-            e.printStackTrace();
-        }
+        AudioSystem.write(audioInputStream, AudioFileFormat.Type.WAVE, newEntryFile);
+        audioInputStream.close();
 
         audioIndex_.add(new org.pasr.database.audio.Index.Entry(
-            newEntryFile.getName(), sentence, corpusID
+            newEntryFile.getName(), sentence, corpusId
         ));
     }
 
-    public void newAcousticModel(){
-        try {
-            new AcousticModelProcess().startAndWaitFor();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+    public void newAcousticModel() throws IOException, InterruptedException {
+        new AcousticModelProcess().startAndWaitFor();
     }
 
     public void setArcticSentenceAsUsed(String sentence){

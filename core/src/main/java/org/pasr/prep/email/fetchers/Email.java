@@ -46,7 +46,7 @@ public class Email {
         return body_;
     }
 
-    public long getID(){
+    public long getId (){
         return id_;
     }
 

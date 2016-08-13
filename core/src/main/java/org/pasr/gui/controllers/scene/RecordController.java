@@ -15,32 +15,30 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import org.pasr.database.DataBase;
+import org.pasr.gui.console.Console;
 import org.pasr.prep.corpus.Corpus;
 import org.pasr.prep.recorder.BufferedRecorder;
 
 import javax.sound.sampled.Clip;
 import javax.sound.sampled.LineEvent;
+import javax.sound.sampled.LineListener;
 import javax.sound.sampled.LineUnavailableException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Observable;
+import java.util.Observer;
 import java.util.Random;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.logging.Level;
 
 import static org.pasr.utilities.Utilities.getResourceStream;
 
 
-public class RecordController extends Controller{
+public class RecordController extends Controller implements Observer{
     public RecordController(Controller.API api){
         super(api);
 
-        try {
-            corpus_ = DataBase.getInstance().getCorpusByID(((API) api_).getCorpusID());
-        } catch (IOException e) {
-            // TODO
-            e.printStackTrace();
-        }
+        corpus_ = ((API) api_).getCorpus();
         corpusSentences_ = FXCollections.observableArrayList();
         fillCorpusSentences();
 
@@ -49,17 +47,33 @@ public class RecordController extends Controller{
 
         try {
             recorder_ = new BufferedRecorder();
-            recorderThread_ = new Thread(recorder_);
-            recorderThread_.start();
         } catch (LineUnavailableException e) {
-            e.printStackTrace();
-        }
+            Console.getInstance().postMessage("Could not open the Microphone.\n" +
+                "Maybe it is being used by another application.\n" +
+                "You will not be able to record your voice so it is advised you go back.");
 
-        timer_ = new Timer();
+            getLogger().log(Level.WARNING, "Could not create a BufferedRecorder.", e);
+        }
     }
 
     private void fillCorpusSentences () {
-        new Thread(() -> {
+        if(corpus_ == null){
+            return;
+        }
+
+        if(fillCorpusSentencesThread_ == null || !fillCorpusSentencesThread_.isAlive()){
+            fillCorpusSentencesThread_ = new FillCorpusSentencesThread();
+            fillCorpusSentencesThread_.start();
+        }
+    }
+
+    private class FillCorpusSentencesThread extends Thread{
+        FillCorpusSentencesThread(){
+            setDaemon(true);
+        }
+
+        @Override
+        public void run(){
             int currentSize = corpusSentences_.size();
             if (currentSize == corpusSentencesMaxSize_) {
                 return;
@@ -69,27 +83,30 @@ public class RecordController extends Controller{
 
             Random random = new Random(System.currentTimeMillis());
             for (int i = currentSize; i < corpusSentencesMaxSize_; i++) {
+                if(stop_){
+                    return;
+                }
+
                 randomSentences.add(corpus_.getRandomSubSequence(random));
             }
 
             Platform.runLater(() -> corpusSentences_.addAll(randomSentences));
-        }).start();
+        }
+
+        void terminate(){
+            stop_ = true;
+        }
+
+
+        private boolean stop_ = false;
     }
 
     private void fillArcticSentences () {
-        new Thread(() -> {
-            int currentSize = arcticSentences_.size();
-            if (currentSize == arcticSentencesMaxSize_) {
-                return;
-
-            }
-
-            List<String> newArcticSentences = DataBase.getInstance().getUnUsedArcticSentences(
-                arcticSentencesMaxSize_ - currentSize
-            );
-
-            Platform.runLater(() -> arcticSentences_.addAll(newArcticSentences));
-        }).start();
+        if(fillArcticSentencesThread_ == null || !fillArcticSentencesThread_.isAlive()) {
+            fillArcticSentencesThread_ = new Thread(fillArcticSentencesRunnable_);
+            fillArcticSentencesThread_.setDaemon(true);
+            fillArcticSentencesThread_.start();
+        }
     }
 
     @FXML
@@ -158,13 +175,6 @@ public class RecordController extends Controller{
                     }
                 }
         });
-
-        timer_.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run () {
-                Platform.runLater(() -> updateProgressBars());
-            }
-        }, 0, 100);
     }
 
     private void eraseButtonOnAction(ActionEvent actionEvent){
@@ -189,6 +199,7 @@ public class RecordController extends Controller{
         }
         else{
             recorder_.stopRecording();
+            setProgressBarLevel(0);
         }
     }
 
@@ -200,20 +211,18 @@ public class RecordController extends Controller{
 
             try {
                 clip_ = recorder_.getClip();
+                clip_.addLineListener(clipLineListener_);
                 clip_.start();
-
-                clip_.addLineListener(event -> {
-                    if(event.getType() == LineEvent.Type.STOP){
-                        Platform.runLater(() -> playToggleButton.setSelected(false));
-                    }
-                });
             } catch (LineUnavailableException e) {
-                // TODO
-                e.printStackTrace();
+                Console.getInstance().postMessage("Could not get the recording of your voice.\n" +
+                    "Maybe your microphone is being used by another application.\n" +
+                    "Try recording again.");
+                playToggleButton.setSelected(false);
             }
         }
         else{
             clip_.stop();
+            setProgressBarLevel(0);
         }
     }
 
@@ -229,16 +238,17 @@ public class RecordController extends Controller{
         String sentence = sentenceLabel.getText();
 
         if(sentence.isEmpty()){
-            // TODO Maybe show a message saying that the user must choose a sentence.
+            Console.getInstance().postMessage("You should choose a sentence from the two lists" +
+                "on the write as a transcription of your recording.");
             return;
         }
 
         int index;
-        int corpusID;
+        int corpusId;
         if((index = corpusListView.getSelectionModel().getSelectedIndex()) != -1){
             corpusListView.getItems().remove(index);
             fillCorpusSentences();
-            corpusID = corpus_.getID();
+            corpusId = corpus_.getId();
         }
         else{
             index = arcticListView.getSelectionModel().getSelectedIndex();
@@ -246,55 +256,97 @@ public class RecordController extends Controller{
             arcticListView.getItems().remove(index);
             DataBase.getInstance().setArcticSentenceAsUsed(sentence);
             fillArcticSentences();
-            corpusID = 0;
+            corpusId = 0;
         }
 
-        DataBase.getInstance().newAudioEntry(recorder_.getData(), sentence, corpusID);
+        try {
+            DataBase.getInstance().newAudioEntry(recorder_.getData(), sentence, corpusId);
+        } catch (IOException e) {
+            Console.getInstance().postMessage("Could not save your recording.\n" +
+                "You should check your user permissions inside the directory " +
+                DataBase.getInstance().getConfiguration().getDataBaseDirectoryPath());
+
+            return;
+        }
 
         eraseButton.fire();
     }
 
     private void backButtonOnAction(ActionEvent actionEvent){
+        terminate();
+
         ((API) api_).initialScene();
     }
 
     private void doneButtonOnAction(ActionEvent actionEvent){
-        ((API) api_).dictate(corpus_.getID());
+        terminate();
+
+        ((API) api_).dictate(corpus_ == null ? -1 : corpus_.getId());
     }
 
-    private void updateProgressBars(){
-        double level = recorder_.getLevel();
+    @Override
+    public void update (Observable o, Object arg) {
+        setProgressBarLevel((Double) arg);
+    }
 
+    private void setProgressBarLevel(double level){
         leftProgressBar.setProgress(level);
         rightProgressBar.setProgress(level);
     }
 
     @Override
-    public void terminate() throws InterruptedException, IOException {
-        timer_.cancel();
-
+    public void terminate() {
         clip_.close();
 
         recorder_.terminate();
 
-        recorderThread_.join();
+        fillCorpusSentencesThread_.terminate();
+        try {
+            // Don't wait forever on this thread since it is a daemon and will not block the JVM
+            // from shutting down
+            fillCorpusSentencesThread_.join(3000);
+        } catch (InterruptedException e) {
+            getLogger().warning("Interrupted while joining fillCorpusSentencesThread.");
+        }
+
+        try {
+            // Don't wait forever on this thread since it is a daemon and will not block the JVM
+            // from shutting down
+            fillArcticSentencesThread_.join(3000);
+        } catch (InterruptedException e) {
+            getLogger().warning("Interrupted while joining fillArcticSentencesThread.");
+        }
     }
 
     public interface API extends Controller.API{
-        int getCorpusID();
+        Corpus getCorpus();
         void initialScene();
-        void dictate(int corpusID);
+        void dictate(int corpusId);
     }
 
     @FXML
     private ListView<String> corpusListView;
     private ObservableList<String> corpusSentences_;
     private static final int corpusSentencesMaxSize_ = 20;
+    private FillCorpusSentencesThread fillCorpusSentencesThread_;
 
     @FXML
     private ListView<String> arcticListView;
     private ObservableList<String> arcticSentences_;
     private static final int arcticSentencesMaxSize_ = 20;
+    private Thread fillArcticSentencesThread_;
+    private final Runnable fillArcticSentencesRunnable_ = () -> {
+        int currentSize = arcticSentences_.size();
+        if (currentSize == arcticSentencesMaxSize_) {
+            return;
+        }
+
+        List<String> newArcticSentences = DataBase.getInstance().getUnUsedArcticSentences(
+            arcticSentencesMaxSize_ - currentSize
+        );
+
+        Platform.runLater(() -> arcticSentences_.addAll(newArcticSentences));
+    };
 
     @FXML
     private Label sentenceLabel;
@@ -341,10 +393,12 @@ public class RecordController extends Controller{
 
     private Corpus corpus_;
 
-    private Thread recorderThread_;
     private BufferedRecorder recorder_;
     private Clip clip_;
-
-    private Timer timer_;
+    private final LineListener clipLineListener_ = event -> {
+        if(event.getType() == LineEvent.Type.STOP){
+            Platform.runLater(() -> playToggleButton.setSelected(false));
+        }
+    };
 
 }

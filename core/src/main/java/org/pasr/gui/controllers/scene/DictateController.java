@@ -14,6 +14,7 @@ import javafx.scene.layout.AnchorPane;
 import org.pasr.asr.recognizers.StreamSpeechRecognizer;
 import org.pasr.database.DataBase;
 import org.pasr.gui.corpus.CorpusPane;
+import org.pasr.prep.corpus.Corpus;
 
 import java.io.IOException;
 
@@ -24,13 +25,13 @@ public class DictateController extends Controller{
     public DictateController(Controller.API api){
         super(api);
 
-        int corpusID = ((API) api_).getCorpusID();
+        int corpusId = ((API) api_).getCorpus().getId();
 
         DataBase dataBase = DataBase.getInstance();
 
         org.pasr.asr.Configuration recognizerConfiguration = new org.pasr.asr.Configuration();
-        recognizerConfiguration.setDictionaryPath(dataBase.getDictionaryPathByID(corpusID));
-        recognizerConfiguration.setLanguageModelPath(dataBase.getLanguageModelPathByID(corpusID));
+        recognizerConfiguration.setDictionaryPath(dataBase.getDictionaryPathById(corpusId));
+        recognizerConfiguration.setLanguageModelPath(dataBase.getLanguageModelPathById(corpusId));
         recognizerConfiguration.setAcousticModelPath(
             org.pasr.database.Configuration.getInstance().getAcousticModelPath()
         );
@@ -44,7 +45,7 @@ public class DictateController extends Controller{
 
     @FXML
     public void initialize(){
-        corpusPane.selectCorpus(((API) api_).getCorpusID());
+        corpusPane.selectCorpus(((API) api_).getCorpus().getId());
 
         dictateToggleButton.setGraphic(dictateToggleButtonDefaultGraphic);
         dictateToggleButton.selectedProperty().addListener((observable, oldValue, newValue) -> {
@@ -90,7 +91,7 @@ public class DictateController extends Controller{
     }
 
     public interface API extends Controller.API{
-        int getCorpusID();
+        Corpus getCorpus();
         void initialScene();
     }
 

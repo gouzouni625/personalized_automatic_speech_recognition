@@ -7,9 +7,10 @@ import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.TargetDataLine;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.Observable;
 
 
-public class Recorder {
+public class Recorder extends Observable {
     public Recorder() throws LineUnavailableException {
         targetDataLine_ = AudioSystem.getTargetDataLine(AUDIO_FORMAT);
         targetDataLine_.open(AUDIO_FORMAT);

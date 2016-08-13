@@ -36,7 +36,7 @@ public class Corpus extends Observable implements Iterable<WordSequence> {
         return wordSequenceList_.stream();
     }
 
-    public int getID(){
+    public int getId (){
         return id_;
     }
 
@@ -50,7 +50,7 @@ public class Corpus extends Observable implements Iterable<WordSequence> {
 
     public int numberOfDocuments(){
         return wordSequenceList_.stream()
-            .map(WordSequence :: getDocumentID)
+            .map(WordSequence :: getDocumentId)
             .collect(Collectors.toSet()).size();
     }
 
@@ -192,7 +192,7 @@ public class Corpus extends Observable implements Iterable<WordSequence> {
 
     public List<Document> getDocuments () {
         return wordSequenceList_.stream()
-            .map(wordSequence -> new Document(wordSequence.getDocumentID(),
+            .map(wordSequence -> new Document(wordSequence.getDocumentId(),
                 wordSequence.getDocumentTitle(), wordSequence.getText()
             ))
             .collect(Collectors.groupingBy(Document:: getId, Collectors.toList()))
@@ -248,7 +248,7 @@ public class Corpus extends Observable implements Iterable<WordSequence> {
 
             if(candidate.size() > 0) {
                 lCSS.add(new WordSequence(
-                    candidate, wordSequence_.getDocumentID(), wordSequence_.getDocumentTitle()
+                    candidate, wordSequence_.getDocumentId(), wordSequence_.getDocumentTitle()
                 ));
             }
         }
@@ -301,7 +301,7 @@ public class Corpus extends Observable implements Iterable<WordSequence> {
         wordSequenceList_ = wordSequences;
     }
 
-    public void setID(int id){
+    public void setId (int id){
         id_ = id;
     }
 
