@@ -67,18 +67,24 @@ public class Corpus extends Observable implements Iterable<WordSequence> {
     public Dictionary process(Dictionary dictionary) {
         cancelProcess_ = false;
 
-        for(int i = 0, n = documentList_.size();i < n;i++){
-            if(cancelProcess_){
-                return new Dictionary();
+        if(documentList_ != null && documentList_.size() > 0) {
+            for (int i = 0, n = documentList_.size(); i < n; i++) {
+                if (cancelProcess_) {
+                    return new Dictionary();
+                }
+
+                String processedContent = processNumbers(documentList_.get(i).getContent());
+                wordSequenceList_.addAll(createWordSequences(
+                    processedContent, documentList_.get(i).getId(), documentList_.get(i).getTitle())
+                );
+
+                setChanged();
+                notifyObservers(((double) (i + 1)) / (2 * n));
             }
-
-            String processedContent = processNumbers(documentList_.get(i).getContent());
-            wordSequenceList_.addAll(createWordSequences(
-                processedContent, documentList_.get(i).getId(), documentList_.get(i).getTitle())
-            );
-
+        }
+        else{
             setChanged();
-            notifyObservers(((double) (i + 1)) / (2 * n));
+            notifyObservers(0.50);
         }
 
         Dictionary reducedDictionary = new Dictionary();

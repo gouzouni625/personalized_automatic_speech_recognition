@@ -4,4 +4,4 @@ sphinxbase/installation/
 sphinxtrain/installation/
 pocketsphinx/installation/
 
-*.log
+*.log.*

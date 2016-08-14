@@ -15,6 +15,8 @@ import org.pasr.gui.console.Console;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
 
@@ -35,6 +37,8 @@ public class CorpusPane extends SplitPane {
             loader.setController(this);
 
             loader.load();
+
+            changeListenerList_ = new ArrayList<>();
         } catch (IOException e) {
             logger_.severe("Could not load resource:/fxml/corpus/pane.fxml\n" +
                 "The file might be missing or be corrupted.\n" +
@@ -53,7 +57,6 @@ public class CorpusPane extends SplitPane {
                     textArea.clear();
                 }
                 else{
-
                     try {
                         textArea.setText(DataBase.getInstance()
                             .getCorpusById(newValue.getId()).getPrettyText());
@@ -71,6 +74,11 @@ public class CorpusPane extends SplitPane {
                         // Run later to avoid modified the list view from inside the listener
                         Platform.runLater(this :: fillEntryListView);
                     }
+                }
+
+                // If there was no problem loading the chosen corpus, call all the other listeners
+                for(ChangeListener<Index.Entry> listener : changeListenerList_){
+                    listener.changed(observable, oldValue, newValue);
                 }
         });
     }
@@ -106,7 +114,7 @@ public class CorpusPane extends SplitPane {
 
     public void addSelectionListener(ChangeListener<Index.Entry> listener){
         if(listener != null) {
-            entryListView.getSelectionModel().selectedItemProperty().addListener(listener);
+            changeListenerList_.add(listener);
         }
     }
 
@@ -115,6 +123,8 @@ public class CorpusPane extends SplitPane {
 
     @FXML
     private TextArea textArea;
+
+    private List<ChangeListener<Index.Entry>> changeListenerList_;
 
     private final Logger logger_ = Logger.getLogger(getClass().getName());
 

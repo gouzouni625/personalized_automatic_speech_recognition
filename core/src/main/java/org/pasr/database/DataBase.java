@@ -159,12 +159,39 @@ public class DataBase {
         return corpus;
     }
 
-    public String getDictionaryPathById (int id){
-        return configuration_.getCorpusDirectoryPath() + String.valueOf(id) + "/dictionary.dict";
+    public String getDictionaryPathById (int id) throws IOException {
+        String path = configuration_.getCorpusDirectoryPath() +
+            String.valueOf(id) + "/dictionary.dict";
+
+        if(!(new File(path).isFile())){
+            // TODO Maybe don't throw an exception but first, try creating a new dictionary
+            throw new IOException("Dictionary doesn't exist.");
+        }
+
+        return path;
     }
 
-    public String getLanguageModelPathById (int id){
-        return configuration_.getCorpusDirectoryPath() + String.valueOf(id) + "/language_model.lm";
+    public String getLanguageModelPathById (int id) throws IOException {
+        String path = configuration_.getCorpusDirectoryPath() +
+            String.valueOf(id) + "/language_model.lm";
+
+        if((!new File(path).isFile())){
+            // TODO Maybe don't throw an exception but first, try creating a new language model
+            throw new IOException("Language Model doesn't exist.");
+        }
+
+        return path;
+    }
+
+    public String getAcousticModelPath() throws IOException {
+        String path = configuration_.getAcousticModelPath();
+
+        if(!new File(path).isDirectory()){
+            // TODO Maybe don't throw an exception but first, try creating a new acoustic model
+            throw new IOException("Acoustic Model doesn't exist.");
+        }
+
+        return path;
     }
 
     public List<String> getUnUsedArcticSentences(int count){

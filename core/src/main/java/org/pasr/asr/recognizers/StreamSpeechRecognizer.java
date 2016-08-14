@@ -47,6 +47,7 @@ public class StreamSpeechRecognizer extends Observable implements Runnable {
             }
 
             live_ = true;
+            startDecoder();
         }
 
         run_ = true;
@@ -55,13 +56,11 @@ public class StreamSpeechRecognizer extends Observable implements Runnable {
         notify();
 
         recorder_.startRecording();
-        startDecoder();
     }
 
     public synchronized void stopRecognition(){
         run_ = false;
 
-        stopDecoder();
         recorder_.stopRecording();
     }
 
