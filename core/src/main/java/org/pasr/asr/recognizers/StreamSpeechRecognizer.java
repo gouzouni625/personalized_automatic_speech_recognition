@@ -23,11 +23,11 @@ public class StreamSpeechRecognizer extends Observable {
         recorder_ = new Recorder();
         sampleRate_ = recorder_.getSampleRate();
 
-        Config decoderConfig = Decoder.defaultConfig();
-        decoderConfig.setString("-hmm", configuration.getAcousticModelPath());
-        decoderConfig.setString("-dict", configuration.getDictionaryPath());
-        decoderConfig.setString("-lm", configuration.getLanguageModelPath());
-        decoder_ = new Decoder(decoderConfig);
+        decoderConfig_ = Decoder.defaultConfig();
+        decoderConfig_.setString("-hmm", configuration.getAcousticModelPath());
+        decoderConfig_.setString("-dict", configuration.getDictionaryPath());
+        decoderConfig_.setString("-lm", configuration.getLanguageModelPath());
+        decoder_ = new Decoder(decoderConfig_);
 
         thread_ = new Thread(this :: run);
         thread_.setDaemon(true);
@@ -62,7 +62,6 @@ public class StreamSpeechRecognizer extends Observable {
             }
 
             live_ = true;
-            startDecoder();
         }
 
         run_ = true;
@@ -72,6 +71,7 @@ public class StreamSpeechRecognizer extends Observable {
         notifyAll();
 
         startRecorder();
+        startDecoder();
 
         while(!ready_){
             try {
@@ -110,6 +110,7 @@ public class StreamSpeechRecognizer extends Observable {
             }
         }
 
+        stopDecoder();
         stopRecorder();
 
         lock_.unlock();
@@ -198,6 +199,7 @@ public class StreamSpeechRecognizer extends Observable {
     private void stopDecoder(){
         if(isDecoderStarted_ && decoder_ != null){
             decoder_.endUtt();
+            decoder_.reinit(decoderConfig_);
             isDecoderStarted_ = false;
         }
     }
@@ -256,6 +258,8 @@ public class StreamSpeechRecognizer extends Observable {
 
         lock_.unlock();
     }
+
+    private Config decoderConfig_;
 
     private Thread thread_;
 

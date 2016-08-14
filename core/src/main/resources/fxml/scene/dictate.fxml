@@ -24,7 +24,7 @@
                     <Font name="Carlito Bold" size="20.0"/>
                 </font>
             </Label>
-            <TextArea fx:id="aSRResultTextArea" prefHeight="250.0" prefWidth="200.0"
+            <TextArea fx:id="aSRResultTextArea" prefHeight="250.0" prefWidth="200.0" wrapText="true"
                       AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0"
                       AnchorPane.topAnchor="50.0"/>
             <Label alignment="CENTER" prefHeight="30.0" text="CORRECTED"
@@ -34,7 +34,7 @@
                     <Font name="Carlito Bold" size="20.0"/>
                 </font>
             </Label>
-            <TextArea fx:id="correctedTextArea" prefHeight="250.0" prefWidth="200.0"
+            <TextArea fx:id="correctedTextArea" prefHeight="250.0" prefWidth="200.0" wrapText="true"
                       AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0"
                       AnchorPane.topAnchor="350.0"/>
             <Label fx:id="dictationDisabledLabel" visible="false" alignment="CENTER"

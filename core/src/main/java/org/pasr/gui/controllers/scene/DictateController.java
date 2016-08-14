@@ -14,6 +14,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import org.pasr.asr.recognizers.StreamSpeechRecognizer;
+import org.pasr.asr.recognizers.StreamSpeechRecognizer.Stage;
 import org.pasr.database.DataBase;
 import org.pasr.gui.console.Console;
 import org.pasr.gui.corpus.CorpusPane;
@@ -47,6 +48,14 @@ public class DictateController extends Controller implements Observer{
         if(corpus != null){
             corpusPane.selectCorpus(corpus.getId());
         }
+
+        aSRResultTextArea.textProperty().addListener(event -> {
+            aSRResultTextArea.setScrollTop(Double.MAX_VALUE);
+        });
+
+        correctedTextArea.textProperty().addListener(event -> {
+            correctedTextArea.setScrollTop(Double.MAX_VALUE);
+        });
 
         dictateToggleButton.setGraphic(dictateToggleButtonDefaultGraphic);
         dictateToggleButton.selectedProperty().addListener((observable, oldValue, newValue) -> {
@@ -159,6 +168,10 @@ public class DictateController extends Controller implements Observer{
             }
 
             try {
+                if(recognizer_ != null) {
+                    recognizer_.terminate();
+                }
+
                 recognizer_ = new StreamSpeechRecognizer(recognizerConfiguration);
                 recognizer_.addObserver(DictateController.this);
             } catch (IOException e) {
@@ -237,8 +250,16 @@ public class DictateController extends Controller implements Observer{
 
     @Override
     public void update (Observable o, Object arg) {
-        aSRResultTextArea.appendText("\n" + arg);
-        aSRResultTextArea.setScrollTop(Double.MAX_VALUE);
+        if(arg instanceof Stage){
+            if(arg == Stage.STARTED && !aSRResultTextAreaPreviousText_.isEmpty()){
+                aSRResultTextAreaPreviousText_ += ".\n\n";
+            }
+            else if(arg == Stage.STOPPED){
+                aSRResultTextAreaPreviousText_ = aSRResultTextArea.getText();
+            }
+        } else if(arg instanceof String){
+            aSRResultTextArea.setText(aSRResultTextAreaPreviousText_ + arg);
+        }
     }
 
     @Override
@@ -269,6 +290,7 @@ public class DictateController extends Controller implements Observer{
 
     @FXML
     private TextArea aSRResultTextArea;
+    private String aSRResultTextAreaPreviousText_ = "";
 
     @FXML
     private TextArea correctedTextArea;
