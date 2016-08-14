@@ -10,10 +10,11 @@ import org.pasr.prep.recorder.Recorder;
 import javax.sound.sampled.LineUnavailableException;
 import java.io.IOException;
 import java.util.Observable;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Logger;
 
 
-public class StreamSpeechRecognizer extends Observable implements Runnable {
+public class StreamSpeechRecognizer extends Observable {
     public StreamSpeechRecognizer(Configuration configuration)
         throws IOException, LineUnavailableException {
 
@@ -28,11 +29,25 @@ public class StreamSpeechRecognizer extends Observable implements Runnable {
         decoderConfig.setString("-lm", configuration.getLanguageModelPath());
         decoder_ = new Decoder(decoderConfig);
 
-        thread_ = new Thread(this);
+        thread_ = new Thread(this :: run);
         thread_.setDaemon(true);
     }
 
     public synchronized void startRecognition(){
+        lock_.lock();
+
+        // Make sure that successive calls of this method doesn't cause any harm
+        if(run_ && live_){
+            lock_.unlock();
+            return;
+        }
+
+        // Make sure that terminate hasn't been called before
+        if(decoder_ == null || recorder_ == null || thread_ == null){
+            lock_.unlock();
+            return;
+        }
+
         if(!thread_.isAlive()){
             // Start the thread
             thread_.start();
@@ -42,7 +57,7 @@ public class StreamSpeechRecognizer extends Observable implements Runnable {
                 try {
                     wait();
                 } catch (InterruptedException e) {
-                    logger_.info("Woke up while waiting for thread to be ready.");
+                    logger_.info("Interrupted while waiting for thread to be ready.");
                 }
             }
 
@@ -53,35 +68,78 @@ public class StreamSpeechRecognizer extends Observable implements Runnable {
         run_ = true;
 
         // Notify the thread to wake up
-        notify();
+        ready_ = false;
+        notifyAll();
 
-        recorder_.startRecording();
+        startRecorder();
+
+        while(!ready_){
+            try {
+                wait();
+            } catch (InterruptedException e) {
+                logger_.info("Interrupted while waiting for thread to be ready.");
+            }
+        }
+
+        lock_.unlock();
     }
 
     public synchronized void stopRecognition(){
-        run_ = false;
+        lock_.lock();
 
-        recorder_.stopRecording();
+        // Make sure that successive calls of this method doesn't cause any harm
+        if(!(run_ && live_)){
+            lock_.unlock();
+            return;
+        }
+
+        // Make sure that terminate hasn't been called before
+        if(decoder_ == null || recorder_ == null || thread_ == null){
+            lock_.unlock();
+            return;
+        }
+
+        run_ = false;
+        ready_ = false;
+
+        while(!ready_){
+            try {
+                wait();
+            } catch (InterruptedException e) {
+                logger_.info("Interrupted while waiting for thread to be ready.");
+            }
+        }
+
+        stopRecorder();
+
+        lock_.unlock();
     }
 
-    @Override
-    public void run(){
+    // Will not implement Runnable because run method should be private to prevent others from
+    // calling it
+    private void run(){
         synchronized (this){
             ready_ = true;
-            notify();
+            notifyAll();
 
             while(!live_){
                 try {
                     wait();
                 } catch (InterruptedException e) {
-                    logger_.info("Thread woke up while waiting to become alive.");
+                    logger_.info("Thread was interrupted while waiting to become alive.");
                 }
             }
+
+            ready_ = true;
+            notifyAll();
         }
 
         short[] buffer = new short[sampleRate_ / 10];
 
+
         while(live_){
+            setChanged();
+            notifyObservers(Stage.STARTED);
 
             String previousHypothesis = "";
             while(run_){
@@ -103,52 +161,100 @@ public class StreamSpeechRecognizer extends Observable implements Runnable {
                 }
             }
 
+            setChanged();
+            notifyObservers(Stage.STOPPED);
+
             if(!live_){
                 break;
             }
 
             synchronized (this) {
-                while(!run_){
+                ready_ = true;
+                notifyAll();
+
+                while(!run_ && live_){
                     try {
                         wait();
                     } catch (InterruptedException e) {
-                        logger_.info("Thread woke up while waiting to run.");
+                        logger_.info("Thread was interrupted while waiting to run.");
                     }
                 }
+
+                ready_ = true;
+                notifyAll();
             }
         }
+
+        logger_.info("StreamSpeechRecognizer thread shut down gracefully!");
     }
 
     private void startDecoder(){
-        if(!isDecoderStarted_){
+        if(!isDecoderStarted_ && decoder_ != null){
             decoder_.startUtt();
             isDecoderStarted_ = true;
         }
     }
 
     private void stopDecoder(){
-        if(isDecoderStarted_){
+        if(isDecoderStarted_ && decoder_ != null){
             decoder_.endUtt();
             isDecoderStarted_ = false;
         }
     }
 
+    private void startRecorder(){
+        if(!isRecorderStarted_ && recorder_ != null){
+            recorder_.startRecording();
+            isRecorderStarted_ = true;
+        }
+    }
+
+    private void stopRecorder(){
+        if(isRecorderStarted_ && recorder_ != null){
+            recorder_.stopRecording();
+            isRecorderStarted_ = false;
+        }
+    }
+
     public synchronized void terminate() {
-        run_ = false;
-        live_ = false;
+        lock_.lock();
 
-        notify();
+        if(live_) {
 
-        try {
-            // Don't wait forever on this thread since it is a daemon and will not block the JVM
-            // from shutting down
-            thread_.join(3000);
-        } catch (InterruptedException e) {
-            logger_.warning("Interrupted while joining thread.");
+            if(run_){
+                stopRecognition();
+            }
+
+            live_ = false;
+            ready_ = false;
+            notifyAll();
+
+            while (!ready_){
+                try {
+                    wait();
+                } catch (InterruptedException e) {
+                    logger_.warning("Interrupted while waiting for thread to be ready.");
+                }
+            }
+
+            try {
+                // Don't wait forever on this thread since it is a daemon and will not block the JVM
+                // from shutting down
+                thread_.join(3000);
+            } catch (InterruptedException e) {
+                logger_.warning("Interrupted while joining thread.");
+            }
         }
 
         stopDecoder();
-        recorder_.stopRecording();
+        decoder_ = null;
+
+        stopRecorder();
+        recorder_ = null;
+
+        thread_ = null;
+
+        lock_.unlock();
     }
 
     private Thread thread_;
@@ -157,11 +263,19 @@ public class StreamSpeechRecognizer extends Observable implements Runnable {
     private volatile boolean live_ = false;
     private volatile boolean run_ = false;
 
+    private final ReentrantLock lock_ = new ReentrantLock();
+
     private Recorder recorder_;
+    private boolean isRecorderStarted_ = false;
     private final int sampleRate_;
 
     private Decoder decoder_;
     private boolean isDecoderStarted_ = false;
+
+    public enum Stage{
+        STARTED,
+        STOPPED
+    }
 
     private final Logger logger_ = Logger.getLogger(getClass().getName());
 
