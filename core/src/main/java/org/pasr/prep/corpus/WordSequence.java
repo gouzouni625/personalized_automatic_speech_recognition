@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 public class WordSequence implements Iterable<Word> {
@@ -30,6 +31,10 @@ public class WordSequence implements Iterable<Word> {
 
     public WordSequence(List<Word> words, long documentID, String documentTitle){
         this(StringUtils.join(words, " "), documentID, documentTitle);
+    }
+
+    public Stream<Word> stream(){
+        return words_.stream();
     }
 
     public long getDocumentId (){
