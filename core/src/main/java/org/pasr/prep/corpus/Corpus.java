@@ -23,6 +23,10 @@ import static org.apache.commons.collections4.ListUtils.longestCommonSubsequence
 
 
 public class Corpus extends Observable implements Iterable<WordSequence> {
+    public Corpus(){
+        this(null);
+    }
+
     public Corpus(List<Document> documents){
         documentList_ = documents;
 
