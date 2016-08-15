@@ -1,24 +1,22 @@
 package org.pasr.utilities;
 
+import java.util.List;
+
 import static java.lang.Integer.min;
 
 
 public class LevenshteinMatrix<T extends Comparable<T>> {
-    public LevenshteinMatrix(T[] source, T[] destination){
+    public LevenshteinMatrix(List<T> source, List<T> destination){
         source_ = source;
         destination_ = destination;
 
-        calculateMatrix();
-    }
-
-    private void calculateMatrix(){
-        int sourceLength = source_.length;
-        int destinationLength = destination_.length;
+        int sourceSize = source_.size();
+        int destinationSize = destination_.size();
 
         // Initialize the Levenshtein matrix.
-        matrix_ = new int[destinationLength + 1][sourceLength + 1];
-        for (int i = 0; i <= destinationLength; i++) {
-            for (int j = 0; j <= sourceLength; j++) {
+        matrix_ = new int[destinationSize + 1][sourceSize + 1];
+        for (int i = 0; i <= destinationSize; i++) {
+            for (int j = 0; j <= sourceSize; j++) {
                 if (j == 0 && i == 0) {
                     matrix_[0][0] = 0;
                 } else if (i == 0) {
@@ -31,31 +29,42 @@ public class LevenshteinMatrix<T extends Comparable<T>> {
             }
         }
 
+        calculateMatrix();
+    }
+
+    private void calculateMatrix(){
+        int sourceSize = source_.size();
+        int destinationSize = destination_.size();
+
         // Build the Levenshtein matrix.
         int substitutionCost;
-        for (int j = 1; j <= sourceLength; j++) {
-            for (int i = 1; i <= destinationLength; i++) {
-                if (destination_[i - 1].compareTo(source_[j - 1]) == 0) {
+        for (int j = 1; j <= sourceSize; j++) {
+            for (int i = 1; i <= destinationSize; i++) {
+                if (destination_.get(i - 1).compareTo(source_.get(j - 1)) == 0) {
                     substitutionCost = 0;
                 } else {
                     substitutionCost = 1;
                 }
 
                 matrix_[i][j] = min(
-                        matrix_[i - 1][j] + 1, min(matrix_[i][j - 1] + 1, matrix_[i - 1][j - 1] + substitutionCost)
+                    matrix_[i - 1][j] + 1,
+                    min(
+                        matrix_[i][j - 1] + 1,
+                        matrix_[i - 1][j - 1] + substitutionCost
+                    )
                 );
             }
         }
 
-        distance_ = matrix_[destinationLength][sourceLength];
+        distance_ = matrix_[destinationSize][sourceSize];
 
         // Find the path.
         path_ = new int[distance_][];
 
         int currentScore = distance_;
 
-        int row = destinationLength;
-        int column = sourceLength;
+        int row = destinationSize;
+        int column = sourceSize;
 
         int previousRow;
         int previousColumn;
@@ -100,9 +109,6 @@ public class LevenshteinMatrix<T extends Comparable<T>> {
 
     @Override
     public String toString(){
-        int sourceLength = source_.length;
-        int destinationLength = destination_.length;
-
         StringBuilder stringBuilder = new StringBuilder();
 
         stringBuilder.append("|" + "  " + "|" + "  ");
@@ -112,12 +118,12 @@ public class LevenshteinMatrix<T extends Comparable<T>> {
         stringBuilder.append("\n");
 
         stringBuilder.append("|").append("  ");
-        for(int i = 0;i <= destinationLength;i++){
+        for(int i = 0, n = destination_.size();i <= n;i++){
             if(i > 0) {
-                stringBuilder.append(destination_[i - 1].toString()).append("  ");
+                stringBuilder.append(destination_.get(i - 1).toString()).append("  ");
             }
 
-            for(int j = 0;j <= sourceLength;j++){
+            for(int j = 0, m = source_.size();j <= m;j++){
                 if(matrix_[i][j] >= 10) {
                     stringBuilder.append(matrix_[i][j]).append(" ");
                 }
@@ -143,8 +149,8 @@ public class LevenshteinMatrix<T extends Comparable<T>> {
         return distance_;
     }
 
-    private T[] source_;
-    private T[] destination_;
+    private List<T> source_;
+    private List<T> destination_;
 
     private int[][] matrix_;
 
