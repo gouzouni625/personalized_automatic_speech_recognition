@@ -1,4 +1,4 @@
-package org.pasr.postp.engine.detectors;
+package org.pasr.postp.detectors;
 
 
 import opennlp.tools.postag.POSModel;
