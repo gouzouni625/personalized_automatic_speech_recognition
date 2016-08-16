@@ -47,17 +47,13 @@ public class Dictionary implements Iterable<Map.Entry<String, String>>{
     }
 
     public List<String> getPhones(Word word){
-        return getPhones(word.getText());
+        return getPhones(word.toString());
     }
 
     public List<List<String>> getPhones(WordSequence wordSequence){
-        ArrayList<List<String>> phones = new ArrayList<>();
-
-        for(Word word : wordSequence){
-            phones.add(getPhones(word));
-        }
-
-        return phones;
+        return wordSequence.stream()
+            .map(this :: getPhones)
+            .collect(Collectors.toCollection(ArrayList::new));
     }
 
     public Map<String, String> getEntriesByKey(String key){

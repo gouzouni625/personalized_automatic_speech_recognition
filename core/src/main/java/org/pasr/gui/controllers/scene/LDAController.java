@@ -189,7 +189,8 @@ public class LDAController extends Controller {
             for(Map.Entry<String, List<Long>> entry : ldaResults_.entries()){
                 List<Long> documentIDs = entry.getValue();
 
-                Corpus corpus = new Corpus(documents.stream()
+                Corpus corpus = new Corpus();
+                corpus.setDocuments(documents.stream()
                     .filter(document -> documentIDs.contains(document.getId()))
                     .collect(Collectors.toList()));
 
@@ -316,7 +317,7 @@ public class LDAController extends Controller {
     private class DictionaryThread extends Thread{
         DictionaryThread (){
             progressIndicator_ = new ProgressIndicator(
-                wordsPane, wordsProgressBar, wordsProgressPane, corpus_
+                wordsPane, wordsProgressBar, wordsProgressPane, corpus_.getProgress()
             );
 
             setDaemon(true);

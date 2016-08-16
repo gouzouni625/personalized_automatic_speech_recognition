@@ -3,7 +3,7 @@ package org.pasr.utilities;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.junit.Test;
-import org.pasr.postp.engine.detectors.POSDetector.Tags;
+import org.pasr.postp.detectors.POSDetector.Tags;
 
 import java.util.Arrays;
 import java.util.Random;

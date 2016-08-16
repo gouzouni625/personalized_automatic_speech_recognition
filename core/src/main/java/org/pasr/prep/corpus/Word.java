@@ -3,16 +3,21 @@ package org.pasr.prep.corpus;
 
 public class Word {
     public Word(String text, WordSequence wordSequence, int index){
-        text_ = text.toLowerCase();
+        text_ = escape(text);
         parent_ = wordSequence;
         index_ = index;
     }
 
-    public String getText(){
+    private String escape(String text){
+        return text.toLowerCase().trim();
+    }
+
+    @Override
+    public String toString(){
         return text_;
     }
 
-    public WordSequence getParent (){
+    WordSequence getParent (){
         return parent_;
     }
 
@@ -20,27 +25,8 @@ public class Word {
         return index_;
     }
 
-    public boolean equals(String text){
-        return text_.equals(text.toLowerCase());
-    }
-
     public void setText(String text){
-        text_ = text.toLowerCase();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        return o instanceof Word && text_.equals(((Word) o).getText());
-    }
-
-    @Override
-    public int hashCode(){
-        return text_.hashCode();
-    }
-
-    @Override
-    public String toString(){
-        return text_;
+        text_ = escape(text);
     }
 
     private String text_;

@@ -27,10 +27,8 @@ public class OccurrenceDetector implements Detector{
         Map<String, Integer> wordOccurrenceCount = new HashMap<>();
 
         for(WordSequence wordSequence : corpus){
-            List<Word> wordList = wordSequence.getWords();
-
-            for(int i = 0, n = wordList.size();i < n;i++){
-                String wordText = wordList.get(i).getText();
+            for(int i = 0, n = wordSequence.size();i < n;i++){
+                String wordText = wordSequence.get(i).toString();
 
                 if(wordOccurrenceCount.containsKey(wordText)){
                     wordOccurrenceCount.put(wordText, wordOccurrenceCount.get(wordText) + 1);
@@ -44,7 +42,7 @@ public class OccurrenceDetector implements Detector{
                 }
 
                 for(int j = i + 1;j < n;j++){
-                    String nextWordText = wordList.get(j).getText();
+                    String nextWordText = wordSequence.get(j).toString();
                     if(!occurrenceMap.containsKey(nextWordText)){
                         occurrenceMap.put(nextWordText, new HashMap<>());
                     }
@@ -98,7 +96,9 @@ public class OccurrenceDetector implements Detector{
 
     @Override
     public List<Word> detect (WordSequence wordSequence) {
-        List<String> wordList = wordSequence.getWordsText();
+        List<String> wordList = wordSequence.stream()
+            .map(Word :: toString)
+            .collect(Collectors.toList());
         int numberOfWords = wordList.size();
 
         double[][] scoreBoard = new double[numberOfWords][numberOfWords];
@@ -134,7 +134,7 @@ public class OccurrenceDetector implements Detector{
         }
 
         return wordSequence.stream()
-            .filter(word -> errorCandidateList.contains(word.getText()))
+            .filter(word -> errorCandidateList.contains(word.toString()))
             .collect(Collectors.toList());
     }
 

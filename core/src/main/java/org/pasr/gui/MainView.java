@@ -254,10 +254,10 @@ public class MainView extends Application implements MainController.API,
     public void processEmail(List<Email> emails){
         emailFetcher_.terminate();
 
-        corpus_ = new Corpus(emails.stream()
+        corpus_ = new Corpus();
+        corpus_.setDocuments(emails.stream()
             .map(email -> new Document(email.getId(), email.getSubject(), email.getBody()))
-            .collect(Collectors.toList())
-        );
+            .collect(Collectors.toList()));
 
         try {
             primaryStage_.setScene(sceneFactory_.create(SceneFactory.Scenes.LDA_SCENE, this));

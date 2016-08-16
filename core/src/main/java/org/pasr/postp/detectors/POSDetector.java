@@ -43,8 +43,8 @@ public class POSDetector implements Detector {
     private List<Tags> tag (WordSequence wordSequence) {
         return Tags.tag(
             tagger_.tag(
-                wordSequence.getWords().stream()
-                    .map(Word:: getText)
+                wordSequence.stream()
+                    .map(Word:: toString)
                     .toArray(String[] ::new)
             )
         );
@@ -57,7 +57,7 @@ public class POSDetector implements Detector {
         List<Tags> bestPattern = getBestPattern(wordSequencePattern);
 
         return findErrorWords(bestPattern, wordSequencePattern).stream()
-            .map(wordSequence:: getWord)
+            .map(wordSequence:: get)
             .collect(Collectors.toList());
     }
 

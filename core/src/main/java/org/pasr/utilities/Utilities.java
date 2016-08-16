@@ -17,25 +17,6 @@ public class Utilities {
         return Utilities.class.getResourceAsStream(resource);
     }
 
-    public static String[] reduceDimensions(String[][] array){
-        int numberOfStrings = 0;
-        for(String[] subArray : array){
-            numberOfStrings += subArray.length;
-        }
-
-        String[] newArray = new String[numberOfStrings];
-
-        int index = 0;
-        for(String[] subArray : array){
-            for(String string : subArray){
-                newArray[index] = string;
-                index++;
-            }
-        }
-
-        return newArray;
-    }
-
     public static int indexOfMax(double[] array){
         OptionalDouble result = DoubleStream.of(array).max();
 

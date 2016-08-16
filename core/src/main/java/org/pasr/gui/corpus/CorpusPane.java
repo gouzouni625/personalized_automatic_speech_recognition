@@ -59,7 +59,7 @@ public class CorpusPane extends SplitPane {
                 else{
                     try {
                         textArea.setText(DataBase.getInstance()
-                            .getCorpusById(newValue.getId()).getPrettyText());
+                            .getCorpusById(newValue.getId()).toPrettyString());
                     } catch (IOException e) {
                         Console.getInstance().postMessage("Could not load corpus with id: " +
                             newValue + ".");

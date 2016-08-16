@@ -4,40 +4,26 @@ package org.pasr.prep.corpus;
 import org.pasr.asr.dictionary.Dictionary;
 import org.pasr.utilities.NumberSpeller;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Iterator;
-import java.util.Observable;
-import java.util.Optional;
-import java.util.Random;
-import java.util.function.Consumer;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static org.apache.commons.collections4.ListUtils.longestCommonSubsequence;
 
 
-public class Corpus extends Observable implements Iterable<WordSequence> {
+public class Corpus extends ArrayList<WordSequence> {
     public Corpus(){
         this(null);
     }
 
-    public Corpus(List<Document> documents){
-        documentList_ = documents;
-
-        wordSequenceList_ = new ArrayList<>();
+    public Corpus(List<WordSequence> wordSequenceList){
+        if(wordSequenceList != null) {
+            addAll(wordSequenceList);
+        }
 
         name_ = "";
         id_ = - 1;
-    }
 
-    public Stream<WordSequence> stream(){
-        return wordSequenceList_.stream();
+        progress_ = new Progress();
     }
 
     public int getId (){
@@ -48,24 +34,26 @@ public class Corpus extends Observable implements Iterable<WordSequence> {
         return name_;
     }
 
-    public int size(){
-        return wordSequenceList_.size();
+    public Observable getProgress(){
+        return progress_;
     }
 
     public int numberOfDocuments(){
-        return wordSequenceList_.stream()
+        return stream()
             .map(WordSequence :: getDocumentId)
             .collect(Collectors.toSet()).size();
     }
 
-    private List<Word> getUniqueWords (){
-        HashSet<Word> uniqueWords = new HashSet<>();
+    private Set<String> getUniqueWords (){
+        HashSet<String> uniqueWords = new HashSet<>();
 
-        for (WordSequence wordSequence : wordSequenceList_) {
-            uniqueWords.addAll(wordSequence.getWords());
+        for (WordSequence wordSequence : this) {
+            uniqueWords.addAll(wordSequence.stream()
+                .map(Word :: toString)
+                .collect(Collectors.toSet()));
         }
 
-        return new ArrayList<>(uniqueWords);
+        return uniqueWords;
     }
 
     public Dictionary process(Dictionary dictionary) {
@@ -78,41 +66,39 @@ public class Corpus extends Observable implements Iterable<WordSequence> {
                 }
 
                 String processedContent = processNumbers(documentList_.get(i).getContent());
-                wordSequenceList_.addAll(createWordSequences(
+                addAll(createWordSequences(
                     processedContent, documentList_.get(i).getId(), documentList_.get(i).getTitle())
                 );
 
-                setChanged();
-                notifyObservers(((double) (i + 1)) / (2 * n));
+                progress_.setValue(((double) (i + 1)) / (2 * n));
             }
         }
         else{
-            setChanged();
-            notifyObservers(0.50);
+            progress_.setValue(0.50);
         }
 
         Dictionary reducedDictionary = new Dictionary();
 
-        List<Word> uniqueWords = getUniqueWords();
+        Set<String> uniqueWords = getUniqueWords();
+        int n = uniqueWords.size();
+        int i = 0;
 
-        for(int i = 0, n = uniqueWords.size();i < n;i++){
+        for(String uniqueWord : uniqueWords){
             if(cancelProcess_){
                 return reducedDictionary;
             }
 
-            String wordText = uniqueWords.get(i).getText();
-
-            Map<String, String> entries = dictionary.getEntriesByKey(wordText);
+            Map<String, String> entries = dictionary.getEntriesByKey(uniqueWord);
 
             if(entries.size() == 0){
-                reducedDictionary.addUnknownWord(wordText);
+                reducedDictionary.addUnknownWord(uniqueWord);
             }
             else{
                 reducedDictionary.addAll(entries);
             }
 
-            setChanged();
-            notifyObservers(0.5 + ((double) (i + 1)) / (2 * n));
+            i++;
+            progress_.setValue(0.5 + ((double) (i + 1)) / (2 * n));
         }
 
         // Release the documents resources
@@ -201,9 +187,9 @@ public class Corpus extends Observable implements Iterable<WordSequence> {
     }
 
     public List<Document> getDocuments () {
-        return wordSequenceList_.stream()
+        return stream()
             .map(wordSequence -> new Document(wordSequence.getDocumentId(),
-                wordSequence.getDocumentTitle(), wordSequence.getText()
+                wordSequence.getDocumentTitle(), wordSequence.toString()
             ))
             .collect(Collectors.groupingBy(Document:: getId, Collectors.toList()))
             .values().stream()
@@ -225,57 +211,23 @@ public class Corpus extends Observable implements Iterable<WordSequence> {
             .collect(Collectors.toList());
     }
 
-    public String getText() {
+    @Override
+    public String toString() {
         StringBuilder stringBuilder = new StringBuilder();
 
-        for(WordSequence wordSequence : wordSequenceList_){
-            stringBuilder.append(wordSequence.getText()).append(".");
+        for(WordSequence wordSequence : this){
+            stringBuilder.append(wordSequence.toString()).append(".");
         }
 
         return stringBuilder.toString();
     }
 
-    public String getPrettyText(){
-        return getText().replaceAll("\\.", ".\n");
-    }
-
-    public boolean contains(WordSequence wordSequence){
-        for(WordSequence wordSequence_ : wordSequenceList_){
-            if(wordSequence_.getText().contains(wordSequence.getText())){
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    public List<WordSequence> longestCommonSubSequences (WordSequence wordSequence){
-        ArrayList<WordSequence> lCSS = new ArrayList<>();
-
-        List<Word> words = wordSequence.getWords();
-        for(WordSequence wordSequence_ : wordSequenceList_){
-            List<Word> candidate = longestCommonSubsequence(wordSequence_.getWords(), words);
-
-            if(candidate.size() > 0) {
-                lCSS.add(new WordSequence(
-                    candidate, wordSequence_.getDocumentId(), wordSequence_.getDocumentTitle()
-                ));
-            }
-        }
-
-        return lCSS;
-    }
-
-    public List<WordSequence> matchAsCommonSubSequence(WordSequence wordSequence){
-        int size = wordSequence.size();
-
-        return longestCommonSubSequences(wordSequence).stream()
-            .filter(subSequence -> subSequence.size() == size)
-            .collect(Collectors.toList());
+    public String toPrettyString(){
+        return toString().replaceAll("\\.", ".\n");
     }
 
     public String getRandomSubSequence(Random random){
-        return wordSequenceList_.get(random.nextInt(size())).getRandomSubsequence(random);
+        return get(random.nextInt(size())).getRandomSubsequence(random);
     }
 
     public void replaceWordText(String oldText, String newText){
@@ -285,7 +237,7 @@ public class Corpus extends Observable implements Iterable<WordSequence> {
             removeWordByText(oldText);
         }
         else {
-            for (WordSequence wordSequence : wordSequenceList_) {
+            for (WordSequence wordSequence : this) {
                 wordSequence.replaceWordText(oldText, newText);
             }
         }
@@ -294,7 +246,7 @@ public class Corpus extends Observable implements Iterable<WordSequence> {
     public void removeWordByText(String text){
         ArrayList<WordSequence> emptyWordSequences = new ArrayList<>();
 
-        for(WordSequence wordSequence : wordSequenceList_){
+        for(WordSequence wordSequence : this){
             wordSequence.removeByText(text);
 
             if(wordSequence.size() == 0){
@@ -302,13 +254,7 @@ public class Corpus extends Observable implements Iterable<WordSequence> {
             }
         }
 
-        for(WordSequence emptyWordSequence : emptyWordSequences){
-            wordSequenceList_.remove(emptyWordSequence);
-        }
-    }
-
-    public void setWordSequences (List<WordSequence> wordSequences){
-        wordSequenceList_ = wordSequences;
+        emptyWordSequences.forEach(this :: remove);
     }
 
     public void setId (int id){
@@ -319,21 +265,16 @@ public class Corpus extends Observable implements Iterable<WordSequence> {
         name_ = name;
     }
 
-    public Iterator<WordSequence> iterator(){
-        return wordSequenceList_.iterator();
-    }
-
-    @Override
-    public void forEach (Consumer<? super WordSequence> action) {
-        wordSequenceList_.forEach(action);
+    public void setDocuments(List<Document> documentList){
+        documentList_ = documentList;
     }
 
     private List<Document> documentList_;
-    private List<WordSequence> wordSequenceList_;
 
     private int id_;
     private String name_;
 
+    private Progress progress_;
     private volatile boolean cancelProcess_;
 
 }

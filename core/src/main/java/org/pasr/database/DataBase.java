@@ -153,8 +153,7 @@ public class DataBase {
         sentencesScanner.close();
         documentIdsScanner.close();
 
-        Corpus corpus = new Corpus();
-        corpus.setWordSequences(sentences);
+        Corpus corpus = new Corpus(sentences);
 
         return corpus;
     }
