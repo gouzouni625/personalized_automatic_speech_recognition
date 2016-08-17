@@ -57,6 +57,12 @@ public class WordSequence extends ArrayList<Word> {
         return stringBuilder.toString().trim();
     }
 
+    public List<String> getWordTextList () {
+        return stream()
+            .map(Word:: toString)
+            .collect(Collectors.toList());
+    }
+
     /**
      * @brief Returns a new WordSequence that is a sub-sequence of this WordSequence
      *

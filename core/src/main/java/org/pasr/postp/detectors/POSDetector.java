@@ -11,7 +11,9 @@ import org.pasr.utilities.LevenshteinMatrix;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.apache.commons.collections4.ListUtils.longestCommonSubsequence;
@@ -33,10 +35,10 @@ public class POSDetector implements Detector {
     }
 
     private void createPOSPatterns(Corpus corpus){
-        pOSPatterns_ = new ArrayList<>();
+        corpusMap_ = new HashMap<>();
 
-        for(WordSequence wordSequence : corpus){
-            pOSPatterns_.add(tag(wordSequence));
+        for (WordSequence wordSequence : corpus) {
+            corpusMap_.put(wordSequence.getWordTextList(), tag(wordSequence));
         }
     }
 
@@ -52,32 +54,41 @@ public class POSDetector implements Detector {
 
     @Override
     public List<Word> detect (WordSequence wordSequence) {
-        List<Tags> wordSequencePattern = tag(wordSequence);
+        List<Tags> bestPattern = getBestPattern(wordSequence);
 
-        List<Tags> bestPattern = getBestPattern(wordSequencePattern);
+        List<Tags> wordSequenceTagList = tag(wordSequence);
 
-        return findErrorWords(bestPattern, wordSequencePattern).stream()
+        return findErrorWords(bestPattern, wordSequenceTagList).stream()
             .map(wordSequence:: get)
             .collect(Collectors.toList());
     }
 
-    private List<Tags> getBestPattern (List<Tags> wordSequenceTagList) {
-        int minDistance = new LevenshteinMatrix<>(wordSequenceTagList, pOSPatterns_.get(0))
-            .getDistance();
-        int minIndex = 0;
+    private List<Tags> getBestPattern (WordSequence wordSequence) {
+        List<Tags> wordSequenceTagList = tag(wordSequence);
+        List<String> wordSequenceWordTextList = wordSequence.getWordTextList();
 
-        int currentDistance;
-        for(int i = 1, n = pOSPatterns_.size();i < n;i++){
-            currentDistance = new LevenshteinMatrix<>(wordSequenceTagList, pOSPatterns_.get(i))
-                .getDistance();
+        double minDistance = Double.MAX_VALUE;
+        List<Tags> bestPattern = null;
+
+        double currentDistance;
+        for(Map.Entry<List<String>, List<Tags>> corpusMapEntry : corpusMap_.entrySet()){
+            currentDistance = new LevenshteinMatrix<>(
+                wordSequenceTagList,
+                corpusMapEntry.getValue()
+            ).getDistance();
+
+            currentDistance = 0.5 * currentDistance + 0.5 * new LevenshteinMatrix<>(
+                wordSequenceWordTextList,
+                corpusMapEntry.getKey()
+            ).getDistance();
 
             if(currentDistance < minDistance){
                 minDistance = currentDistance;
-                minIndex = i;
+                bestPattern = corpusMapEntry.getValue();
             }
         }
 
-        return pOSPatterns_.get(minIndex);
+        return bestPattern;
     }
 
     private List<Integer> findErrorWords (List<Tags> referencePattern,
@@ -111,10 +122,6 @@ public class POSDetector implements Detector {
 
         return errorWordIndexList;
     }
-
-    private List<List<Tags>> pOSPatterns_;
-
-    private POSTaggerME tagger_;
 
     public enum Tags {
         CC(""),
@@ -194,5 +201,9 @@ public class POSDetector implements Detector {
 
         private final String partOfSpeech_;
     }
+
+    private Map<List<String>, List<Tags>> corpusMap_;
+
+    private POSTaggerME tagger_;
 
 }

@@ -4,9 +4,13 @@ package org.pasr.utilities;
 import org.apache.commons.lang3.ArrayUtils;
 import org.junit.Test;
 import org.pasr.postp.detectors.POSDetector.Tags;
+import org.pasr.prep.corpus.Word;
+import org.pasr.prep.corpus.WordSequence;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.StringUtils.getLevenshteinDistance;
 import static org.junit.Assert.assertEquals;
@@ -40,6 +44,13 @@ public class LevenshteinMatrixTest {
         levenshteinMatrix = new LevenshteinMatrix<>(
             Arrays.asList("Hello", "W0r1d"),
             Arrays.asList("Hello", "World")
+        );
+
+        assertEquals(1, levenshteinMatrix.getDistance());
+
+        levenshteinMatrix = new LevenshteinMatrix<>(
+            new WordSequence("Hello World").getWordTextList(),
+            new WordSequence("Hello W0r1d").getWordTextList()
         );
 
         assertEquals(1, levenshteinMatrix.getDistance());

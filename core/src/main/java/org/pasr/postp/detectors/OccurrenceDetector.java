@@ -96,9 +96,7 @@ public class OccurrenceDetector implements Detector{
 
     @Override
     public List<Word> detect (WordSequence wordSequence) {
-        List<String> wordList = wordSequence.stream()
-            .map(Word :: toString)
-            .collect(Collectors.toList());
+        List<String> wordList = wordSequence.getWordTextList();
         int numberOfWords = wordList.size();
 
         double[][] scoreBoard = new double[numberOfWords][numberOfWords];
@@ -160,6 +158,6 @@ public class OccurrenceDetector implements Detector{
     private Map<String, List<String>> occurrenceMap_;
 
     private static final int WORD_LIST_SIZE = 10;
-    private double lowScoreThreshold_ = 0.50;
+    private double lowScoreThreshold_ = 0.10;
 
 }

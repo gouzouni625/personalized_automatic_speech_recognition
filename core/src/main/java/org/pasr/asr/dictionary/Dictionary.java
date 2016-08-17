@@ -56,6 +56,15 @@ public class Dictionary implements Iterable<Map.Entry<String, String>>{
             .collect(Collectors.toCollection(ArrayList::new));
     }
 
+    public List<String> getPhonesInLine(WordSequence wordSequence){
+        List<String> list = new ArrayList<>();
+
+        getPhones(wordSequence).stream()
+            .forEach(list :: addAll);
+
+        return list;
+    }
+
     public Map<String, String> getEntriesByKey(String key){
         return wordsToPhonesTable_.entrySet().stream().
             filter(entry -> entry.getKey().equals(key) ||
