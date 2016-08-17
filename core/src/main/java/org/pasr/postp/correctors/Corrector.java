@@ -70,7 +70,8 @@ public class Corrector{
         onTheLeftWS.addAll(onTheRightWS);
 
         if(size == 1){
-           return onTheLeftWS.toString();
+            String result = onTheLeftWS.toString();
+            return checkResult(result) ? result : input;
         }
 
         int index = 0;
@@ -97,7 +98,8 @@ public class Corrector{
             index++;
         }
 
-        return onTheLeftWS.toString();
+        String result = onTheLeftWS.toString();
+        return checkResult(result) ? result : input;
     }
 
     private List<Range> getChangeablePartList (WordSequence wordSequence){
@@ -327,6 +329,10 @@ public class Corrector{
             Arrays.asList(candidatePhoneArray),
             Arrays.asList(changeablePartPhoneArray)
         ).getDistance();
+    }
+
+    private boolean checkResult(String result){
+        return ! result.trim().isEmpty();
     }
 
     public static class Range {

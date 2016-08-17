@@ -40,17 +40,28 @@ public class Dictionary implements Iterable<Map.Entry<String, String>>{
         return dictionary;
     }
 
-    public List<String> getPhones(String string){
+    private List<String> getPhones(String string){
         String phones = wordsToPhonesTable_.get(string);
 
-        return phones == null ? null : Arrays.asList(phones.trim().split(" "));
+        if(phones == null){
+            List<String> list = new ArrayList<>();
+
+            for(char ch : string.trim().toUpperCase().toCharArray()){
+                list.add(String.valueOf(ch));
+            }
+
+            return list;
+        }
+        else {
+            return Arrays.asList(phones.trim().split(" "));
+        }
     }
 
-    public List<String> getPhones(Word word){
+    private List<String> getPhones(Word word){
         return getPhones(word.toString());
     }
 
-    public List<List<String>> getPhones(WordSequence wordSequence){
+    private List<List<String>> getPhones(WordSequence wordSequence){
         return wordSequence.stream()
             .map(this :: getPhones)
             .collect(Collectors.toCollection(ArrayList::new));
@@ -76,20 +87,17 @@ public class Dictionary implements Iterable<Map.Entry<String, String>>{
         return unknownWords_;
     }
 
-    public Set<String> getUniqueWords(){
+    private Set<String> getUniqueWords(){
         return wordsToPhonesTable_.keySet().stream().
             filter(entry -> !entry.contains("(")).
             collect(Collectors.toSet());
     }
 
     /**
-     *
-     * @param string
      * @param count
      *     The number of words to return
-     * @return
      */
-    public List<String> fuzzyMatch(String string, int count){
+    private List<String> fuzzyMatch(String string, int count){
         String[] bestMatches = new String[count];
         double[] bestDistances = new double[count];
         for(int i = 0;i < count;i++){
