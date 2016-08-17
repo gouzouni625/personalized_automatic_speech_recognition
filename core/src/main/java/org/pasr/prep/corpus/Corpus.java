@@ -226,6 +226,16 @@ public class Corpus extends ArrayList<WordSequence> {
         return toString().replaceAll("\\.", ".\n");
     }
 
+    public boolean contains(String string){
+        for(WordSequence wordSequence : this){
+            if(wordSequence.contains(string)){
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public String getRandomSubSequence(Random random){
         return get(random.nextInt(size())).getRandomSubsequence(random);
     }

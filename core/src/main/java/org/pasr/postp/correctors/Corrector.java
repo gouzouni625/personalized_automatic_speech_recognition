@@ -37,6 +37,10 @@ public class Corrector{
     }
 
     public String correct(String onTheLeft, String input){
+        if(corpus_.contains(input)){
+            return input;
+        }
+
         WordSequence onTheLeftWS = new WordSequence(onTheLeft);
         WordSequence inputWS = new WordSequence(input);
 

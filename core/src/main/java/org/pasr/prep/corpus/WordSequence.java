@@ -63,6 +63,10 @@ public class WordSequence extends ArrayList<Word> {
             .collect(Collectors.toList());
     }
 
+    public boolean contains(String string){
+        return toString().contains(string);
+    }
+
     /**
      * @brief Returns a new WordSequence that is a sub-sequence of this WordSequence
      *
