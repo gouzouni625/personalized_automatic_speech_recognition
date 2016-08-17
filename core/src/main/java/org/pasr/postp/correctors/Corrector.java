@@ -332,10 +332,10 @@ public class Corrector{
         String[] candidatePhoneArray = dictionary_.getPhonesInLine(candidate).stream()
             .toArray(String[] :: new);
 
-        return new LevenshteinMatrix<>(
+        return LevenshteinMatrix.getDistance(
             Arrays.asList(candidatePhoneArray),
             Arrays.asList(changeablePartPhoneArray)
-        ).getDistance();
+        );
     }
 
     private boolean checkResult(String result){

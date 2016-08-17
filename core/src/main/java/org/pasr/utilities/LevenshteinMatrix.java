@@ -137,6 +137,10 @@ public class LevenshteinMatrix<T extends Comparable<T>> {
         return stringBuilder.toString();
     }
 
+    public static <T extends Comparable<T>> int getDistance(List<T> source, List<T> destination){
+        return new LevenshteinMatrix<>(source, destination).getDistance();
+    }
+
     public int[][] getMatrix(){
         return matrix_;
     }

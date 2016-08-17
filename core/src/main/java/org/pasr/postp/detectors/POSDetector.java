@@ -72,15 +72,15 @@ public class POSDetector implements Detector {
 
         double currentDistance;
         for(Map.Entry<List<String>, List<Tags>> corpusMapEntry : corpusMap_.entrySet()){
-            currentDistance = new LevenshteinMatrix<>(
+            currentDistance = LevenshteinMatrix.getDistance(
                 wordSequenceTagList,
                 corpusMapEntry.getValue()
-            ).getDistance();
+            );
 
-            currentDistance = 0.5 * currentDistance + 0.5 * new LevenshteinMatrix<>(
+            currentDistance = 0.5 * currentDistance + 0.5 * LevenshteinMatrix.getDistance(
                 wordSequenceWordTextList,
                 corpusMapEntry.getKey()
-            ).getDistance();
+            );
 
             if(currentDistance < minDistance){
                 minDistance = currentDistance;
