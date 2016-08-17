@@ -1,9 +1,11 @@
 package org.pasr.gui.console;
 
 import javafx.application.Platform;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -70,6 +72,12 @@ public class Console extends Stage implements Runnable {
     @FXML
     public void initialize(){
         textArea.setText("Console initiated...\nApplication messages will be printed here!");
+
+        button.setOnAction(this :: buttonOnAction);
+    }
+
+    private void buttonOnAction(ActionEvent actionEvent){
+        textArea.clear();
     }
 
     @Override
@@ -109,6 +117,9 @@ public class Console extends Stage implements Runnable {
 
     @FXML
     private TextArea textArea;
+
+    @FXML
+    private Button button;
 
     private static Console instance_;
 
