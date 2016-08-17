@@ -61,7 +61,7 @@ public class Dictionary implements Iterable<Map.Entry<String, String>>{
         return getPhones(word.toString());
     }
 
-    private List<List<String>> getPhones(WordSequence wordSequence){
+    public List<List<String>> getPhones(WordSequence wordSequence){
         return wordSequence.stream()
             .map(this :: getPhones)
             .collect(Collectors.toCollection(ArrayList::new));

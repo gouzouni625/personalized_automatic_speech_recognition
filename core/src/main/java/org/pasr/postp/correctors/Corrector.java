@@ -163,6 +163,10 @@ public class Corrector{
     private WordSequence scoreAndReplace(WordSequence onTheLeft,
                                    WordSequence changeablePart,
                                    WordSequence onTheRight){
+        if(onTheLeft.size() == 0 && onTheRight.size() == 0){
+            return replaceWithoutContext(changeablePart);
+        }
+
         String[] changeablePartPhones = dictionary_.getPhonesInLine(changeablePart).stream()
             .toArray(String[] :: new);
 
@@ -289,7 +293,6 @@ public class Corrector{
             return contextMap;
         }
         else {
-
             for (int i = 0; i <= n; i++) {
                 String arg1 = String.join(
                     " ",
@@ -337,6 +340,37 @@ public class Corrector{
 
     private boolean checkResult(String result){
         return ! result.trim().isEmpty();
+    }
+
+    private WordSequence replaceWithoutContext(WordSequence changeablePart){
+        List<String> changeablePartPhones = dictionary_.getPhonesInLine(changeablePart);
+
+        int minDistance = Integer.MAX_VALUE;
+        WordSequence bestMatch = null;
+
+        for(WordSequence wordSequence : corpus_){
+            List<List<String>> wordSequenceWordPhoneList = dictionary_.getPhones(wordSequence);
+
+            for(int i = 0, n = wordSequenceWordPhoneList.size();i < n;i++){
+                for(int j = i + 1;j <= n;j++){
+                    List<String> candidate = new ArrayList<>();
+                    wordSequenceWordPhoneList.subList(i, j).stream()
+                        .forEach(candidate :: addAll);
+
+                    int currentDistance = LevenshteinMatrix.getDistance(
+                        changeablePartPhones,candidate
+                    );
+
+                    if(currentDistance < minDistance){
+                        minDistance = currentDistance;
+
+                        bestMatch = wordSequence.subSequence(i, j);
+                    }
+                }
+            }
+        }
+
+        return bestMatch == null ? new WordSequence("") : bestMatch;
     }
 
     public static class Range {
