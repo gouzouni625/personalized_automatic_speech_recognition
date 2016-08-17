@@ -18,7 +18,10 @@ public class StreamSpeechRecognizer extends Observable {
     public StreamSpeechRecognizer(Configuration configuration)
         throws IOException, LineUnavailableException {
 
-        NativeUtils.loadLibraryFromJar("/libpocketsphinx_jni.so");
+        if(!isLibraryLoaded_) {
+            NativeUtils.loadLibraryFromJar("/libpocketsphinx_jni.so");
+            isLibraryLoaded_ = true;
+        }
 
         recorder_ = new Recorder();
         sampleRate_ = recorder_.getSampleRate();
@@ -258,6 +261,8 @@ public class StreamSpeechRecognizer extends Observable {
 
         lock_.unlock();
     }
+
+    private boolean isLibraryLoaded_ = false;
 
     private Config decoderConfig_;
 
