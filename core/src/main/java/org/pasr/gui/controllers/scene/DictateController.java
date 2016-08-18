@@ -232,24 +232,32 @@ public class DictateController extends Controller implements Observer{
                     dictionary = Dictionary.getDefaultDictionary();
                 } catch (FileNotFoundException e1) {
                     Console.getInstance().postMessage("Could not load the default dictionary" +
-                        " model.\n Corrector will not be available.");
+                        " model.\nCorrector will not be available.");
                     onFailure();
                     return;
                 }
             }
 
-            Corpus corpus = ((API) api_).getCorpus();
-            corrector_ = new Corrector(corpus, dictionary);
             try {
-                corrector_.addDetector(new POSDetector(corpus));
+                Corpus corpus = dataBase_.getCorpusById(id_);
+
+                corrector_ = new Corrector(corpus, dictionary);
+                try {
+                    corrector_.addDetector(new POSDetector(corpus));
+                } catch (IOException e) {
+                    logger_.log(Level.SEVERE, "Missing POSDetector model.\n" +
+                        "Application will terminate.", e);
+                    Platform.exit();
+                    return;
+                }
+                // TODO Improve OccurrenceDetector before using it
+                // corrector_.addDetector(new OccurrenceDetector(corpus));
             } catch (IOException e) {
-                logger_.log(Level.SEVERE, "Missing POSDetector model.\n" +
-                    "Application will terminate.", e);
-                Platform.exit();
+                Console.getInstance().postMessage("Could not load the selected corpus.\n" +
+                    "Corrector will not be available.");
+                onFailure();
                 return;
             }
-            // TODO Improve OccurrenceDetector before using it
-            // corrector_.addDetector(new OccurrenceDetector(corpus));
 
             onSuccess();
         }
