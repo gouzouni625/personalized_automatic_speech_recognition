@@ -8,13 +8,16 @@ import org.pasr.prep.corpus.Word;
 import org.pasr.prep.corpus.WordSequence;
 import org.pasr.utilities.LevenshteinMatrix;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.apache.commons.collections4.ListUtils.longestCommonSubsequence;
 import static org.pasr.utilities.Utilities.getResourceStream;
@@ -22,10 +25,15 @@ import static org.pasr.utilities.Utilities.getResourceStream;
 
 public class POSDetector implements Detector {
     public POSDetector(Corpus corpus) throws IOException {
+        if(corpus == null){
+            throw new IllegalArgumentException("corpus must not be null!");
+        }
+
         InputStream inputStream = getResourceStream("/detectors/pos/en-pos-perceptron.bin");
 
         if(inputStream == null){
-            throw new IOException("getResourceStream(\"/detectors/pos/en-pos-perceptron.bin\")" +
+            throw new FileNotFoundException(
+                "getResourceStream(\"/detectors/pos/en-pos-perceptron.bin\")" +
                 " returned null.");
         }
 
@@ -46,20 +54,30 @@ public class POSDetector implements Detector {
         return Tags.tag(
             tagger_.tag(
                 wordSequence.stream()
-                    .map(Word:: toString)
-                    .toArray(String[] ::new)
+                    .map(Word :: toString)
+                    .toArray(String[] :: new)
             )
         );
     }
 
     @Override
     public List<Word> detect (WordSequence wordSequence) {
+        if(wordSequence == null){
+            throw new IllegalArgumentException("wordSequence must not be null!");
+        }
+
+        if(wordSequence.isEmpty()){
+            new ArrayList<>();
+        }
+
         List<Tags> bestPattern = getBestPattern(wordSequence);
 
-        List<Tags> wordSequenceTagList = tag(wordSequence);
+        if(bestPattern == null){
+            return new ArrayList<>();
+        }
 
-        return findErrorWords(bestPattern, wordSequenceTagList).stream()
-            .map(wordSequence:: get)
+        return findErrorWords(bestPattern, tag(wordSequence)).stream()
+            .map(wordSequence :: get)
             .collect(Collectors.toList());
     }
 
@@ -67,7 +85,7 @@ public class POSDetector implements Detector {
         List<Tags> wordSequenceTagList = tag(wordSequence);
         List<String> wordSequenceWordTextList = wordSequence.getWordTextList();
 
-        double minDistance = Double.MAX_VALUE;
+        double minDistance = Double.POSITIVE_INFINITY;
         List<Tags> bestPattern = null;
 
         double currentDistance;
@@ -92,8 +110,14 @@ public class POSDetector implements Detector {
     }
 
     private List<Integer> findErrorWords (List<Tags> referencePattern,
-                                         List<Tags> hypothesisPattern) {
+                                          List<Tags> hypothesisPattern) {
         List<Tags> matchingTags = longestCommonSubsequence(referencePattern, hypothesisPattern);
+
+        if(matchingTags == null || matchingTags.size() == 0){
+            return IntStream.range(0, hypothesisPattern.size())
+                .boxed()
+                .collect(Collectors.toList());
+        }
 
         List<Integer> errorWordIndexList = new ArrayList<>();
 
@@ -190,13 +214,9 @@ public class POSDetector implements Detector {
         }
 
         public static List<Tags> tag(String[] tagStringArray){
-            ArrayList<Tags> tags = new ArrayList<>();
-
-            for(String tagString : tagStringArray){
-                tags.add(tag(tagString));
-            }
-
-            return tags;
+            return Arrays.stream(tagStringArray)
+                .map(Tags :: tag)
+                .collect(Collectors.toList());
         }
 
         private final String partOfSpeech_;

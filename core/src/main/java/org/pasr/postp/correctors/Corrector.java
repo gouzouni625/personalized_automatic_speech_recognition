@@ -24,6 +24,14 @@ import static java.lang.Integer.min;
 
 public class Corrector{
     public Corrector(Corpus corpus, Dictionary dictionary){
+        if(corpus == null){
+            throw new IllegalArgumentException("corpus must not be null!");
+        }
+
+        if(dictionary == null){
+            throw new IllegalArgumentException("dictionary must not be null!");
+        }
+
         corpus_ = corpus;
         dictionary_ = dictionary;
 
@@ -31,12 +39,32 @@ public class Corrector{
     }
 
     public void addDetector(Detector detector){
-        if(detector != null){
-            detectorList_.add(detector);
+        if(detector == null){
+            throw new IllegalArgumentException("detector must not be null!");
         }
+
+        detectorList_.add(detector);
+    }
+
+    public String correctStateful(String input){
+        if(input == null){
+            throw new IllegalArgumentException("input must not be null!");
+        }
+
+        onTheLeft_ = correct(onTheLeft_, input);
+
+        return onTheLeft_;
     }
 
     public String correct(String onTheLeft, String input){
+        if(onTheLeft == null){
+            throw new IllegalArgumentException("onTheLeft must not be null!");
+        }
+
+        if(input == null){
+            throw new IllegalArgumentException("input must not be null!");
+        }
+
         if(corpus_.contains(input)){
             return input;
         }
@@ -78,7 +106,7 @@ public class Corrector{
             return checkResult(result) ? result : input;
         }
 
-        int index = 0;
+        int index = 1;
         while(index < size){
             part = changeablePartIndexList.get(index);
 
@@ -112,6 +140,10 @@ public class Corrector{
         Set<Integer> errorWordIndexSet = getErrorWordSet(wordSequence).stream()
             .map(wordSequence :: indexOf)
             .collect(Collectors.toSet());
+
+        if(errorWordIndexSet.size() == 0){
+            return new ArrayList<>();
+        }
 
         // For each error word, consider the one on its left and the one on its right also as error
         // words
@@ -215,7 +247,7 @@ public class Corrector{
             }
         }
 
-        double bestScore = Double.MIN_VALUE;
+        double bestScore = Double.NEGATIVE_INFINITY;
         String chosenCandidate = "";
         for(Map.Entry<String, Map<String, Double>> candidateEntry : scoreMap.entrySet()){
             Map<String, Double> candidateMap = candidateEntry.getValue();
@@ -232,7 +264,42 @@ public class Corrector{
             }
         }
 
-        return new WordSequence(chosenCandidate);
+        return chosenCandidate.isEmpty() ? changeablePart : new WordSequence(chosenCandidate);
+    }
+
+    private WordSequence replaceWithoutContext(WordSequence changeablePart){
+        if(changeablePart.isEmpty()){
+            return new WordSequence("");
+        }
+
+        List<String> changeablePartPhones = dictionary_.getPhonesInLine(changeablePart);
+
+        int minDistance = Integer.MAX_VALUE;
+        WordSequence bestMatch = null;
+
+        for(WordSequence wordSequence : corpus_){
+            List<List<String>> wordSequenceWordPhoneList = dictionary_.getPhones(wordSequence);
+
+            for(int i = 0, n = wordSequenceWordPhoneList.size();i < n;i++){
+                for(int j = i + 1;j <= n;j++){
+                    List<String> candidate = new ArrayList<>();
+                    wordSequenceWordPhoneList.subList(i, j).stream()
+                        .forEach(candidate :: addAll);
+
+                    int currentDistance = LevenshteinMatrix.getDistance(
+                        changeablePartPhones,candidate
+                    );
+
+                    if(currentDistance < minDistance){
+                        minDistance = currentDistance;
+
+                        bestMatch = wordSequence.subSequence(i, j);
+                    }
+                }
+            }
+        }
+
+        return bestMatch == null ? new WordSequence("") : bestMatch;
     }
 
     private Map<String, Integer> buildContextMap(WordSequence onTheLeft, WordSequence onTheRight){
@@ -342,38 +409,11 @@ public class Corrector{
         return ! result.trim().isEmpty();
     }
 
-    private WordSequence replaceWithoutContext(WordSequence changeablePart){
-        List<String> changeablePartPhones = dictionary_.getPhonesInLine(changeablePart);
-
-        int minDistance = Integer.MAX_VALUE;
-        WordSequence bestMatch = null;
-
-        for(WordSequence wordSequence : corpus_){
-            List<List<String>> wordSequenceWordPhoneList = dictionary_.getPhones(wordSequence);
-
-            for(int i = 0, n = wordSequenceWordPhoneList.size();i < n;i++){
-                for(int j = i + 1;j <= n;j++){
-                    List<String> candidate = new ArrayList<>();
-                    wordSequenceWordPhoneList.subList(i, j).stream()
-                        .forEach(candidate :: addAll);
-
-                    int currentDistance = LevenshteinMatrix.getDistance(
-                        changeablePartPhones,candidate
-                    );
-
-                    if(currentDistance < minDistance){
-                        minDistance = currentDistance;
-
-                        bestMatch = wordSequence.subSequence(i, j);
-                    }
-                }
-            }
-        }
-
-        return bestMatch == null ? new WordSequence("") : bestMatch;
+    public void clearState(){
+        onTheLeft_ = "";
     }
 
-    public static class Range {
+    private static class Range {
         Range(int left, int right){
             left_ = left;
             right_ = right;
@@ -395,6 +435,8 @@ public class Corrector{
     private Dictionary dictionary_;
 
     private List<Detector> detectorList_;
+
+    private String onTheLeft_ = "";
 
     private static final String REGULAR_EXPRESSION_TEMPLATE_LEFT = "(?<=ARG1 )";
     private static final String REGULAR_EXPRESSION_TEMPLATE = "(.*)";
