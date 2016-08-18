@@ -46,14 +46,12 @@ public class Corrector{
         detectorList_.add(detector);
     }
 
-    public String correctStateful(String input){
+    public String correct(String input){
         if(input == null){
             throw new IllegalArgumentException("input must not be null!");
         }
 
-        onTheLeft_ = correct(onTheLeft_, input);
-
-        return onTheLeft_;
+        return correct("", input);
     }
 
     public String correct(String onTheLeft, String input){
@@ -409,10 +407,6 @@ public class Corrector{
         return ! result.trim().isEmpty();
     }
 
-    public void clearState(){
-        onTheLeft_ = "";
-    }
-
     private static class Range {
         Range(int left, int right){
             left_ = left;
@@ -435,8 +429,6 @@ public class Corrector{
     private Dictionary dictionary_;
 
     private List<Detector> detectorList_;
-
-    private String onTheLeft_ = "";
 
     private static final String REGULAR_EXPRESSION_TEMPLATE_LEFT = "(?<=ARG1 )";
     private static final String REGULAR_EXPRESSION_TEMPLATE = "(.*)";
