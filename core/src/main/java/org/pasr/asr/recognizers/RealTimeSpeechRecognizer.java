@@ -140,7 +140,6 @@ public class RealTimeSpeechRecognizer extends Observable {
 
         short[] buffer = new short[sampleRate_];
 
-
         while(live_){
             setChanged();
             notifyObservers(Stage.STARTED);

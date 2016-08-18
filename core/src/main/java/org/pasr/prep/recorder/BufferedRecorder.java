@@ -7,24 +7,39 @@ import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 import javax.sound.sampled.LineUnavailableException;
 import java.io.IOException;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static org.pasr.utilities.Utilities.rootMeanSquare;
 
 
-public class BufferedRecorder extends Recorder implements Runnable {
+public class BufferedRecorder extends Recorder {
     public BufferedRecorder() throws LineUnavailableException {
         super();
 
         byteArrayOutputStream_ = new ByteArrayOutputStream();
 
-        thread_ = new Thread(this);
+        thread_ = new Thread(this :: run);
         thread_.setDaemon(true);
     }
 
     @Override
     public synchronized void startRecording() {
+        lock_.lock();
+
+        // Make sure that successive calls of this method doesn't cause any harm
+        if(run_ && live_){
+            lock_.unlock();
+            return;
+        }
+
+        // Make sure that terminate hasn't been called before
+        if(byteArrayOutputStream_ == null || thread_ == null){
+            lock_.unlock();
+            return;
+        }
+
         if(!thread_.isAlive()){
             // Start the thread
             thread_.start();
@@ -34,7 +49,7 @@ public class BufferedRecorder extends Recorder implements Runnable {
                 try {
                     wait();
                 } catch (InterruptedException e) {
-                    logger_.info("Woke up while waiting for thread to be ready.");
+                    logger_.info("Interrupted while waiting for thread to be ready.");
                 }
             }
 
@@ -44,36 +59,73 @@ public class BufferedRecorder extends Recorder implements Runnable {
         run_ = true;
 
         // Notify the thread to wake up
-        notify();
+        ready_ = false;
+        notifyAll();
 
         super.startRecording();
+
+        while(!ready_){
+            try {
+                wait();
+            } catch (InterruptedException e) {
+                logger_.info("Interrupted while waiting for thread to be ready.");
+            }
+        }
+
+        lock_.unlock();
     }
 
     @Override
     public synchronized void stopRecording(){
+        lock_.lock();
+
+        // Make sure that successive calls of this method doesn't cause any harm
+        if(!(run_ && live_)){
+            lock_.unlock();
+            return;
+        }
+
+        // Make sure that terminate hasn't been called before
+        if(byteArrayOutputStream_ == null || thread_ == null){
+            lock_.unlock();
+            return;
+        }
+
         run_ = false;
+        ready_ = false;
+
+        while(!ready_){
+            try {
+                wait();
+            } catch (InterruptedException e) {
+                logger_.info("Interrupted while waiting for thread to be ready.");
+            }
+        }
 
         super.stopRecording();
+
+        lock_.unlock();
     }
 
-    @Override
-    public void run(){
+    private void run(){
         // Upon start, go to wait immediately after you signal that you are ready to
         synchronized (this){
             ready_ = true;
-            notify();
+            notifyAll();
 
             while(!live_){
                 try {
                     wait();
                 } catch (InterruptedException e) {
-                    logger_.info("Thread woke up while waiting to become alive.");
+                    logger_.info("Thread was interrupted while waiting to become alive.");
                 }
             }
+
+            ready_ = true;
+            notifyAll();
         }
 
-        // for buffer size see https://docs.oracle.com/javase/tutorial/sound/capturing.html
-        byte[] buffer = new byte[targetDataLine_.getBufferSize() / 5];
+        byte[] buffer = new byte[targetDataLine_.getBufferSize()];
 
         while(live_) {
             while (run_) {
@@ -94,15 +146,23 @@ public class BufferedRecorder extends Recorder implements Runnable {
             }
 
             synchronized(this) {
-                while(!run_){
+                ready_ = true;
+                notifyAll();
+
+                while(!run_ && live_){
                     try {
                         wait();
                     } catch (InterruptedException e) {
-                        logger_.info("Thread woke up while waiting to run.");
+                        logger_.info("Thread was interrupted while waiting to run.");
                     }
                 }
+
+                ready_ = true;
+                notifyAll();
             }
         }
+
+        logger_.info("BufferedRecorder thread shut down gracefully!");
     }
 
     public byte[] getData(){
@@ -123,33 +183,56 @@ public class BufferedRecorder extends Recorder implements Runnable {
         notifyObservers(level);
     }
 
-    public void flush(){
+    public synchronized void flush(){
+        lock_.lock();
+
         byteArrayOutputStream_.reset();
+
+        lock_.unlock();
     }
 
     @Override
     public synchronized void terminate() {
-        // Make sure that the thread that runs the run method can terminate
-        run_ = false;
-        live_ = false;
+        lock_.lock();
 
-        notify();
+        if(live_){
+            if(run_){
+                stopRecording();
+            }
 
-        try {
-            // Don't wait forever on this thread since it is a daemon and will not block the JVM
-            // from shutting down
-            thread_.join(3000);
-        } catch (InterruptedException e) {
-            logger_.warning("Interrupted while joining thread.");
+            live_ = false;
+            ready_ = false;
+            notifyAll();
+
+            while (!ready_){
+                try {
+                    wait();
+                } catch (InterruptedException e) {
+                    logger_.warning("Interrupted while waiting for thread to be ready.");
+                }
+            }
+
+            try {
+                // Don't wait forever on this thread since it is a daemon and will not block the JVM
+                // from shutting down
+                thread_.join(3000);
+            } catch (InterruptedException e) {
+                logger_.warning("Interrupted while joining thread.");
+            }
         }
 
         try {
             byteArrayOutputStream_.close();
+            byteArrayOutputStream_ = null;
         } catch (IOException e) {
             logger_.log(Level.WARNING, "Could not close the ByteArrayOutputStream instance.", e);
         }
 
+        thread_ = null;
+
         super.terminate();
+
+        lock_.unlock();
     }
 
     private Thread thread_;
@@ -157,6 +240,8 @@ public class BufferedRecorder extends Recorder implements Runnable {
     private volatile boolean ready_ = false;
     private volatile boolean live_ = false;
     private volatile boolean run_ = false;
+
+    private final ReentrantLock lock_ = new ReentrantLock();
 
     private volatile ByteArrayOutputStream byteArrayOutputStream_;
 
