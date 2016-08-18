@@ -23,7 +23,6 @@ public class Dictionary implements Iterable<Map.Entry<String, String>>{
     }
 
     public static Dictionary createFromStream (InputStream inputStream) {
-
         Dictionary dictionary = new Dictionary();
 
         Scanner scanner = new Scanner(inputStream);

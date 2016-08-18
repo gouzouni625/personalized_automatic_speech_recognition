@@ -15,6 +15,7 @@ import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -153,41 +154,43 @@ public class DataBase {
         sentencesScanner.close();
         documentIdsScanner.close();
 
-        Corpus corpus = new Corpus(sentences);
-
-        return corpus;
+        return new Corpus(sentences);
     }
 
-    public String getDictionaryPathById (int id) throws IOException {
+    public Dictionary getDictionaryById(int id) throws FileNotFoundException {
+        return Dictionary.createFromStream(new FileInputStream(getDictionaryPathById(id)));
+    }
+
+    public String getDictionaryPathById (int id) throws FileNotFoundException {
         String path = configuration_.getCorpusDirectoryPath() +
             String.valueOf(id) + "/dictionary.dict";
 
         if(!(new File(path).isFile())){
             // TODO Maybe don't throw an exception but first, try creating a new dictionary
-            throw new IOException("Dictionary doesn't exist.");
+            throw new FileNotFoundException("Dictionary doesn't exist.");
         }
 
         return path;
     }
 
-    public String getLanguageModelPathById (int id) throws IOException {
+    public String getLanguageModelPathById (int id) throws FileNotFoundException {
         String path = configuration_.getCorpusDirectoryPath() +
             String.valueOf(id) + "/language_model.lm";
 
         if((!new File(path).isFile())){
             // TODO Maybe don't throw an exception but first, try creating a new language model
-            throw new IOException("Language Model doesn't exist.");
+            throw new FileNotFoundException("Language Model doesn't exist.");
         }
 
         return path;
     }
 
-    public String getAcousticModelPath() throws IOException {
+    public String getAcousticModelPath() throws FileNotFoundException {
         String path = configuration_.getAcousticModelPath();
 
         if(!new File(path).isDirectory()){
             // TODO Maybe don't throw an exception but first, try creating a new acoustic model
-            throw new IOException("Acoustic Model doesn't exist.");
+            throw new FileNotFoundException("Acoustic Model doesn't exist.");
         }
 
         return path;
