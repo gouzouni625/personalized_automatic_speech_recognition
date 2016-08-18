@@ -36,10 +36,11 @@
                 <ListView fx:id="wordsListView" AnchorPane.bottomAnchor="60.0"
                           AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0"
                           AnchorPane.topAnchor="60.0"/>
-                <Button fx:id="removeButton" prefHeight="30.0" prefWidth="90.0" text="remove"
+                <Button fx:id="removeButton" prefHeight="30.0" prefWidth="130.0" text="remove"
                         AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0"/>
-                <Button fx:id="pronounceButton" prefHeight="30.0" prefWidth="90.0" text="pronounce"
-                        AnchorPane.bottomAnchor="10.0" AnchorPane.rightAnchor="10.0"/>
+                <Button fx:id="autoPronounceButton" prefHeight="30.0" prefWidth="130.0"
+                        text="auto pronounce" AnchorPane.bottomAnchor="10.0"
+                        AnchorPane.rightAnchor="10.0"/>
             </AnchorPane>
             <AnchorPane>
                 <Label alignment="CENTER" prefHeight="30.0" text="Candidates"

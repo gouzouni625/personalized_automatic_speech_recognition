@@ -43,13 +43,7 @@ public class Dictionary implements Iterable<Map.Entry<String, String>>{
         String phones = wordsToPhonesTable_.get(string);
 
         if(phones == null){
-            List<String> list = new ArrayList<>();
-
-            for(char ch : string.trim().toUpperCase().toCharArray()){
-                list.add(String.valueOf(ch));
-            }
-
-            return list;
+            return autoPronounce(string);
         }
         else {
             return Arrays.asList(phones.trim().split(" "));
@@ -197,6 +191,16 @@ public class Dictionary implements Iterable<Map.Entry<String, String>>{
     @Override
     public Iterator<Map.Entry<String, String>> iterator () {
         return wordsToPhonesTable_.entrySet().iterator();
+    }
+
+    public static List<String> autoPronounce(String string){
+        List<String> list = new ArrayList<>();
+
+        for(char ch : string.trim().toUpperCase().toCharArray()){
+            list.add(String.valueOf(ch));
+        }
+
+        return list;
     }
 
     private final Map<String, String> wordsToPhonesTable_;

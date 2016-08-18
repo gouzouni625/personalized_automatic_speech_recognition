@@ -49,6 +49,7 @@ public class LDAController extends Controller {
         startDictionaryThread();
 
         removeButton.setOnAction(this :: removeButtonOnAction);
+        autoPronounceButton.setOnAction(this :: autoPronounceButtonOnAction);
         chooseButton.setOnAction(this :: chooseButtonOnAction);
         runButton.setOnAction(this :: runButtonOnAction);
         interactButton.setOnAction(this :: interactButtonOnAction);
@@ -104,6 +105,22 @@ public class LDAController extends Controller {
 
             dictionary_.removeUnknownWord(selectedWord);
             corpus_.removeWordByText(selectedWord);
+
+            unknownWords_.remove(selectedIndex);
+            candidateWords_.remove(selectedIndex);
+        }
+    }
+
+    private void autoPronounceButtonOnAction (ActionEvent actionEvent){
+        int selectedIndex = wordsListView.getSelectionModel().getSelectedIndex();
+
+        if(selectedIndex != -1){
+            String selectedWord = wordsListView.getSelectionModel().getSelectedItem();
+
+            dictionary_.add(
+                selectedWord,
+                String.join(" ", Dictionary.autoPronounce(selectedWord))
+            );
 
             unknownWords_.remove(selectedIndex);
             candidateWords_.remove(selectedIndex);
@@ -505,7 +522,7 @@ public class LDAController extends Controller {
 
     private void setButtonsDisable(boolean disable){
         removeButton.setDisable(disable);
-        pronounceButton.setDisable(disable);
+        autoPronounceButton.setDisable(disable);
         chooseButton.setDisable(disable);
         chooseButton.setDisable(disable);
         runButton.setDisable(disable);
@@ -536,7 +553,7 @@ public class LDAController extends Controller {
     private Button removeButton;
 
     @FXML
-    private Button pronounceButton;
+    private Button autoPronounceButton;
 
     @FXML
     private ListView<String> candidatesListView;
