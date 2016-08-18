@@ -323,6 +323,10 @@ public class MainView extends Application implements MainController.API,
     }
 
     private void setCorpus (int corpusId) {
+        if(corpus_ != null && corpus_.getId() == corpusId){
+            return;
+        }
+
         try {
             corpus_ = dataBase_.getCorpusById(corpusId);
         } catch (IOException e) {

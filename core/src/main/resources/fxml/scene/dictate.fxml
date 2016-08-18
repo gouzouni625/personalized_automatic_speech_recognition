@@ -3,6 +3,7 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.RadioButton?>
 <?import org.pasr.gui.corpus.CorpusPane?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.ToggleButton?>
@@ -10,7 +11,9 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.text.Font?>
 
-<HBox prefHeight="800.0" prefWidth="1280.0" xmlns:fx="http://javafx.com/fxml">
+
+<HBox prefHeight="800.0" prefWidth="1280.0" xmlns:fx="http://javafx.com/fxml/1"
+      xmlns="http://javafx.com/javafx/8.0.91">
     <CorpusPane fx:id="corpusPane" orientation="VERTICAL" prefHeight="800.0" prefWidth="700.0"/>
     <AnchorPane prefHeight="800.0" prefWidth="580.0">
         <AnchorPane fx:id="dictatePane"
@@ -37,8 +40,8 @@
             <TextArea fx:id="correctedTextArea" prefHeight="250.0" prefWidth="200.0" wrapText="true"
                       AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0"
                       AnchorPane.topAnchor="350.0"/>
-            <Label fx:id="dictationDisabledLabel" visible="false" alignment="CENTER"
-                   textAlignment="CENTER" wrapText="true" prefHeight="60.0"
+            <Label fx:id="dictationDisabledLabel" alignment="CENTER" prefHeight="60.0"
+                   textAlignment="CENTER" visible="false" wrapText="true"
                    AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0"
                    AnchorPane.topAnchor="400.0">
                 <font>
@@ -47,9 +50,14 @@
             </Label>
             <ToggleButton fx:id="dictateToggleButton" prefHeight="30.0" prefWidth="100.0"
                           AnchorPane.leftAnchor="230.0" AnchorPane.topAnchor="610.0"/>
+            <RadioButton fx:id="batchRadioButton" prefHeight="30.0"
+                         text="Batch recognition (Recommended)" AnchorPane.leftAnchor="10.0"
+                         AnchorPane.bottomAnchor="50.0"/>
+            <RadioButton fx:id="streamRadioButton" prefHeight="30.0" text="Stream recognition"
+                         AnchorPane.leftAnchor="10.0" AnchorPane.bottomAnchor="10.0" />
             <CheckBox fx:id="useDefaultAcousticModelCheckBox" prefHeight="30.0" prefWidth="180.0"
                       text="default acoustic model" AnchorPane.bottomAnchor="10.0"
-                      AnchorPane.leftAnchor="190.0"/>
+                      AnchorPane.rightAnchor="10.0"/>
         </AnchorPane>
         <Button fx:id="backButton" prefHeight="30.0" prefWidth="60.0" text="back"
                 AnchorPane.bottomAnchor="10.0" AnchorPane.rightAnchor="10.0"/>

@@ -8,20 +8,29 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
+import org.pasr.asr.dictionary.Dictionary;
+import org.pasr.asr.recognizers.RealTimeSpeechRecognizer;
 import org.pasr.asr.recognizers.StreamSpeechRecognizer;
-import org.pasr.asr.recognizers.StreamSpeechRecognizer.Stage;
+import org.pasr.asr.recognizers.RealTimeSpeechRecognizer.Stage;
 import org.pasr.database.DataBase;
 import org.pasr.gui.console.Console;
 import org.pasr.gui.corpus.CorpusPane;
+import org.pasr.postp.correctors.Corrector;
+import org.pasr.postp.detectors.POSDetector;
 import org.pasr.prep.corpus.Corpus;
+import org.pasr.prep.recorder.BufferedRecorder;
 
 import javax.sound.sampled.LineUnavailableException;
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Observable;
 import java.util.Observer;
@@ -51,10 +60,12 @@ public class DictateController extends Controller implements Observer{
 
         aSRResultTextArea.textProperty().addListener(event -> {
             aSRResultTextArea.setScrollTop(Double.MAX_VALUE);
+            aSRResultTextArea.setScrollLeft(0);
         });
 
         correctedTextArea.textProperty().addListener(event -> {
             correctedTextArea.setScrollTop(Double.MAX_VALUE);
+            correctedTextArea.setScrollLeft(0);
         });
 
         dictateToggleButton.setGraphic(dictateToggleButtonDefaultGraphic);
@@ -65,6 +76,19 @@ public class DictateController extends Controller implements Observer{
         });
 
         dictateToggleButton.setOnAction(this :: dictateToggleButtonOnAction);
+
+        ToggleGroup toggleGroup = new ToggleGroup();
+        batchRadioButton.setToggleGroup(toggleGroup);
+        batchRadioButton.setSelected(true);
+        streamRadioButton.setToggleGroup(toggleGroup);
+        toggleGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
+            if(newValue == batchRadioButton){
+                recognitionMode_ = RecognitionMode.BATCH;
+            }
+            else{
+                recognitionMode_ = RecognitionMode.STREAM;
+            }
+        });
 
         useDefaultAcousticModelCheckBox.setOnAction(
             this :: useDefaultAcousticModelCheckBoxOnAction
@@ -113,7 +137,7 @@ public class DictateController extends Controller implements Observer{
 
             try {
                 recognizerConfiguration.setDictionaryPath(dataBase_.getDictionaryPathById(id_));
-            } catch (IOException e) {
+            } catch (FileNotFoundException e) {
                 Console.getInstance().postMessage("Could not load the dictionary of the selected" +
                     " corpus.");
                 onFailure();
@@ -126,8 +150,10 @@ public class DictateController extends Controller implements Observer{
             }
 
             try {
-                recognizerConfiguration.setLanguageModelPath(dataBase_.getLanguageModelPathById(id_));
-            } catch (IOException e) {
+                recognizerConfiguration.setLanguageModelPath(
+                    dataBase_.getLanguageModelPathById(id_)
+                );
+            } catch (FileNotFoundException e) {
                 Console.getInstance().postMessage("Could not load the language model of the" +
                     " selected corpus");
                 onFailure();
@@ -145,7 +171,7 @@ public class DictateController extends Controller implements Observer{
                     recognizerConfiguration.setAcousticModelPath(dataBase_.getAcousticModelPath());
 
                     acousticModelLoaded = true;
-                } catch (IOException e) {
+                } catch (FileNotFoundException e) {
                     Console.getInstance().postMessage("Could not load the acoustic model.\n" +
                         "Will load the default acoustic model instead.");
                     useDefaultAcousticModelCheckBox.setSelected(true);
@@ -155,7 +181,7 @@ public class DictateController extends Controller implements Observer{
             if(!acousticModelLoaded){
                 try {
                     recognizerConfiguration.setAcousticModelPath(getDefaultAcousticModelPath());
-                } catch (IOException e) {
+                } catch (FileNotFoundException e) {
                     Console.getInstance().postMessage("Could not load the default acoustic model.");
                     onFailure();
                     return;
@@ -167,13 +193,20 @@ public class DictateController extends Controller implements Observer{
                 return;
             }
 
+            // Setup the recognizers
             try {
-                if(recognizer_ != null) {
-                    recognizer_.terminate();
+                if(realTimeSpeechRecognizer_ != null) {
+                    realTimeSpeechRecognizer_.terminate();
                 }
 
-                recognizer_ = new StreamSpeechRecognizer(recognizerConfiguration);
-                recognizer_.addObserver(DictateController.this);
+                realTimeSpeechRecognizer_ = new RealTimeSpeechRecognizer(recognizerConfiguration);
+                realTimeSpeechRecognizer_.addObserver(DictateController.this);
+
+                if(bufferedRecorder_ == null){
+                    bufferedRecorder_ = new BufferedRecorder();
+                }
+
+                streamSpeechRecognizer_ = new StreamSpeechRecognizer(recognizerConfiguration);
             } catch (IOException e) {
                 logger_.log(Level.SEVERE, "Missing native library.\n" +
                     "Application will terminate.", e);
@@ -187,6 +220,37 @@ public class DictateController extends Controller implements Observer{
                 return;
             }
 
+            // Setup the corrector
+            Dictionary dictionary;
+            try {
+                dictionary = dataBase_.getDictionaryById(id_);
+            } catch (FileNotFoundException e) {
+                Console.getInstance().postMessage("Could not load the dictionary of the selected" +
+                    " corpus.\nWill load the default dictionary.");
+
+                try {
+                    dictionary = Dictionary.getDefaultDictionary();
+                } catch (FileNotFoundException e1) {
+                    Console.getInstance().postMessage("Could not load the default dictionary" +
+                        " model.\n Corrector will not be available.");
+                    onFailure();
+                    return;
+                }
+            }
+
+            Corpus corpus = ((API) api_).getCorpus();
+            corrector_ = new Corrector(corpus, dictionary);
+            try {
+                corrector_.addDetector(new POSDetector(corpus));
+            } catch (IOException e) {
+                logger_.log(Level.SEVERE, "Missing POSDetector model.\n" +
+                    "Application will terminate.", e);
+                Platform.exit();
+                return;
+            }
+            // TODO Improve OccurrenceDetector before using it
+            // corrector_.addDetector(new OccurrenceDetector(corpus));
+
             onSuccess();
         }
 
@@ -197,12 +261,12 @@ public class DictateController extends Controller implements Observer{
             });
         }
 
-        private String getDefaultAcousticModelPath() throws IOException {
+        private String getDefaultAcousticModelPath() throws FileNotFoundException {
             String path = org.pasr.asr.Configuration.getDefaultConfiguration()
                 .getAcousticModelPath();
 
             if(!(new File(path).isDirectory())){
-                throw new IOException("Language Model doesn't exist.");
+                throw new FileNotFoundException("Language Model doesn't exist.");
             }
 
             return path;
@@ -227,10 +291,50 @@ public class DictateController extends Controller implements Observer{
 
     private void dictateToggleButtonOnAction(ActionEvent actionEvent){
         if(dictateToggleButton.isSelected()){
-            recognizer_.startRecognition();
+            switch (recognitionMode_){
+                case BATCH:
+                    bufferedRecorder_.startRecording();
+                    break;
+                case STREAM:
+                    realTimeSpeechRecognizer_.startRecognition();
+                    break;
+            }
+
+            batchRadioButton.setDisable(true);
+            streamRadioButton.setDisable(true);
+            useDefaultAcousticModelCheckBox.setDisable(true);
+            backButton.setDisable(true);
         }
         else{
-            recognizer_.stopRecognition();
+            switch (recognitionMode_){
+                case BATCH:
+                    bufferedRecorder_.stopRecording();
+                    try {
+                        outputManager_.start();
+                        outputManager_.process(
+                            streamSpeechRecognizer_.recognize(
+                                new ByteArrayInputStream(
+                                    bufferedRecorder_.getData()
+                                )
+                            )
+                        );
+                        outputManager_.stop();
+                    } catch (IOException e) {
+                        Console.getInstance().postMessage("Could not record your voice.\n" +
+                            "Please try again.");
+                    }
+                    break;
+                case STREAM:
+                    realTimeSpeechRecognizer_.stopRecognition();
+                    break;
+            }
+
+            bufferedRecorder_.flush();
+
+            batchRadioButton.setDisable(false);
+            streamRadioButton.setDisable(false);
+            useDefaultAcousticModelCheckBox.setDisable(false);
+            backButton.setDisable(false);
         }
     }
 
@@ -251,15 +355,55 @@ public class DictateController extends Controller implements Observer{
     @Override
     public void update (Observable o, Object arg) {
         if(arg instanceof Stage){
-            if(arg == Stage.STARTED && !aSRResultTextAreaPreviousText_.isEmpty()){
-                aSRResultTextAreaPreviousText_ += ".\n\n";
+            if(arg == Stage.STARTED){
+                outputManager_.start();
             }
             else if(arg == Stage.STOPPED){
-                aSRResultTextAreaPreviousText_ = aSRResultTextArea.getText();
+                outputManager_.stop();
             }
         } else if(arg instanceof String){
-            aSRResultTextArea.setText(aSRResultTextAreaPreviousText_ + arg);
+            outputManager_.process((String) arg);
         }
+    }
+
+    private class OutputManager{
+        OutputManager(){}
+
+        void start(){}
+
+        void stop(){
+            aSRTextAreaText_ += aSROutput_ + "\n";
+            correctedTextAreaText_ += corrected_ + "\n";
+        }
+
+        void process(String aSROutput){
+            if(corrector_ == null){
+                aSROutput_ = aSROutput;
+                updateASRTextArea();
+
+                return;
+            }
+
+            aSROutput_ = aSROutput;
+            corrected_ = corrector_.correct(aSROutput_);
+
+            updateASRTextArea();
+            updateCorrectedTextArea();
+        }
+
+        private void updateASRTextArea(){
+            aSRResultTextArea.setText(aSRTextAreaText_ + aSROutput_);
+        }
+
+        private void updateCorrectedTextArea(){
+            correctedTextArea.setText(correctedTextAreaText_ + corrected_);
+        }
+
+        private String aSRTextAreaText_ = "";
+        private String correctedTextAreaText_ = "";
+
+        private String aSROutput_ = "";
+        private String corrected_ = "";
     }
 
     @Override
@@ -274,7 +418,8 @@ public class DictateController extends Controller implements Observer{
             logger_.warning("Interrupted while joining setCorpusThread.");
         }
 
-        recognizer_.terminate();
+        realTimeSpeechRecognizer_.terminate();
+        bufferedRecorder_.terminate();
     }
 
     public interface API extends Controller.API{
@@ -290,7 +435,6 @@ public class DictateController extends Controller implements Observer{
 
     @FXML
     private TextArea aSRResultTextArea;
-    private String aSRResultTextAreaPreviousText_ = "";
 
     @FXML
     private TextArea correctedTextArea;
@@ -321,16 +465,34 @@ public class DictateController extends Controller implements Observer{
         new Image(getResourceStream("/icons/microphone_green.png")));
 
     @FXML
+    private RadioButton batchRadioButton;
+
+    @FXML
+    private RadioButton streamRadioButton;
+
+    @FXML
     private CheckBox useDefaultAcousticModelCheckBox;
 
     @FXML
     private Button backButton;
 
-    private StreamSpeechRecognizer recognizer_;
+    private StreamSpeechRecognizer streamSpeechRecognizer_;
+    private RealTimeSpeechRecognizer realTimeSpeechRecognizer_;
+    private RecognitionMode recognitionMode_ = RecognitionMode.BATCH;
+    private enum RecognitionMode{
+        STREAM,
+        BATCH
+    }
+
+    private BufferedRecorder bufferedRecorder_;
+
+    private Corrector corrector_;
 
     private SetCorpusThread setCorpusThread_;
 
     private int currentCorpusId_ = -1;
+
+    private OutputManager outputManager_ = new OutputManager();
 
     private DataBase dataBase_ = DataBase.getInstance();
 
