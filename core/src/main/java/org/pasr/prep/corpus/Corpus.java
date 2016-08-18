@@ -179,7 +179,31 @@ public class Corpus extends ArrayList<WordSequence> {
         ArrayList<WordSequence> wordSequences = new ArrayList<>();
         for(String wordSequenceText : wordSequenceTextArray){
             if(!wordSequenceText.isEmpty()) {
-                wordSequences.add(new WordSequence(wordSequenceText, documentID, documentTitle));
+                //noinspection MismatchedQueryAndUpdateOfCollection
+                WordSequence currentWordSequence = new WordSequence(
+                    wordSequenceText, documentID, documentTitle
+                );
+
+                int size = currentWordSequence.size();
+                if(size <= 10){
+                    wordSequences.add(currentWordSequence);
+                }
+                else if(size <= 15){
+                    int half = size / 2;
+                    wordSequences.add(currentWordSequence.subSequence(0, half));
+                    wordSequences.add(currentWordSequence.subSequence(half, size));
+                }
+                else{
+                    // Note that size is int so, if size == 99 then size / 10 * 10 = 90
+                    int n = size / 10 * 10;
+                    for(int i = 0;i < n;i += 10){
+                        wordSequences.add(currentWordSequence.subSequence(i, i + 10));
+                    }
+
+                    if(n < size){
+                        wordSequences.add(currentWordSequence.subSequence(n, size));
+                    }
+                }
             }
         }
 
@@ -223,7 +247,7 @@ public class Corpus extends ArrayList<WordSequence> {
     }
 
     public String toPrettyString(){
-        return toString().replaceAll("\\.", ".\n");
+        return toString().replaceAll("\\.", "\n");
     }
 
     public boolean contains(String string){
