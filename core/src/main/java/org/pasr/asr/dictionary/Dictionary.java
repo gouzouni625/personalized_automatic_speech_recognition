@@ -15,10 +15,8 @@ import java.util.stream.Collectors;
 import static org.apache.commons.lang3.StringUtils.getLevenshteinDistance;
 
 
-public class Dictionary implements Iterable<Map.Entry<String, String>>{
+public class Dictionary extends LinkedHashMap<String, String> {
     public Dictionary(){
-        wordsToPhonesTable_ = new LinkedHashMap<>();
-
         unknownWords_ = new ArrayList<>();
     }
 
@@ -31,7 +29,7 @@ public class Dictionary implements Iterable<Map.Entry<String, String>>{
 
             int indexOfSeparation = line.indexOf(" ");
 
-            dictionary.add(line.substring(0, indexOfSeparation),
+            dictionary.put(line.substring(0, indexOfSeparation),
                     line.substring(indexOfSeparation + 1));
         }
         scanner.close();
@@ -40,7 +38,7 @@ public class Dictionary implements Iterable<Map.Entry<String, String>>{
     }
 
     private List<String> getPhones(String string){
-        String phones = wordsToPhonesTable_.get(string);
+        String phones = get(string);
 
         if(phones == null){
             return autoPronounce(string);
@@ -70,7 +68,7 @@ public class Dictionary implements Iterable<Map.Entry<String, String>>{
     }
 
     public Map<String, String> getEntriesByKey(String key){
-        return wordsToPhonesTable_.entrySet().stream().
+        return entrySet().stream().
             filter(entry -> entry.getKey().equals(key) ||
                 entry.getKey().matches(key + "\\([0-9]+\\)")).
             collect(Collectors.toMap(Map.Entry:: getKey, Map.Entry:: getValue));
@@ -81,7 +79,7 @@ public class Dictionary implements Iterable<Map.Entry<String, String>>{
     }
 
     private Set<String> getUniqueWords(){
-        return wordsToPhonesTable_.keySet().stream().
+        return keySet().stream().
             filter(entry -> !entry.contains("(")).
             collect(Collectors.toSet());
     }
@@ -116,35 +114,28 @@ public class Dictionary implements Iterable<Map.Entry<String, String>>{
         return fuzzyMatch(string, 5);
     }
 
-    public void add(String key, String value){
-        if(!wordsToPhonesTable_.containsKey(key)) {
-            wordsToPhonesTable_.put(key, value);
-            return;
+    @Override
+    public String put (String key, String value){
+        if(!containsKey(key)) {
+            super.put(key, value);
+            return null;
         }
 
         int index = 1;
         String currentKey = key + "(" + index + ")";
-        while(wordsToPhonesTable_.containsKey(currentKey)){
-            // if the given value already exists inside the dictionary, don't add it again
-            if(wordsToPhonesTable_.get(currentKey).equals(value)){
-                return;
+        while(containsKey(currentKey)){
+            // if the given value already exists inside the dictionary, don't put it again
+            if(get(currentKey).equals(value)){
+                return null;
             }
 
             index++;
             currentKey = key + "(" + index + ")";
         }
 
-        wordsToPhonesTable_.put(currentKey, value);
-    }
+        super.put(currentKey, value);
 
-    public void add(Map.Entry<String, String> entry){
-        add(entry.getKey(), entry.getValue());
-    }
-
-    public void addAll(Map<String, String> entries){
-        for(Map.Entry<String, String> entry : entries.entrySet()){
-            add(entry.getKey(), entry.getValue());
-        }
+        return null;
     }
 
     public void addUnknownWord(String word){
@@ -154,12 +145,12 @@ public class Dictionary implements Iterable<Map.Entry<String, String>>{
     }
 
     public void remove(String key){
-        if(wordsToPhonesTable_.remove(key) == null){
+        if(super.remove(key) == null){
             return;
         }
 
         int index = 2;
-        while(wordsToPhonesTable_.remove(key + "(" + index + ")") != null){
+        while(super.remove(key + "(" + index + ")") != null){
             index++;
         }
     }
@@ -177,7 +168,7 @@ public class Dictionary implements Iterable<Map.Entry<String, String>>{
     public void exportToStream(OutputStream outputStream) {
         // Sort the entries of the dictionary based on the key length. This will ensure that
         // "the(1)" is below "the" when the dictionary is saved to the file.
-        List<Map.Entry<String, String>> entries = new ArrayList<>(wordsToPhonesTable_.entrySet());
+        List<Map.Entry<String, String>> entries = new ArrayList<>(entrySet());
 
         Collections.sort(entries, (e1, e2) -> e1.getKey().length() - e2.getKey().length());
 
@@ -186,11 +177,6 @@ public class Dictionary implements Iterable<Map.Entry<String, String>>{
             printWriter.write(entry.getKey() + " " + entry.getValue() + "\n");
         }
         printWriter.close();
-    }
-
-    @Override
-    public Iterator<Map.Entry<String, String>> iterator () {
-        return wordsToPhonesTable_.entrySet().iterator();
     }
 
     public static List<String> autoPronounce(String string){
@@ -203,7 +189,6 @@ public class Dictionary implements Iterable<Map.Entry<String, String>>{
         return list;
     }
 
-    private final Map<String, String> wordsToPhonesTable_;
     private final List<String> unknownWords_;
 
 }

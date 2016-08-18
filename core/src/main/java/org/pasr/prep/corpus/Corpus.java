@@ -94,7 +94,7 @@ public class Corpus extends ArrayList<WordSequence> {
                 reducedDictionary.addUnknownWord(uniqueWord);
             }
             else{
-                reducedDictionary.addAll(entries);
+                reducedDictionary.putAll(entries);
             }
 
             i++;

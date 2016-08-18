@@ -117,7 +117,7 @@ public class LDAController extends Controller {
         if(selectedIndex != -1){
             String selectedWord = wordsListView.getSelectionModel().getSelectedItem();
 
-            dictionary_.add(
+            dictionary_.put(
                 selectedWord,
                 String.join(" ", Dictionary.autoPronounce(selectedWord))
             );
