@@ -47,6 +47,7 @@ public class RecordController extends Controller implements Observer{
 
         try {
             recorder_ = new BufferedRecorder();
+            recorder_.addObserver(this);
         } catch (LineUnavailableException e) {
             Console.getInstance().postMessage("Could not open the Microphone.\n" +
                 "Maybe it is being used by another application.\n" +

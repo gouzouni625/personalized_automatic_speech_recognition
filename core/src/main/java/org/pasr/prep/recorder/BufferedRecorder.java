@@ -125,7 +125,9 @@ public class BufferedRecorder extends Recorder {
             notifyAll();
         }
 
-        byte[] buffer = new byte[targetDataLine_.getBufferSize()];
+        // For the size of the buffer see
+        // https://docs.oracle.com/javase/tutorial/sound/capturing.html
+        byte[] buffer = new byte[targetDataLine_.getBufferSize() / 5];
 
         while(live_) {
             while (run_) {
