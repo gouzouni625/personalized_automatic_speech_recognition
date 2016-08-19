@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 ## ===== Init submodules ===== ##
 git submodule init
@@ -16,7 +16,7 @@ make
 make check
 make install
 
-export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$PWD
+export PKG_CONFIG_PATH=${PKG_CONFIG_PATH}:$PWD
 
 cd ..
 
@@ -45,16 +45,16 @@ make install
 # If no first argument is supplied
 if [ -z "$1" ]
   then
-    export JAVA_HOME=/usr/lib/jvm/default_java
+    export JAVA_HOME=/usr/lib/jvm/default-java
 else
     export JAVA_HOME=$1
 fi
 
-export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$PWD
+export PKG_CONFIG_PATH=${PKG_CONFIG_PATH}:$PWD
 
 cd swig/java
 make
-javac test/*.java edu/cmu/pocketsphinx/*.java
+javac edu/cmu/pocketsphinx/*.java
 jar -cf pocketsphinx.jar edu libpocketsphinx_jni.so
 
 cp pocketsphinx.jar ../../../core/libs

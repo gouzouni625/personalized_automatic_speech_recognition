@@ -1,3 +1,6 @@
+.gradle/
+build/
+
 cmuclmtk/
 
 sphinxbase/installation/
