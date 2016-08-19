@@ -82,7 +82,9 @@ public class LanguageModel {
             return 0;
         }
 
-        String[] words = wordSequence.getWordsText();
+        String[] words = wordSequence.getWordTextList().stream()
+            .toArray(String[] :: new);
+
         int numberOfWords = words.length;
 
         if(numberOfWords == 0){
