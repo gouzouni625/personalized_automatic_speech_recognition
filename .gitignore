@@ -8,3 +8,4 @@ sphinxtrain/installation/
 pocketsphinx/installation/
 
 *.log.*
+setup.log
