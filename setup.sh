@@ -12,12 +12,12 @@ cd sphinxbase
 # autogen script will run configure with the given arguments
 ./autogen.sh --prefix=${PWD}/installation && make && make check && make install
 
-if [ $? -eq 1 ]
+if [ $? -ne 0 ]
 then
-  echo "Could not build sphinxbase"
+  echo "Could not build sphinxbase" >> ../setup.log
   exit 1
 else
-  echo "sphinxbase was successfully built and installed" >> setup.log
+  echo "sphinxbase was successfully built and installed" >> ../setup.log
 fi
 
 export PKG_CONFIG_PATH=${PKG_CONFIG_PATH}:${PWD}
@@ -30,12 +30,12 @@ cd sphinxtrain
 # autogen script will run configure with the given arguments
 ./autogen.sh --prefix=${PWD}/installation && make && make check && make install
 
-if [ $? -eq 1 ]
+if [ $? -ne 0 ]
 then
-  echo "Could not build sphinxtrain"
+  echo "Could not build sphinxtrain" >> ../setup.log
   exit 1
 else
-  echo "sphinxtrain was successfully built and installed" >> setup.log
+  echo "sphinxtrain was successfully built and installed" >> ../setup.log
 fi
 
 cd ..
@@ -46,12 +46,12 @@ cd pocketsphinx
 # autogen script will run configure with the given arguments
 ./autogen.sh  --prefix=${PWD}/installation && make && make check && make install
 
-if [ $? -eq 1 ]
+if [ $? -ne 0 ]
 then
-  echo "Could not build pocketsphinx"
+  echo "Could not build pocketsphinx" >> ../setup.log
   exit 1
 else
-  echo "pocketsphinx was successfully built and installed" >> setup.log
+  echo "pocketsphinx was successfully built and installed" >> ../setup.log
 fi
 
 # If no first argument is supplied
@@ -68,12 +68,12 @@ cd swig/java
 
 make && javac edu/cmu/pocketsphinx/*.java && jar -cf pocketsphinx.jar edu libpocketsphinx_jni.so
 
-if [ $? -eq 1 ]
+if [ $? -ne 0 ]
 then
-  echo "Could not build pocketsphinx for java"
+  echo "Could not build pocketsphinx for java" >> ../../../setup.log
   exit 1
 else
-  echo "pocketsphinx for java was successfully built" >> setup.log
+  echo "pocketsphinx for java was successfully built" >> ../../../setup.log
 fi
 
 cp pocketsphinx.jar ../../../core/libs
@@ -92,12 +92,12 @@ cd cmuclmtk
 
 ./configure --prefix=${PWD}/installation && make && make check && make install
 
-if [ $? -eq 1 ]
+if [ $? -ne 0 ]
 then
-  echo "Could not build cmuclmtk"
+  echo "Could not build cmuclmtk" >> ../setup.log
   exit 1
 else
-  echo "cmuclmtk was successfully built and installed" >> setup.log
+  echo "cmuclmtk was successfully built and installed" >> ../setup.log
 fi
 
 cd ..
