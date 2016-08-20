@@ -1,3 +1,10 @@
+apply plugin: 'java'
+
+repositories() {
+    mavenCentral()
+    maven { url "https://jitpack.io" }
+}
+
 jar {
     manifest {
         attributes 'Main-Class': 'org.pasr.gui.MainView'
@@ -22,5 +29,4 @@ dependencies {
     compile group: 'com.google.code.gson'  , name: 'gson'                , version: '2.6.2'
     compile group: 'com.github.gouzouni625', name: 'native-utils'        , version: '-SNAPSHOT'
     compile group: 'cc.mallet'             , name: 'mallet'              , version: '2.0.8'
-    compile group: 'org.apache.opennlp'    , name: 'opennlp-tools'       , version: '1.6.0'
 }
