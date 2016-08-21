@@ -197,6 +197,12 @@ public class BufferedRecorder extends Recorder {
     public synchronized void terminate() {
         lock_.lock();
 
+        // Make sure that successive calls of this method doesn't cause any harm
+        if(byteArrayOutputStream_ == null || thread_ == null){
+            lock_.unlock();
+            return;
+        }
+
         if(live_){
             if(run_){
                 stopRecording();
@@ -225,9 +231,11 @@ public class BufferedRecorder extends Recorder {
 
         try {
             byteArrayOutputStream_.close();
-            byteArrayOutputStream_ = null;
         } catch (IOException e) {
             logger_.log(Level.WARNING, "Could not close the ByteArrayOutputStream instance.", e);
+        }
+        finally {
+            byteArrayOutputStream_ = null;
         }
 
         thread_ = null;
