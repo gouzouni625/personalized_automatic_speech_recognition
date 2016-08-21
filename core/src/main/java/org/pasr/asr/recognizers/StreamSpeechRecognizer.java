@@ -29,11 +29,6 @@ public class StreamSpeechRecognizer {
     }
 
     public String recognize(InputStream inputStream) throws IOException {
-        if(shouldReInit_){
-            decoder_.reinit(decoderConfig_);
-            shouldReInit_ = false;
-        }
-
         decoder_.startUtt();
         short[] buffer = new short[1024];
         int read;
@@ -50,7 +45,6 @@ public class StreamSpeechRecognizer {
             hypothesis = decoder_.hyp().getHypstr();
         }
 
-        shouldReInit_ = true;
         return hypothesis;
     }
 
@@ -68,8 +62,6 @@ public class StreamSpeechRecognizer {
 
     private Decoder decoder_;
     private Config decoderConfig_;
-
-    private boolean shouldReInit_ = false;
 
     private static boolean isLibraryLoaded_ = false;
 

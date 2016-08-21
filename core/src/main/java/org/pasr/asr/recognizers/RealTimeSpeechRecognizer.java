@@ -201,7 +201,6 @@ public class RealTimeSpeechRecognizer extends Observable {
     private void stopDecoder(){
         if(isDecoderStarted_ && decoder_ != null){
             decoder_.endUtt();
-            decoder_.reinit(decoderConfig_);
             isDecoderStarted_ = false;
         }
     }
