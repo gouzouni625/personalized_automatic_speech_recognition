@@ -65,6 +65,14 @@ application using the following commands:
    ./setup.sh
    ```
 
+   The setup script will look for Java at the location `/usr/lib/jvm/default-java`. If this is not
+   the valid location of your Java installation, you should provide the correct path as an argument
+   to the setup script like this:
+
+   ```bash
+   ./setup.sh /your/java/installation/path
+   ```
+
    After the installation script is done, you can check the setup.log file to make sure everything
    was installed correctly.
 
