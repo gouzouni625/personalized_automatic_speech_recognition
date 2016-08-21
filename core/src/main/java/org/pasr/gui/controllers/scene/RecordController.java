@@ -297,25 +297,33 @@ public class RecordController extends Controller implements Observer{
 
     @Override
     public void terminate() {
-        clip_.close();
-
-        recorder_.terminate();
-
-        fillCorpusSentencesThread_.terminate();
-        try {
-            // Don't wait forever on this thread since it is a daemon and will not block the JVM
-            // from shutting down
-            fillCorpusSentencesThread_.join(3000);
-        } catch (InterruptedException e) {
-            getLogger().warning("Interrupted while joining fillCorpusSentencesThread.");
+        if(clip_ != null && clip_.isOpen()) {
+            clip_.close();
         }
 
-        try {
-            // Don't wait forever on this thread since it is a daemon and will not block the JVM
-            // from shutting down
-            fillArcticSentencesThread_.join(3000);
-        } catch (InterruptedException e) {
-            getLogger().warning("Interrupted while joining fillArcticSentencesThread.");
+        if(recorder_ != null) {
+            recorder_.terminate();
+        }
+
+        if(fillCorpusSentencesThread_ != null && fillCorpusSentencesThread_.isAlive()) {
+            fillCorpusSentencesThread_.terminate();
+            try {
+                // Don't wait forever on this thread since it is a daemon and will not block the JVM
+                // from shutting down
+                fillCorpusSentencesThread_.join(3000);
+            } catch (InterruptedException e) {
+                getLogger().warning("Interrupted while joining fillCorpusSentencesThread.");
+            }
+        }
+
+        if(fillArcticSentencesThread_ != null && fillArcticSentencesThread_.isAlive()) {
+            try {
+                // Don't wait forever on this thread since it is a daemon and will not block the JVM
+                // from shutting down
+                fillArcticSentencesThread_.join(3000);
+            } catch (InterruptedException e) {
+                getLogger().warning("Interrupted while joining fillArcticSentencesThread.");
+            }
         }
     }
 
