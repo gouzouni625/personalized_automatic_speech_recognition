@@ -89,6 +89,10 @@ application using the following commands:
    ./start.sh
    ```
 
+## Further Reading
+To get information about how to use the application, you can read the [user guide][4].
+
 [1]: http://cmusphinx.sourceforge.net/wiki/about
 [2]: http://www.oracle.com/technetwork/java/javase/overview/javafx-overview-2158620.html
 [3]: https://gradle.org/
+[4]: docs/user_guide.pdf
