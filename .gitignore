@@ -1,0 +1,11 @@
+.gradle/
+build/
+
+cmuclmtk/
+
+sphinxbase/installation/
+sphinxtrain/installation/
+pocketsphinx/installation/
+
+*.log.*
+setup.log

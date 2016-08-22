@@ -1,0 +1,6 @@
+{
+  "acousticModelPath": "pocketsphinx/model/en-us/en-us/",
+  "dictionaryPath": "pocketsphinx/model/en-us/cmudict-en-us.dict",
+  "languageModelPath": "pocketsphinx/model/en-us/en-us.lm.bin"
+}
+

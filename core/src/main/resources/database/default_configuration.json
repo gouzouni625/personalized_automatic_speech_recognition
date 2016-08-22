@@ -1,0 +1,25 @@
+{
+  "dataBaseDirectoryPath": "database/",
+
+  "corpusDirectoryPath": "database/corpora/",
+  "corpusIndexPath": "database/corpora/index.json",
+
+  "arcticIndexPath": "database/arctic/index.json",
+
+  "audioDirectoryPath": "database/audio/",
+  "audioIndexPath": "database/audio/index.json",
+
+  "acousticModelDirectoryPath": "database/acoustic_model/",
+  "acousticModelPath": "database/acoustic_model/en-us-adapt/",
+
+  "text2wfreqPath": "cmuclmtk/installation/bin/text2wfreq",
+  "wfreq2vocabPath": "cmuclmtk/installation/bin/wfreq2vocab",
+  "text2idngramPath": "cmuclmtk/installation/bin/text2idngram",
+  "idngram2lmPath": "cmuclmtk/installation/bin/idngram2lm",
+
+  "sphinxFePath": "sphinxbase/installation/bin/sphinx_fe",
+  "bwPath": "sphinxtrain/installation/libexec/sphinxtrain/bw",
+  "mllrSolvePath": "sphinxtrain/installation/libexec/sphinxtrain/mllr_solve",
+  "mapAdaptPath": "sphinxtrain/installation/libexec/sphinxtrain/map_adapt"
+}
+

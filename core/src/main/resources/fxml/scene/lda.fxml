@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.text.Font?>
+
+<HBox prefHeight="800.0" prefWidth="1280.0" xmlns:fx="http://javafx.com/fxml/1"
+      xmlns="http://javafx.com/javafx/8.0.91">
+    <AnchorPane prefHeight="800.0" prefWidth="640.0" HBox.hgrow="ALWAYS">
+        <Label alignment="CENTER" prefHeight="30.0" text="Unknown Words"
+               AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0"
+               AnchorPane.topAnchor="10.0">
+            <font>
+                <Font name="System Bold" size="20.0"/>
+            </font>
+        </Label>
+        <SplitPane fx:id="wordsPane" dividerPositions="0.5" style="-fx-background-color: #D3D3D3;"
+                   AnchorPane.bottomAnchor="50.0" AnchorPane.leftAnchor="10.0"
+                   AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="50.0">
+            <AnchorPane>
+                <Label alignment="CENTER" prefHeight="30.0" text="Words"
+                       AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0"
+                       AnchorPane.topAnchor="10.0">
+                    <font>
+                        <Font name="System Bold" size="15.0"/>
+                    </font>
+                </Label>
+                <ListView fx:id="wordsListView" AnchorPane.bottomAnchor="60.0"
+                          AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0"
+                          AnchorPane.topAnchor="60.0"/>
+                <Button fx:id="removeButton" prefHeight="30.0" prefWidth="130.0" text="remove"
+                        AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0"/>
+                <Button fx:id="autoPronounceButton" prefHeight="30.0" prefWidth="130.0"
+                        text="auto pronounce" AnchorPane.bottomAnchor="10.0"
+                        AnchorPane.rightAnchor="10.0"/>
+            </AnchorPane>
+            <AnchorPane>
+                <Label alignment="CENTER" prefHeight="30.0" text="Candidates"
+                       AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0"
+                       AnchorPane.topAnchor="10.0">
+                    <font>
+                        <Font name="System Bold" size="15.0"/>
+                    </font>
+                </Label>
+                <ListView fx:id="candidatesListView" AnchorPane.bottomAnchor="60.0"
+                          AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0"
+                          AnchorPane.topAnchor="60.0"/>
+                <Button fx:id="chooseButton" prefHeight="30.0" prefWidth="90.0" text="choose"
+                        AnchorPane.bottomAnchor="10.0" AnchorPane.rightAnchor="10.0"/>
+            </AnchorPane>
+        </SplitPane>
+        <AnchorPane fx:id="wordsProgressPane" AnchorPane.bottomAnchor="10.0"
+                    AnchorPane.leftAnchor="10.0">
+            <Label prefHeight="30.0" prefWidth="340.0"
+                   text="Please wait while your e-mails are being processed"/>
+            <ProgressBar fx:id="wordsProgressBar" prefHeight="30.0" prefWidth="100.0" progress="0.0"
+                         AnchorPane.leftAnchor="350.0"/>
+        </AnchorPane>
+    </AnchorPane>
+    <AnchorPane prefHeight="800.0" prefWidth="640.0" HBox.hgrow="ALWAYS">
+        <Label alignment="CENTER" prefHeight="30.0" text="L.D.A. Results"
+               AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0"
+               AnchorPane.topAnchor="10.0">
+            <font>
+                <Font name="System Bold" size="20.0"/>
+            </font>
+        </Label>
+        <AnchorPane fx:id="lDAPane" disable="true" style="-fx-background-color: #D3D3D3;"
+                    AnchorPane.bottomAnchor="50.0" AnchorPane.leftAnchor="10.0"
+                    AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="50.0">
+            <Label prefHeight="30.0" prefWidth="140.0" text="Number of iterations:"
+                   AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="10.0"/>
+            <Spinner fx:id="iterationsSpinner" editable="false" prefHeight="30.0" prefWidth="150.0"
+                     AnchorPane.leftAnchor="160.0" AnchorPane.topAnchor="10.0"/>
+            <Label prefHeight="30.0" prefWidth="130.0" text="Number of threads:"
+                   AnchorPane.leftAnchor="320.0" AnchorPane.topAnchor="10.0"/>
+            <Spinner fx:id="threadsSpinner" editable="false" prefHeight="30.0" prefWidth="150.0"
+                     AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0"/>
+            <Label prefHeight="30.0" prefWidth="140.0" text="Number of topics:"
+                   AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="50.0"/>
+            <Spinner fx:id="topicsSpinner" editable="false" prefHeight="30.0" prefWidth="150.0"
+                     AnchorPane.leftAnchor="160.0" AnchorPane.topAnchor="50.0"/>
+            <Button fx:id="runButton" prefHeight="30.0" prefWidth="80.0" text="run"
+                    AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="50.0"/>
+            <TextArea fx:id="resultTextArea" editable="false" AnchorPane.bottomAnchor="50.0"
+                      AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0"
+                      AnchorPane.topAnchor="90.0"/>
+            <Label fx:id="disabledLDALabel" alignment="CENTER" prefHeight="30.0"
+                   text="LDA cannot be applied on a single e-mail" visible="false"
+                   AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0"
+                   AnchorPane.topAnchor="335.0">
+                <font>
+                    <Font name="Carlito Bold" size="20.0"/>
+                </font>
+            </Label>
+            <Button fx:id="interactButton" disable="true" prefHeight="30.0" prefWidth="90.0"
+                    text="interact" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="20.0"/>
+            <CheckBox fx:id="useLDACheckBox" prefHeight="30.0" prefWidth="140.0"
+                      text="Use L.D.A. results" AnchorPane.bottomAnchor="10.0"
+                      AnchorPane.leftAnchor="240.0"/>
+        </AnchorPane>
+        <AnchorPane fx:id="lDAProgressPane" prefHeight="30.0" visible="false"
+                    AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0">
+            <Label prefHeight="30.0" prefWidth="230.0" text="Please wait while L.D.A. is running"/>
+            <ProgressBar fx:id="lDAProgressBar" prefHeight="30.0" prefWidth="100.0" progress="0.0"
+                         AnchorPane.leftAnchor="240.0"/>
+        </AnchorPane>
+        <Button fx:id="backButton" prefHeight="30.0" prefWidth="60.0" text="back"
+                AnchorPane.bottomAnchor="10.0" AnchorPane.rightAnchor="80.0"/>
+        <Button fx:id="doneButton" prefHeight="30.0" prefWidth="60.0" text="done"
+                AnchorPane.bottomAnchor="10.0" AnchorPane.rightAnchor="10.0"/>
+    </AnchorPane>
+</HBox>

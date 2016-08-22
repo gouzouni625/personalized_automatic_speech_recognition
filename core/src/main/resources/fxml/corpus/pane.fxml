@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<fx:root type="javafx.scene.control.SplitPane" orientation="VERTICAL" dividerPositions="0.5"
+         xmlns:fx="http://javafx.com/fxml">
+    <AnchorPane>
+        <ListView fx:id="entryListView" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                  AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
+    </AnchorPane>
+    <AnchorPane>
+        <TextArea fx:id="textArea" editable="false" AnchorPane.bottomAnchor="0.0"
+                  AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
+                  AnchorPane.topAnchor="0.0"/>
+    </AnchorPane>
+</fx:root>

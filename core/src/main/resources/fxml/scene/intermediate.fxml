@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.ProgressIndicator?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.control.Label?>
+
+<AnchorPane prefHeight="800.0" prefWidth="1280.0" xmlns:fx="http://javafx.com/fxml">
+<ProgressIndicator fx:id="progressIndicator" prefHeight="100.0" prefWidth="100.0"
+                   AnchorPane.topAnchor="350.0" AnchorPane.leftAnchor="590.0"/>
+<Label fx:id="label" alignment="CENTER" textAlignment="CENTER" prefHeight="30.0"
+       AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="460.0"/>
+</AnchorPane>
