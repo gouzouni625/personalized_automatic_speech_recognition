@@ -194,6 +194,12 @@ public class Corpus extends ArrayList<WordSequence> {
                     wordSequences.add(currentWordSequence.subSequence(half, size));
                 }
                 else{
+                    int remainder = size % 10;
+                    if(remainder > 0 && remainder <= 5){
+                        wordSequences.add(currentWordSequence.subSequence(size - 6, size));
+                        size -= 6;
+                    }
+
                     // Note that size is int so, if size == 99 then size / 10 * 10 = 90
                     int n = size / 10 * 10;
                     for(int i = 0;i < n;i += 10){
