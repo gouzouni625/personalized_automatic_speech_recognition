@@ -58,14 +58,12 @@ public class DictateController extends Controller implements Observer{
             corpusPane.selectCorpus(corpus.getId());
         }
 
-        aSRResultTextArea.textProperty().addListener(event -> {
+        aSRResultTextArea.textProperty().addListener((observable, oldValue, newValue) -> {
             aSRResultTextArea.setScrollTop(Double.MAX_VALUE);
-            aSRResultTextArea.setScrollLeft(0);
         });
 
-        correctedTextArea.textProperty().addListener(event -> {
+        correctedTextArea.textProperty().addListener((observable, oldValue, newValue) -> {
             correctedTextArea.setScrollTop(Double.MAX_VALUE);
-            correctedTextArea.setScrollLeft(0);
         });
 
         dictateToggleButton.setGraphic(dictateToggleButtonDefaultGraphic);
