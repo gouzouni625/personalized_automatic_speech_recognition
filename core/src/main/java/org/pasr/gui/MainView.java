@@ -8,6 +8,7 @@ import org.pasr.database.DataBase;
 import org.pasr.gui.console.Console;
 import org.pasr.gui.controllers.scene.DictateController;
 import org.pasr.gui.controllers.scene.EmailListController;
+import org.pasr.gui.controllers.scene.IntermediateController;
 import org.pasr.gui.controllers.scene.LDAController;
 import org.pasr.gui.controllers.scene.MainController;
 import org.pasr.gui.controllers.scene.RecordController;
@@ -34,7 +35,8 @@ import static org.pasr.utilities.Utilities.getResourceStream;
 
 
 public class MainView extends Application implements MainController.API,
-    EmailListController.API, LDAController.API, RecordController.API, DictateController.API {
+    EmailListController.API, LDAController.API, RecordController.API, DictateController.API,
+    IntermediateController.API{
 
     private static Logger logger_ = Logger.getLogger(MainView.class.getName());
 
@@ -51,6 +53,24 @@ public class MainView extends Application implements MainController.API,
     private String password_;
 
     private Corpus corpus_;
+
+    private String intermediateMessage_ = "Please wait...";
+    private enum IntermediateMessages{
+        NEW_ACOUSTIC_MODEL("Please wait while the acoustic model is being adapted...");
+
+        IntermediateMessages(String message){
+            message_ = message;
+        }
+
+        @Override
+        public String toString(){
+            return message_;
+        }
+
+        private String message_;
+    }
+
+    private NewAcousticModelThread newAcousticModelThread_;
 
     public static void main(String[] args){
         logger_.info("Initializing logger...");
@@ -296,20 +316,78 @@ public class MainView extends Application implements MainController.API,
     public void dictate(int corpusId){
         setCorpus(corpusId);
 
-        try {
-            DataBase.getInstance().newAcousticModel();
-        } catch (IOException e) {
-            console_.postMessage("Could not create an adapted acoustic model.\n" +
-                "You should check your user permissions inside the directory " +
-                dataBase_.getConfiguration().getDataBaseDirectoryPath() + ".\n" +
-                "Dictation will be possible only with the default acoustic model.");
-        } catch (InterruptedException e) {
-            console_.postMessage("Could not create an adapted acoustic model.\n" +
-                "Dictation will be possible only with the default acoustic model.");
+        setIntermediateMessage(IntermediateMessages.NEW_ACOUSTIC_MODEL);
+        showIntermediateScene();
 
-            logger_.log(Level.WARNING, "Interrupted while creating new acoustic model.", e);
+        createNewAcousticModel();
+    }
+
+    private void setIntermediateMessage(IntermediateMessages intermediateMessage){
+        intermediateMessage_ = intermediateMessage.toString();
+    }
+
+    private void showIntermediateScene(){
+        try {
+            primaryStage_.setScene(sceneFactory_.create(
+                SceneFactory.Scenes.INTERMEDIATE_SCENE, this)
+            );
+        } catch (IOException e) {
+            logger_.severe("Could not load resource:" +
+                SceneFactory.Scenes.INTERMEDIATE_SCENE.getFXMLResource() + "\n" +
+                "The file might be missing or be corrupted.\n" +
+                "Application will terminate.\n" +
+                "Exception Message: " + e.getMessage());
+            Platform.exit();
+        }
+    }
+
+    @Override
+    public String getMessage(){
+        return intermediateMessage_;
+    }
+
+    private class NewAcousticModelThread extends Thread{
+        NewAcousticModelThread(){
+            setDaemon(true);
         }
 
+        @Override
+        public void run(){
+            boolean created = false;
+            try {
+                created = DataBase.getInstance().newAcousticModel(10);
+            } catch (IOException e) {
+                console_.postMessage("Could not create an adapted acoustic model.\n" +
+                    "You should check your user permissions inside the directory " +
+                    dataBase_.getConfiguration().getDataBaseDirectoryPath() + ".\n" +
+                    "Dictation will be possible only with the default acoustic model or with" +
+                    " any (if any) previous adapted acoustic model.");
+            } catch (InterruptedException e) {
+                logger_.log(Level.WARNING, "Interrupted while creating new acoustic model.", e);
+            }
+
+            if(!created){
+                console_.postMessage("Could not create an adapted acoustic model.\n" +
+                    "You should check your user permissions inside the directory " +
+                    dataBase_.getConfiguration().getDataBaseDirectoryPath() + ".\n" +
+                    "Dictation will be possible only with the default acoustic model or with" +
+                    " any (if any) previous adapted acoustic model.");
+            }
+
+            Platform.runLater(MainView.this :: showDictateScene);
+
+            logger_.info("New Acoustic Model thread shut down gracefully!");
+        }
+    }
+
+    private void createNewAcousticModel(){
+        if(newAcousticModelThread_ == null || !newAcousticModelThread_.isAlive()){
+            newAcousticModelThread_ = new NewAcousticModelThread();
+            newAcousticModelThread_.start();
+        }
+    }
+
+    private void showDictateScene(){
         try {
             primaryStage_.setScene(sceneFactory_.create(SceneFactory.Scenes.DICTATE_SCENE, this));
         } catch (IOException e) {
@@ -343,6 +421,17 @@ public class MainView extends Application implements MainController.API,
     public void stop () {
         if (emailFetcher_ != null) {
             emailFetcher_.terminate();
+        }
+
+        if(newAcousticModelThread_ != null && newAcousticModelThread_.isAlive()){
+            newAcousticModelThread_.interrupt();
+            try {
+                // Don't wait forever on this thread since it is a daemon and will not block the JVM
+                // from shutting down
+                newAcousticModelThread_.join(3000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
 
         sceneFactory_.getCurrentController().terminate();

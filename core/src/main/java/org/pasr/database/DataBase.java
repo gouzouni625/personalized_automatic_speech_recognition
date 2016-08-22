@@ -367,8 +367,8 @@ public class DataBase {
         ));
     }
 
-    public void newAcousticModel() throws IOException, InterruptedException {
-        new AcousticModelProcess().startAndWaitFor();
+    public boolean newAcousticModel(long timeout) throws IOException, InterruptedException {
+        return new AcousticModelProcess().startAndWaitFor(timeout);
     }
 
     public void setArcticSentenceAsUsed(String sentence){

@@ -7,6 +7,7 @@ import org.pasr.gui.controllers.scene.Controller;
 import org.pasr.gui.controllers.scene.Controller.API;
 import org.pasr.gui.controllers.scene.DictateController;
 import org.pasr.gui.controllers.scene.EmailListController;
+import org.pasr.gui.controllers.scene.IntermediateController;
 import org.pasr.gui.controllers.scene.LDAController;
 import org.pasr.gui.controllers.scene.MainController;
 import org.pasr.gui.controllers.scene.RecordController;
@@ -53,6 +54,10 @@ class SceneFactory {
                 currentController_ = new DictateController(api);
                 loader.setController(currentController_);
                 break;
+            case INTERMEDIATE_SCENE:
+                currentController_ = new IntermediateController(api);
+                loader.setController(currentController_);
+                break;
         }
 
         return new Scene(loader.load());
@@ -63,7 +68,8 @@ class SceneFactory {
         EMAIL_LIST_SCENE("/fxml/scene/email_list.fxml"),
         LDA_SCENE("/fxml/scene/lda.fxml"),
         RECORD_SCENE("/fxml/scene/record.fxml"),
-        DICTATE_SCENE("/fxml/scene/dictate.fxml");
+        DICTATE_SCENE("/fxml/scene/dictate.fxml"),
+        INTERMEDIATE_SCENE("/fxml/scene/intermediate.fxml");
 
         Scenes(String fXMLResource){
             fXMLResource_ = fXMLResource;

@@ -89,10 +89,10 @@ public class AcousticModelProcess extends Process{
     }
 
     @Override
-    public void startAndWaitFor() throws IOException, InterruptedException {
+    public boolean startAndWaitFor(long timeout) throws IOException, InterruptedException {
         processAudioEntries();
 
-        super.startAndWaitFor();
+        return super.startAndWaitFor(timeout);
     }
 
     private void processAudioEntries() throws IOException {
