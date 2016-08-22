@@ -131,7 +131,15 @@ public class Corpus extends ArrayList<WordSequence> {
         // one nine four two instead of nineteen forty two.
         Collections.sort(matches, (s1, s2) -> s2.length() - s1.length());
         for(String match : matches){
-            String spelled = speller.spell(Integer.valueOf(match));
+            String spelled;
+            try {
+                spelled = speller.spell(Integer.valueOf(match));
+            }
+            catch (NumberFormatException e){
+                // TODO In the future, when name-entity recognition is embedded, {number} will
+                // TODO accept any number.
+                spelled = "number";
+            }
             document = document.replaceAll(spelled + " dollars", " " + spelled + " dollars ");
         }
         matches.clear();
@@ -142,7 +150,15 @@ public class Corpus extends ArrayList<WordSequence> {
         }
         Collections.sort(matches, (s1, s2) -> s2.length() - s1.length());
         for(String match : matches){
-            String spelled = speller.spell(Integer.valueOf(match));
+            String spelled;
+            try {
+                spelled = speller.spell(Integer.valueOf(match));
+            }
+            catch (NumberFormatException e){
+                // TODO In the future, when name-entity recognition is embedded, {number} will
+                // TODO accept any number.
+                spelled = "number";
+            }
             document = document.replaceAll(match + "\\$", " " + spelled + " dollars ");
         }
         matches.clear();
@@ -153,7 +169,15 @@ public class Corpus extends ArrayList<WordSequence> {
         }
         Collections.sort(matches, (s1, s2) -> s2.length() - s1.length());
         for(String match : matches){
-            String spelled = speller.spell(Integer.valueOf(match), NumberSpeller.Types.DATE);
+            String spelled;
+            try {
+                spelled = speller.spell(Integer.valueOf(match), NumberSpeller.Types.DATE);
+            }
+            catch (NumberFormatException e){
+                // TODO In the future, when name-entity recognition is embedded, {number} will
+                // TODO accept any number.
+                spelled = "number";
+            }
             document = document.replaceAll(match, " " + spelled + " ");
         }
 
