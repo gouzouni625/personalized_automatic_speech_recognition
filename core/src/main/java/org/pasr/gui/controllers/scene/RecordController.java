@@ -212,8 +212,13 @@ public class RecordController extends Controller implements Observer{
 
             try {
                 clip_ = recorder_.getClip();
-                clip_.addLineListener(clipLineListener_);
-                clip_.start();
+                if(clip_ != null) {
+                    clip_.addLineListener(clipLineListener_);
+                    clip_.start();
+                }
+                else{
+                    playToggleButton.fire();
+                }
             } catch (LineUnavailableException e) {
                 Console.getInstance().postMessage("Could not get the recording of your voice.\n" +
                     "Maybe your microphone is being used by another application.\n" +
@@ -222,7 +227,9 @@ public class RecordController extends Controller implements Observer{
             }
         }
         else{
-            clip_.stop();
+            if(clip_ != null && clip_.isRunning()) {
+                clip_.stop();
+            }
             setProgressBarLevel(0);
         }
     }
@@ -298,6 +305,10 @@ public class RecordController extends Controller implements Observer{
     @Override
     public void terminate() {
         if(clip_ != null && clip_.isOpen()) {
+            if(clip_.isRunning()){
+                clip_.stop();
+            }
+
             clip_.close();
         }
 

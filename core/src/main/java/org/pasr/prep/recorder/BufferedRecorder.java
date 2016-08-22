@@ -174,10 +174,16 @@ public class BufferedRecorder extends Recorder {
     public Clip getClip() throws LineUnavailableException {
         byte[] array = byteArrayOutputStream_.toByteArray();
 
-        Clip clip = AudioSystem.getClip();
-        clip.open(AUDIO_FORMAT, array, 0, array.length);
+        int length = array.length;
+        if(length == 0){
+            return null;
+        }
+        else {
+            Clip clip = AudioSystem.getClip();
+            clip.open(AUDIO_FORMAT, array, 0, length);
 
-        return clip;
+            return clip;
+        }
     }
 
     private void setLevel(double level){
