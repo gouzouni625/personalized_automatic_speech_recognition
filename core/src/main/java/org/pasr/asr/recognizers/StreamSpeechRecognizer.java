@@ -30,7 +30,7 @@ public class StreamSpeechRecognizer {
 
     public String recognize(InputStream inputStream) throws IOException {
         decoder_.startUtt();
-        short[] buffer = new short[1024];
+        short[] buffer = new short[16384];
         int read;
 
         while((read = read(inputStream, buffer)) > 0){
