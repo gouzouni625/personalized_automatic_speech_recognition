@@ -68,10 +68,21 @@ public class Dictionary extends LinkedHashMap<String, String> {
     }
 
     public Map<String, String> getEntriesByKey(String key){
-        return entrySet().stream().
-            filter(entry -> entry.getKey().equals(key) ||
-                entry.getKey().matches(key + "\\([0-9]+\\)")).
-            collect(Collectors.toMap(Map.Entry:: getKey, Map.Entry:: getValue));
+        if(!containsKey(key)){
+            return null;
+        }
+
+        LinkedHashMap<String, String> entryMap = new LinkedHashMap<>();
+        entryMap.put(key, get(key));
+
+        int index = 1;
+        String currentKey = key + "(" + index + ")";
+        while(containsKey(currentKey)){
+            entryMap.put(currentKey, get(currentKey));
+            index++;
+        }
+
+        return entryMap;
     }
 
     public List<String> getUnknownWords(){
