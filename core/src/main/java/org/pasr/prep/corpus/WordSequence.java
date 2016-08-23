@@ -28,7 +28,7 @@ public class WordSequence extends ArrayList<Word> {
     }
 
     private String escape(String text){
-        return text.toLowerCase().trim();
+        return text.toLowerCase().replaceAll(" {2,}", " ").trim();
     }
 
     public WordSequence(List<Word> words, long documentID, String documentTitle){
