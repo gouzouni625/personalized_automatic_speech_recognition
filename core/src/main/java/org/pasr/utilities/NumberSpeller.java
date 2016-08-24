@@ -51,14 +51,27 @@ public class NumberSpeller {
     }
 
     private String spellDate(int number){
-        if(number <= 1009){
+        if(number <= 1009 || number > 10000){
             return spellNormal(number);
         }
+        else {
+            int hundreds = number / 100;
+            int remainder = number % 100;
 
-        int hundreds = number / 100;
-        int tens = number % 100;
+            StringBuilder stringBuilder = new StringBuilder();
+            if (hundreds != 0) {
+                stringBuilder.append(spellUpToAHundred(hundreds));
+            }
 
-        return spellUpToAHundred(hundreds) + " " + spellUpToAHundred(tens);
+            if (remainder != 0) {
+                stringBuilder.append(" ").append(spellUpToAHundred(remainder));
+            }
+            else{
+                stringBuilder.append(" hundred");
+            }
+
+            return stringBuilder.toString();
+        }
     }
 
     private String spellUpToAThousand(int number){
@@ -70,9 +83,18 @@ public class NumberSpeller {
         }
         else if(number < 1000){
             int hundreds = number / 100;
+            int remainder = number % 100;
 
-            return spellUpToTwenty(hundreds) + " hundred " +
-                spellUpToAHundred(number % 100);
+            StringBuilder stringBuilder = new StringBuilder();
+            if(hundreds != 0){
+                stringBuilder.append(spellUpToTwenty(hundreds)).append(" hundred");
+            }
+
+            if(remainder != 0){
+                stringBuilder.append(" ").append(spellUpToAHundred(remainder));
+            }
+
+            return stringBuilder.toString();
         }
         else{
             return "one thousand";
@@ -158,4 +180,5 @@ public class NumberSpeller {
     };
 
     private static NumberSpeller instance = new NumberSpeller();
+
 }
