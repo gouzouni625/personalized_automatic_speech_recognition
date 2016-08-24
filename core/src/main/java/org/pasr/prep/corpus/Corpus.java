@@ -88,13 +88,17 @@ public class Corpus extends ArrayList<WordSequence> {
                 return reducedDictionary;
             }
 
-            Map<String, String> entries = dictionary.getEntriesByKey(uniqueWord);
-
-            if(entries.size() == 0){
+            // There is no need to check if the dictionary contains as key
+            // uniqueword(i) because in order to contain such key, it has
+            // to also contain uniqueword as key.
+            if(!dictionary.containsKey(uniqueWord)){
                 reducedDictionary.addUnknownWord(uniqueWord);
             }
             else{
-                reducedDictionary.putAll(entries);
+                Map<String, String> entries = dictionary.getEntriesByKey(uniqueWord);
+                if(entries != null) {
+                    reducedDictionary.putAll(entries);
+                }
             }
 
             i++;
@@ -171,7 +175,7 @@ public class Corpus extends ArrayList<WordSequence> {
         for(String match : matches){
             String spelled;
             try {
-                spelled = speller.spell(Integer.valueOf(match), NumberSpeller.Types.DATE);
+                spelled = speller.spell(Integer.valueOf(match), NumberSpeller.Types.NORMAL);
             }
             catch (NumberFormatException e){
                 // TODO In the future, when name-entity recognition is embedded, {number} will
@@ -187,14 +191,19 @@ public class Corpus extends ArrayList<WordSequence> {
     private List<WordSequence> createWordSequences (String document, long documentID,
                                                     String documentTitle){
         document = document.
-            replaceAll("\\(", " ").
-            replaceAll("\\)", " . ").
-            replaceAll("\\[", " ").
-            replaceAll("]", " . ").
+            // From https://docs.oracle.com/javase/8/docs/api/java/util/regex/Pattern.html
+            //  \p{Graph}  A visible character: [\p{Alnum}\p{Punct}]
+            //    \p{Alnum}  An alphanumeric character:[\p{Alpha}\p{Digit}]
+            //      \p{Alpha}  An alphabetic character:[\p{Lower}\p{Upper}]
+            //        \p{Lower}  A lower-case alphabetic character: [a-z]
+            //        \p{Upper}  An upper-case alphabetic character:[A-Z]
+            //      \p{Digit}  A decimal digit: [0-9]
+            //    \p{Punct} 	Punctuation: One of !"#$%&'()*+,-./:;<=>?@[\]^_`{|}~
+            replaceAll("[^\\p{Graph}]", " ").
+            replaceAll("[_\\-,:/\"<>|#@\\\\=+~*\\{}$%&`^]+", " ").
+            replaceAll("[\\(\\[]", " ").
+            replaceAll("[\\)\\]]", " . ").
             replaceAll("[!?;]", ".").
-            replaceAll("[_\\-,:/\"<>|#@\\\\=+~*]+", " ").
-            replaceAll("\\r\\n", " ").
-            replaceAll("\\t", " ").
             replaceAll(" +", " ").
             toLowerCase();
 
