@@ -1,13 +1,12 @@
 package org.pasr.prep.email.fetchers;
 
 
-import java.util.List;
+import java.util.ArrayList;
 
 
-public class Folder {
-    public Folder (String path, List<Email> emails){
+public class Folder extends ArrayList<Email> {
+    public Folder (String path){
         path_ = path;
-        emails_ = emails;
 
         String[] tokens = path.split("/");
         name_ = tokens[tokens.length - 1];
@@ -21,12 +20,7 @@ public class Folder {
         return name_;
     }
 
-    public List<Email> getEmails(){
-        return emails_;
-    }
-
     private String path_;
     private String name_;
-    private List<Email> emails_;
 
 }
