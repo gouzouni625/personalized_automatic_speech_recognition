@@ -100,22 +100,26 @@ class FolderValue extends AnchorPane implements Value, Observer {
     }
 
     private void enableDownload(){
-        if(progressIndicator.isVisible()){
-            progressIndicator.setVisible(false);
-        }
+        if(canDownload_) {
+            if (progressIndicator.isVisible()) {
+                progressIndicator.setVisible(false);
+            }
 
-        if(!button.isVisible()){
-            button.setVisible(true);
-        }
+            if (! button.isVisible()) {
+                button.setVisible(true);
+            }
 
-        if(button.isDisabled()){
-            button.setDisable(false);
+            if (button.isDisabled()) {
+                button.setDisable(false);
+            }
         }
     }
 
     private void disableDownload(){
-        if(button.isVisible() && !button.isDisabled()){
-             button.setDisable(true);
+        if(canDownload_) {
+            if (button.isVisible() && ! button.isDisabled()) {
+                button.setDisable(true);
+            }
         }
     }
 
