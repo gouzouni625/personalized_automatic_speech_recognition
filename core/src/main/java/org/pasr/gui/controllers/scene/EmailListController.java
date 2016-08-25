@@ -5,20 +5,18 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ProgressIndicator;
-import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TextArea;
-import javafx.scene.control.TreeItem;
-import org.pasr.gui.email.tree.EmailTree;
-import org.pasr.gui.email.tree.EmailTreeItem;
+import org.pasr.gui.console.Console;
+import org.pasr.gui.email.tree.EmailTreeView;
+import org.pasr.gui.email.tree.EmailValue;
+import org.pasr.gui.email.tree.Value;
 import org.pasr.prep.email.fetchers.Email;
-import org.pasr.prep.email.fetchers.Folder;
 import org.pasr.prep.email.fetchers.EmailFetcher;
 
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.Set;
 
 
 public class EmailListController extends Controller implements Observer{
@@ -28,29 +26,27 @@ public class EmailListController extends Controller implements Observer{
 
     @FXML
     public void initialize() {
-        EmailTreeItem root = new EmailTreeItem(new Folder("/E-mails", new ArrayList<>()));
+        EmailFetcher emailFetcher = ((API) api_).getEmailFetcher();
+        emailFetcher.addObserver(this);
 
-        emailTree.setRoot(root);
-        emailTree.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-
-        emailTree.getSelectionModel().selectedItemProperty().addListener(
+        emailTreeView.init(emailFetcher);
+        emailTreeView.getSelectionModel().selectedItemProperty().addListener(
             (observable, oldValue, newValue) -> {
-                EmailTreeItem selectedEmailTreeItem = (EmailTreeItem) observable.getValue();
+                if (newValue != null) {
+                    Value value = newValue.getValue();
 
-                if (selectedEmailTreeItem != null && !selectedEmailTreeItem.isFolder()) {
-                    updateSubjectTextArea(selectedEmailTreeItem.getEmail());
-                    updateBodyTextArea(selectedEmailTreeItem.getEmail());
+                    if(value.isEmail()) {
+                        updateSubjectTextArea(((EmailValue)value).getEmail());
+                        updateBodyTextArea(((EmailValue)value).getEmail());
+                    }
                 }
             }
         );
+        emailTreeView.addAll(emailFetcher.getFolderPaths());
 
         backButton.setOnAction(this :: backButtonOnAction);
         doneButton.setOnAction(this :: doneButtonOnAction);
 
-        // Start fetching the messages only after all the views have been initialized
-        getLogger().info("Starting fetching emails.");
-        EmailFetcher emailFetcher = ((API) api_).getEmailFetcher();
-        emailFetcher.addObserver(this);
         emailFetcher.fetch();
     }
 
@@ -101,40 +97,39 @@ public class EmailListController extends Controller implements Observer{
     }
 
     private void doneButtonOnAction(ActionEvent actionEvent){
-        ((API) api_).processEmail(getChosenEmails());
-    }
+        Set<Email> selectedEmailSet = emailTreeView.getSelectedEmails();
 
-    private List<Email> getChosenEmails () {
-        ArrayList<Email> emails = new ArrayList<>();
-
-        for(TreeItem<String> treeItem : emailTree.getSelectionModel().getSelectedItems()){
-            EmailTreeItem emailTreeItem = (EmailTreeItem) treeItem;
-
-            emails.addAll(emailTreeItem.getEmails());
+        if(selectedEmailSet.size() > 0) {
+            ((API) api_).processEmail(selectedEmailSet);
         }
-
-        return emails;
+        else{
+            Console.getInstance().postMessage("You must choose at least one e-mail before moving" +
+                " on!");
+        }
     }
 
     @Override
     public void update (Observable o, Object arg) {
-        if(arg == null){
-            // This means that the email fetcher has finished fetching
-            progressIndicator.setVisible(false);
-        }
-        else {
-            emailTree.add((Folder) arg);
+        if(arg instanceof EmailFetcher.Stage){
+            switch ((EmailFetcher.Stage) arg){
+                case STARTED_FETCHING:
+                    progressIndicator.setVisible(true);
+                    break;
+                case STOPPED_FETCHING:
+                    progressIndicator.setVisible(false);
+                    break;
+            }
         }
     }
 
     public interface API extends Controller.API{
         EmailFetcher getEmailFetcher();
         void initialScene();
-        void processEmail(List<Email> corpus);
+        void processEmail(Set<Email> emailList);
     }
 
     @FXML
-    private EmailTree emailTree;
+    private EmailTreeView emailTreeView;
 
     @FXML
     private ProgressIndicator progressIndicator;

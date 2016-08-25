@@ -3,74 +3,54 @@ package org.pasr.gui.email.tree;
 
 import javafx.scene.control.TreeItem;
 import org.pasr.prep.email.fetchers.Email;
-import org.pasr.prep.email.fetchers.Folder;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.HashSet;
+import java.util.Set;
 
 
-public class EmailTreeItem extends TreeItem<String> {
-    public EmailTreeItem(Folder folder){
-        super(folder.getName());
-
-        isFolder_ = true;
-        folder_ = folder;
-
-        email_ = null;
-
-        getChildren().addAll(
-            folder.getEmails().stream().map(EmailTreeItem::new).collect(Collectors.toList())
-        );
+class EmailTreeItem extends TreeItem<Value> {
+    EmailTreeItem(){
+        super();
     }
 
-    public EmailTreeItem(Email email){
-        super(email.getSubject());
-
-        isFolder_ = false;
-        folder_ = null;
-
-        email_ = email;
+    EmailTreeItem(Value value){
+        super(value);
     }
 
-    @Override
-    public String toString(){
-        if(isFolder()){
-            return folder_.getName();
-        }
-        else{
-            return email_.getSubject();
+    void expandUpToRoot(){
+        setExpanded(true);
+
+        TreeItem<Value> parent = getParent();
+        while(parent != null){
+            parent.setExpanded(true);
+
+            parent = parent.getParent();
         }
     }
 
-    public List<Email> getEmails(){
-        ArrayList<Email> emails = new ArrayList<>();
-
-        if(isFolder()){
-            emails.addAll(folder_.getEmails());
+    void setSelectedDownToLeaves(boolean selected){
+        for(TreeItem<Value> child : getChildren()){
+            child.getValue().setSelected(selected);
         }
-        else{
-            emails.add(email_);
+    }
+
+    Set<Email> getSelectedEmails(){
+        Set<Email> emailSet = new HashSet<>();
+
+        for(TreeItem<Value> child : getChildren()){
+            Value value = child.getValue();
+
+            if(value.isEmail()){
+                if(value.isSelected()){
+                    emailSet.add(((EmailValue) value).getEmail());
+                }
+            }
+            else{
+                emailSet.addAll(((EmailTreeItem) child).getSelectedEmails());
+            }
         }
 
-        return emails;
+        return emailSet;
     }
-
-    public Folder getFolder(){
-        return folder_;
-    }
-
-    public Email getEmail(){
-        return email_;
-    }
-
-    public boolean isFolder(){
-        return isFolder_;
-    }
-
-    private final Folder folder_;
-    private final Email email_;
-
-    private final boolean isFolder_;
 
 }

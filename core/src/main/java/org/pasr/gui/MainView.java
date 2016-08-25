@@ -24,7 +24,7 @@ import javax.mail.MessagingException;
 import javax.mail.NoSuchProviderException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
+import java.util.Set;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
@@ -193,6 +193,7 @@ public class MainView extends Application implements MainController.API,
                 sceneFactory_.create(SceneFactory.Scenes.EMAIL_LIST_SCENE, this)
             );
         } catch (IOException e) {
+            e.printStackTrace();
             logger_.severe("Could not load resource:" +
                 SceneFactory.Scenes.EMAIL_LIST_SCENE.getFXMLResource() + "\n" +
                 "The file might be missing or be corrupted.\n" +
@@ -271,7 +272,7 @@ public class MainView extends Application implements MainController.API,
     }
 
     @Override
-    public void processEmail(List<Email> emails){
+    public void processEmail(Set<Email> emails){
         emailFetcher_.terminate();
 
         corpus_ = new Corpus();
