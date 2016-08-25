@@ -53,4 +53,46 @@ class EmailTreeItem extends TreeItem<Value> {
         return emailSet;
     }
 
+    @Override
+    public boolean equals(Object o){
+        if(! (o instanceof TreeItem<?>)){
+            return false;
+        }
+
+        Object objectValue = ((TreeItem) o).getValue();
+
+        if(! (objectValue instanceof Value)){
+            return false;
+        }
+
+        Value value = (Value) objectValue;
+
+        if(value.isFolder()){
+            Value thisValue = getValue();
+
+            return thisValue.isFolder() && thisValue.toString().equals(value.toString());
+        }
+
+        if(value.isEmail()){
+            Value thisValue = getValue();
+
+            return thisValue.isEmail()
+                && ((EmailValue) thisValue).getEmail().equals(((EmailValue) value).getEmail());
+        }
+
+        return false;
+    }
+
+    @Override
+    public int hashCode(){
+        Value value = getValue();
+
+        if(value.isFolder()){
+            return value.toString().hashCode();
+        }
+        else{
+            return ((EmailValue) value).getEmail().hashCode();
+        }
+    }
+
 }

@@ -1,6 +1,11 @@
 package org.pasr.prep.email.fetchers;
 
 
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
+import java.util.Arrays;
+
+
 public class Email {
     Email(String[] senders, String[] tORecipients, String[] cCRecipients,
                  String[] bCCRecipients, long receivedDate, String subject, String body){
@@ -48,6 +53,35 @@ public class Email {
 
     public long getId (){
         return id_;
+    }
+
+    @Override
+    public int hashCode(){
+        return new HashCodeBuilder(17, 37)
+            .append(senders_)
+            .append(tORecipients_)
+            .append(cCRecipients_)
+            .append(bCCRecipients_)
+            .append(receivedDate_)
+            .append(subject_)
+            .append(body_).toHashCode();
+    }
+
+    @Override
+    public boolean equals(Object o){
+        if(! (o instanceof Email)){
+            return false;
+        }
+
+        Email email = (Email) o;
+
+        return Arrays.equals(email.getSenders(), senders_)
+            && Arrays.equals(email.getRecipients(RecipientType.TO), tORecipients_)
+            && Arrays.equals(email.getRecipients(RecipientType.CC), cCRecipients_)
+            && Arrays.equals(email.getRecipients(RecipientType.BCC), bCCRecipients_)
+            && email.getReceivedDate() == receivedDate_
+            && email.getSubject().equals(subject_)
+            && email.getBody().equals(body_);
     }
 
     private final String[] senders_;
