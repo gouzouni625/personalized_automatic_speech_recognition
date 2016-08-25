@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.text.Font?>
+
+<fx:root type="javafx.scene.layout.AnchorPane" xmlns:fx="http://javafx.com/fxml">
+    <CheckBox fx:id="checkBox" AnchorPane.leftAnchor="0.0"/>
+    <Label fx:id="label" AnchorPane.leftAnchor="20.0">
+        <font>
+            <Font size="15.0"/>
+        </font>
+    </Label>
+</fx:root>

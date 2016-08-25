@@ -33,18 +33,32 @@ development and testing is done on Ubuntu 14.04.
 
 ### Prerequisites
 1. **Java 8**
-2. **JavaFX** library: Oracle's JDK comes with JavaFX embedded. For OpenJDK, one has to manually
-   download and install JavaFX on Ubuntu 14.04. On Ubuntu 16.04 one can install the openjfx package
-   using the command:
+2. **JavaFX**
+  * Ubuntu 14.04: The easies way to install Java 8 and JavaFX is to install Oracle JDK. To do that
+                  see [this][3] post.
+  * Ubuntu 16.04: You can install Oracle JDK the same way you would install it on Ubuntu 14.04 but
+                  you can also install OpenJDK and OpenJFX from aptitude:
+                  
+    ```bash
+    apt-get install openjdk-8-jdk
+    apt-get install openjfx
+    ```
 
-     ```bash
-     apt-get install openjfx
-     ```
+3. **Python** version 2.7 or greater. You can install Python with the following command:
 
-3. **autoconf**, **libtool**, **bison**, **python-dev** and **swig** packages which are required for
-   the [CMUSphinx][1] installation.
+   ```bash
+   apt-get install python
+   ```
 
-4. **[Gradle][3]**: Gradle is used to build the application from its sources
+3. **autoconf**, **libtool**, **bison**, **python-dev**, **swig** and **wget** packages. You can
+   install these packages with the following command:
+
+   ```bash
+      apt-get install autoconf libtool bison python-dev swig wget
+   ```
+
+5. **[Gradle][4]** version 2.4 or greater. Gradle is used to build the application from its sources.
+                   To automatically install Gradle, see the installation [Steps](#steps).
 
 ### Steps
 After you have installed all the [Prerequisites](#prerequisites) you are ready to install the
@@ -56,13 +70,13 @@ application using the following commands:
     git clone https://github.com/gouzouni625/personalized_automatic_speech_recognition.git
     ```
 
-2. Run the setup.sh script that will install [CMUSphinx][1] (Note that the installation will be
+2. Run the setup.py script that will install [CMUSphinx][1] (Note that the installation will be
    done inside the directory personalized_automatic_speech_recognition, no files will be created or
    changed anywhere else on your file system):
 
    ```bash
    cd personalized_automatic_speech_recognition
-   ./setup.sh
+   ./setup.py
    ```
 
    The setup script will look for Java at the location `/usr/lib/jvm/default-java`. If this is not
@@ -70,29 +84,37 @@ application using the following commands:
    to the setup script like this:
 
    ```bash
-   ./setup.sh /your/java/installation/path
+   ./setup.py  --java-path /your/java/installation/path
+   ```
+
+   If you installed Oracle JDK using a PPA, the java path will probably be:
+
+   ```bash
+   ./setup.py  --java-path /usr/lib/jvm/java-8-oracle
+   ```
+
+   If you don't have [Gradle][4] installed, the setup.py script can install it for you (the
+   installation will be done inside the directory of the cloned repository) by passing the flag:
+   
+   ```bash
+   ./setup.py  --java-path /your/java/installation/path --gradle-install
    ```
 
    After the installation script is done, you can check the setup.log file to make sure everything
    was installed correctly.
 
-3. Build the application using [Gradle][3]:
-
-   ```bash
-   gradle build
-   ```
-
-4. After building is finished, you can run the application. A helper script has been created for
-   this purpose. Simply run:
+4. After that, you can run the application. A helper script has been created for this purpose.
+   Simply run:
 
    ```bash
    ./start.sh
    ```
 
 ## Further Reading
-To get information about how to use the application, you can read the [user guide][4].
+To get information about how to use the application, you can read the [user guide][5].
 
 [1]: http://cmusphinx.sourceforge.net/wiki/about
 [2]: http://www.oracle.com/technetwork/java/javase/overview/javafx-overview-2158620.html
-[3]: https://gradle.org/
-[4]: docs/user_guide.pdf
+[3]: http://askubuntu.com/questions/521145/how-to-install-oracle-java-on-ubuntu-14-04
+[4]: https://gradle.org/
+[5]: docs/user_guide.pdf

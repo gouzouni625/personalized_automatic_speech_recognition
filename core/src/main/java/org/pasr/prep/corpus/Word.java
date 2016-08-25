@@ -9,7 +9,7 @@ public class Word {
     }
 
     private String escape(String text){
-        return text.toLowerCase().trim();
+        return text.toLowerCase().replaceAll(" {2,}", " ").trim();
     }
 
     @Override

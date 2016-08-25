@@ -12,7 +12,9 @@ import javax.mail.Multipart;
 import javax.mail.Session;
 import javax.mail.Store;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Hashtable;
+import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -23,78 +25,119 @@ public class GMailFetcher extends EmailFetcher{
     }
 
     @Override
-    public void open(String address, String password) throws MessagingException {
+    public synchronized void open(String address, String password) throws MessagingException {
+        if(store_ != null){
+            throw new IllegalStateException("Fetcher has already been opened");
+        }
+
         store_ = Session.getDefaultInstance(properties_, null).getStore("imaps");
         store_.connect(properties_.getProperty("mail.smtp.host"), address, password);
 
-        folders_ = store_.getDefaultFolder().list("*");
-    }
-
-    @Override
-    public void fetch() {
-        if(thread_ == null || !thread_.isAlive()) {
-            thread_ = new Thread(this);
-            thread_.setDaemon(true);
-            thread_.start();
-        }
-    }
-
-    @SuppressWarnings ("ContinueOrBreakFromFinallyBlock")
-    @Override
-    public void run () {
-        Logger logger = getLogger();
-        Console console = Console.getInstance();
-
-        for(Folder folder : folders_){
-            if (! run_){
-                getLogger().info("GmailFetcher thread shut down gracefully!");
-                return;
-            }
-
+        folderMap_ = new Hashtable<>();
+        for(Folder folder : store_.getDefaultFolder().list("*")){
             if(notUsableFolder(folder)){
                 continue;
             }
 
-            String folderFullName = folder.getFullName();
-            Message[] messages = null;
+            folderMap_.put(folder.getFullName(), folder);
+        }
+    }
+
+    @Override
+    public Set<String> getFolderPaths(){
+        if(folderMap_ == null){
+            throw new IllegalStateException("Fetcher is not open or has been terminated.");
+        }
+
+        return folderMap_.keySet();
+    }
+
+    @Override
+    public synchronized void fetch() {
+        if(store_ == null){
+            throw new IllegalStateException("Fetcher is not open or has been terminated.");
+        }
+
+        fetch(SENT_MAIL_FOLDER_PATH);
+    }
+
+    @Override
+    public synchronized void fetch(String folderPath) {
+        if(store_ == null){
+            throw new IllegalStateException("Fetcher is not open or has been terminated.");
+        }
+
+        if(folderPath == null){
+            getLogger().warning("folderPath must not be null!");
+            return;
+        }
+
+        if(!folderMap_.containsKey(folderPath)){
+            Console.getInstance().postMessage("Could not fetch folder: " + folderPath);
+            return;
+        }
+
+        startNewFetcherThread(folderPath);
+    }
+
+    private void startNewFetcherThread(String folderPath) {
+        if(fetcherThread_ == null || !fetcherThread_.isAlive()){
+            fetcherThread_ = new FetcherThread(folderMap_.get(folderPath));
+            fetcherThread_.start();
+        }
+        else{
+            throw new IllegalStateException("Already fetching!");
+        }
+    }
+
+    private class FetcherThread extends Thread {
+        FetcherThread (Folder folder) {
+            folder_ = folder;
+
+            setDaemon(true);
+        }
+
+        @Override
+        public void run () {
+            setChanged();
+            notifyObservers(Stage.STARTED_FETCHING);
+
+            Logger logger = getLogger();
+            Console console = Console.getInstance();
+
+            String folderFullName = folder_.getFullName();
+            Message[] messages;
 
             try {
-                folder.open(Folder.READ_ONLY);
-                messages = folder.getMessages();
+                folder_.open(Folder.READ_ONLY);
+                messages = folder_.getMessages();
             } catch (FolderNotFoundException e) {
-                String message = "Tried to interact with a folder that doesn't exist.\n";
+                logger.warning("Tried to interact with a folder that doesn't exist.\n" +
+                    "Folder name: " + folderFullName);
+                console.postMessage("Could not fetch emails from folder: " + folderFullName);
 
-                // Should to something like that but the user might not like it if all his folders
-                // are written in the log file
-                // StringBuilder stringBuilder = new StringBuilder();
-                // for(Folder tempFolder : folders_){
-                //     stringBuilder.append(tempFolder.getFullName()).append("\n");
-                // }
-                // message += stringBuilder.toString();
-                message += "Folder name: " + folderFullName;
-
-                logger.log(Level.WARNING, message, e);
+                beforeExit();
+                return;
             } catch (IllegalStateException e) {
-                logger.log(Level.WARNING, "Got an illegal state on folder: " + folderFullName, e);
+                logger.warning("Got an illegal state on folder: " + folderFullName);
+                console.postMessage("Could not fetch emails from folder: " + folderFullName);
+
+                beforeExit();
+                return;
             } catch (MessagingException e) {
-                logger.log(
-                    Level.WARNING, "Got an error while processing folder: " + folderFullName, e
-                );
-            }
-            finally {
-                if(messages == null){
-                    console.postMessage("Folder: " + folderFullName + " could not be processed!");
+                logger.warning("Got an error while processing folder: " + folderFullName);
+                console.postMessage("Could not fetch emails from folder: " + folderFullName);
 
-                    // Obviously continue is called only if an exception has occurred
-                    continue;
-                }
+                beforeExit();
+                return;
             }
 
-            ArrayList<Email> emails = new ArrayList<>();
-
+            org.pasr.prep.email.fetchers.Folder folder = new org.pasr.prep.email.fetchers.Folder(
+                folderFullName
+            );
             for (Message message : messages) {
-                if (! run_){
-                    getLogger().info("GmailFetcher thread shut down gracefully!");
+                if (! run_) {
+                    beforeExit();
                     return;
                 }
 
@@ -108,6 +151,11 @@ public class GMailFetcher extends EmailFetcher{
                             ". Email will not be used."
                     );
                     continue;
+                }
+
+                if (! run_) {
+                    beforeExit();
+                    return;
                 }
 
                 String[] senders;
@@ -131,6 +179,11 @@ public class GMailFetcher extends EmailFetcher{
                             "in folder: " + folderFullName + ". Email will not be used."
                     );
                     continue;
+                }
+
+                if (! run_) {
+                    beforeExit();
+                    return;
                 }
 
                 String[] tORecipients;
@@ -157,6 +210,11 @@ public class GMailFetcher extends EmailFetcher{
                     continue;
                 }
 
+                if (! run_) {
+                    beforeExit();
+                    return;
+                }
+
                 String[] cCRecipients;
                 try {
                     Address[] addresses = message.getRecipients(Message.RecipientType.CC);
@@ -179,6 +237,11 @@ public class GMailFetcher extends EmailFetcher{
                             ". Email will not be used."
                     );
                     continue;
+                }
+
+                if (! run_) {
+                    beforeExit();
+                    return;
                 }
 
                 String[] bCCRecipients;
@@ -205,6 +268,11 @@ public class GMailFetcher extends EmailFetcher{
                     continue;
                 }
 
+                if (! run_) {
+                    beforeExit();
+                    return;
+                }
+
                 long messageReceivedDate;
                 try {
                     messageReceivedDate = message.getSentDate().getTime();
@@ -216,6 +284,11 @@ public class GMailFetcher extends EmailFetcher{
                             ". Email will not be used."
                     );
                     continue;
+                }
+
+                if (! run_) {
+                    beforeExit();
+                    return;
                 }
 
                 Object messageContent;
@@ -242,76 +315,84 @@ public class GMailFetcher extends EmailFetcher{
                     continue;
                 }
 
-                emails.add(new Email(senders, tORecipients, cCRecipients, bCCRecipients,
+                folder.add(new Email(senders, tORecipients, cCRecipients, bCCRecipients,
                     messageReceivedDate, messageSubject, messageBody));
             }
 
-            try {
-                folder.close(false);
-            } catch (IllegalStateException e) {
-                logger.log(
-                    Level.WARNING, "Got an illegal state on folder: " + folderFullName +
-                    "while closing it", e
-                );
-            } catch (MessagingException e) {
-                logger.log(
-                    Level.WARNING, "Got an error while closing folder: " + folderFullName, e
-                );
-            }
+            setChanged();
+            notifyObservers(folder);
 
             setChanged();
-            notifyObservers(new org.pasr.prep.email.fetchers.Folder(folderFullName, emails));
+            notifyObservers(Stage.STOPPED_FETCHING);
+
+            beforeExit();
         }
 
-        // There is no use for the GmailFetcher at this time so it should release its resources
-        close();
+        private String getBodyFromMultiPart (Multipart multipart)
+            throws MessagingException, IOException {
 
-        // Notify the observers that the fetching is finished
-        setChanged();
-        notifyObservers();
+            StringBuilder stringBuilder = new StringBuilder();
 
-        getLogger().info("GmailFetcher thread shut down gracefully!");
+            Object content = multipart.getBodyPart(0).getContent();
+            if (content instanceof String) {
+                stringBuilder.append(content);
+            }
+            else if (content instanceof Multipart) {
+                stringBuilder.append(getBodyFromMultiPart((Multipart) content));
+            }
+
+            return stringBuilder.toString();
+        }
+
+        private void beforeExit () {
+            Logger logger = getLogger();
+
+            if(folder_.isOpen()){
+                String folderFullName = folder_.getFullName();
+
+                try {
+                    folder_.close(false);
+                } catch (IllegalStateException e) {
+                    logger.warning("Got an illegal state on folder: " + folderFullName +
+                        " while closing it");
+                } catch (MessagingException e) {
+                    logger.warning("Got an error while closing folder: " + folderFullName);
+                }
+            }
+
+            logger.info("FetcherThread shut down gracefully!");
+        }
+
+        public synchronized void terminate(){
+            run_ = false;
+        }
+
+        private Folder folder_;
+
+        private volatile boolean run_ = true;
     }
 
-    private String getBodyFromMultiPart(Multipart multipart) throws MessagingException, IOException {
-        StringBuilder stringBuilder = new StringBuilder();
-
-        Object content = multipart.getBodyPart(0).getContent();
-        if(content instanceof String){
-            stringBuilder.append(content);
-        }
-        else if(content instanceof Multipart){
-            stringBuilder.append(getBodyFromMultiPart((Multipart) content));
-        }
-
-        return stringBuilder.toString();
-    }
-
-    private boolean notUsableFolder (Folder folder){
-        return folder.getFullName().equals("[Gmail]");
+    private boolean notUsableFolder (Folder javaMailFolder){
+        return javaMailFolder.getFullName().equals("[Gmail]");
     }
 
     @Override
-    public void terminate () {
-        killThread();
+    public synchronized void terminate () {
+        if(fetcherThread_ != null && fetcherThread_.isAlive()) {
+            fetcherThread_.terminate();
 
-        close();
-    }
-
-    private void killThread(){
-        run_ = false;
-
-        if(thread_ != null && thread_.isAlive()) {
             try {
-                thread_.join(3000);
+                // Don't wait forever on this thread since it is a daemon and will not block the JVM
+                // from shutting down
+                fetcherThread_.join(3000);
             } catch (InterruptedException e) {
                 getLogger().warning("Interrupted while joining GmailFetcher thread.");
             }
         }
-    }
 
-    private void close(){
-        if(store_.isConnected()) {
+        fetcherThread_ = null;
+
+        if(store_ != null && store_.isConnected()) {
             try {
                 store_.close();
             } catch (MessagingException e) {
@@ -320,12 +401,18 @@ public class GMailFetcher extends EmailFetcher{
                 );
             }
         }
+
+        store_ = null;
+
+        folderMap_ = null;
     }
 
-    private Thread thread_ = null;
-    private volatile boolean run_ = true;
+    private FetcherThread fetcherThread_;
 
     private Store store_;
-    private volatile Folder[] folders_;
+
+    private volatile Map<String, Folder> folderMap_;
+
+    private static final String SENT_MAIL_FOLDER_PATH = "[Gmail]/Sent Mail";
 
 }
