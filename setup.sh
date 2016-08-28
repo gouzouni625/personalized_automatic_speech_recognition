@@ -76,7 +76,7 @@ else
   echo "pocketsphinx for java was successfully built" >> ../../../setup.log
 fi
 
-cp pocketsphinx.jar ../../../core/libs
+cp pocketsphinx.jar ../../../libs
 
 cd ../../../
 

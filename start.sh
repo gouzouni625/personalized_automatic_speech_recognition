@@ -10,4 +10,4 @@ export LD_LIBRARY_PATH=sphinxtrain/installation/lib:${LD_LIBRARY_PATH}
 export LD_LIBRARY_PATH=pocketsphinx/installation/lib:${LD_LIBRARY_PATH}
 export LD_LIBRARY_PATH=cmuclmtk/installation/lib:${LD_LIBRARY_PATH}
 
-java -jar core/build/libs/core.jar
+java -jar build/libs/personalized_automatic_speech_recognition.jar
