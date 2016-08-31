@@ -18,7 +18,7 @@ import java.util.List;
  * A process that will adapt the acoustic model
  */
 public class AcousticModelProcess extends Process{
-    public AcousticModelProcess(){
+    public AcousticModelProcess() throws IOException{
         org.pasr.database.Configuration dataBaseConfiguration = org.pasr.database.Configuration
             .getInstance();
 
@@ -29,6 +29,9 @@ public class AcousticModelProcess extends Process{
         String acousticModelPath = dataBaseConfiguration.getAcousticModelPath();
 
         String defaultAcousticModelPath = aSRConfiguration.getAcousticModelPath();
+
+        setOutputRedirectionFile(new File(acousticModelDirectoryPath, "output.log"));
+        setErrorRedirectionFile(new File(acousticModelDirectoryPath, "error.log"));
 
         processBuilderList_.add(new ProcessBuilder(
             dataBaseConfiguration.getSphinxFePath(),

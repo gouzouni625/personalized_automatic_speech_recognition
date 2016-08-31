@@ -28,6 +28,9 @@ public class LanguageModelProcess extends Process{
 
         Configuration configuration = Configuration.getInstance();
 
+        setOutputRedirectionFile(new File(outputPath.getParent().toFile(), "output.log"));
+        setErrorRedirectionFile(new File(outputPath.getParent().toFile(), "error.log"));
+
         processBuilderList_.add(new ProcessBuilder(
             configuration.getText2wfreqPath()
         ).redirectInput(inputFile).redirectOutput(freqFile));
