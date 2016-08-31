@@ -193,7 +193,6 @@ public class MainView extends Application implements MainController.API,
                 sceneFactory_.create(SceneFactory.Scenes.EMAIL_LIST_SCENE, this)
             );
         } catch (IOException e) {
-            e.printStackTrace();
             logger_.severe("Could not load resource:" +
                 SceneFactory.Scenes.EMAIL_LIST_SCENE.getFXMLResource() + "\n" +
                 "The file might be missing or be corrupted.\n" +
@@ -431,7 +430,7 @@ public class MainView extends Application implements MainController.API,
                 // from shutting down
                 newAcousticModelThread_.join(3000);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                logger_.warning("Interrupted while joining newAcousticModelThread.");
             }
         }
 
