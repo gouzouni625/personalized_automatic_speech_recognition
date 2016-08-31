@@ -125,7 +125,7 @@ public class AcousticModelProcess extends Process{
 
             fileIdsPrintWriter.println(fileId);
             transcriptionPrintWriter.println(
-                entry.getSentence() + " (" + fileId + ")"
+                "<s> " + entry.getSentence() + " </s> (" + fileId + ")"
             );
         }
 
