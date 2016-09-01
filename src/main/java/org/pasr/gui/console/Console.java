@@ -82,6 +82,8 @@ public class Console extends Stage implements Runnable {
 
     @Override
     public void run(){
+        logger_.info("Console thread started!");
+
         while(true){
             try {
                 String message = messageQueue_.take();

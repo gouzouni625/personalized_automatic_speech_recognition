@@ -122,6 +122,8 @@ public class RealTimeSpeechRecognizer extends Observable {
     // Will not implement Runnable because run method should be private to prevent others from
     // calling it
     private void run(){
+        logger_.info("RealTimeSpeechRecognizer thread started!");
+
         synchronized (this){
             ready_ = true;
             notifyAll();
@@ -188,7 +190,7 @@ public class RealTimeSpeechRecognizer extends Observable {
             }
         }
 
-        logger_.info("StreamSpeechRecognizer thread shut down gracefully!");
+        logger_.info("RealTimeSpeechRecognizer thread shut down gracefully!");
     }
 
     private void startDecoder(){

@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -342,6 +343,8 @@ public class LDAController extends Controller {
 
         @Override
         public void run(){
+            logger_.info("DictionaryThread started!");
+
             progressIndicator_.showProgress();
 
             try {
@@ -353,7 +356,7 @@ public class LDAController extends Controller {
                     .map(FXCollections :: observableArrayList)
                     .collect(Collectors.toList()));
             } catch (FileNotFoundException e) {
-                getLogger().log(Level.SEVERE, "Default dictionary was not found.\n" +
+                logger_.log(Level.SEVERE, "Default dictionary was not found.\n" +
                     "Application will exit.", e);
 
                 Platform.exit();
@@ -363,7 +366,7 @@ public class LDAController extends Controller {
             progressIndicator_.hideProgress();
             setLDAApplicability();
 
-            getLogger().info("LDAController DictionaryThread shut down gracefully!");
+            logger_.info("DictionaryThread shut down gracefully!");
         }
 
         private void setLDAApplicability (){
@@ -380,6 +383,8 @@ public class LDAController extends Controller {
         }
 
         private final ProgressIndicator progressIndicator_;
+
+        private Logger logger_ = Logger.getLogger(getClass().getName());
     }
 
     private class LDAThread extends Thread{
@@ -391,6 +396,8 @@ public class LDAController extends Controller {
 
         @Override
         public void run(){
+            logger_.info("LDAThread started!");
+
             progressIndicator_.showProgress();
 
             try {
@@ -405,7 +412,7 @@ public class LDAController extends Controller {
                         .setNumberOfThreads(threadsSpinner.getValue());
                 }
             } catch(IllegalArgumentException e){
-                getLogger().log(Level.SEVERE, "An illegal argument was provided to the LDA.\n" +
+                logger_.log(Level.SEVERE, "An illegal argument was provided to the LDA.\n" +
                     "LDA should not be used.", e);
 
                 Console.getInstance().postMessage("There appears to be a problem with LDA.\n" +
@@ -424,7 +431,7 @@ public class LDAController extends Controller {
                 // Show results to the user
                 showResults(lda_);
             } catch (IOException e) {
-                getLogger().log(Level.WARNING, "lda threw an IOException", e);
+                logger_.log(Level.WARNING, "lda threw an IOException", e);
 
                 Console.getInstance().postMessage("An error has occurred while running LDA.\n" +
                     "Please try again in a few moments");
@@ -437,7 +444,7 @@ public class LDAController extends Controller {
         private void beforeExit (){
             progressIndicator_.hideProgress();
 
-            getLogger().info("LDAController LDAThread shut down gracefully!");
+            logger_.info("LDAThread shut down gracefully!");
         }
 
         private void showResults(LDA lda){
@@ -475,6 +482,8 @@ public class LDAController extends Controller {
         }
 
         private final ProgressIndicator progressIndicator_;
+
+        private Logger logger_ = Logger.getLogger(getClass().getName());
     }
 
     private class ProgressIndicator implements Observer{

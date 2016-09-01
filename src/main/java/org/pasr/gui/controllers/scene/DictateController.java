@@ -126,8 +126,11 @@ public class DictateController extends Controller implements Observer{
 
         @Override
         public void run(){
+            logger_.info("SetCorpusThread started!");
+
             if(!run_){
                 onFailure();
+                beforeExit();
                 return;
             }
 
@@ -139,11 +142,13 @@ public class DictateController extends Controller implements Observer{
                 Console.getInstance().postMessage("Could not load the dictionary of the selected" +
                     " corpus.");
                 onFailure();
+                beforeExit();
                 return;
             }
 
             if(!run_){
                 onFailure();
+                beforeExit();
                 return;
             }
 
@@ -155,11 +160,13 @@ public class DictateController extends Controller implements Observer{
                 Console.getInstance().postMessage("Could not load the language model of the" +
                     " selected corpus");
                 onFailure();
+                beforeExit();
                 return;
             }
 
             if(!run_){
                 onFailure();
+                beforeExit();
                 return;
             }
 
@@ -182,12 +189,14 @@ public class DictateController extends Controller implements Observer{
                 } catch (FileNotFoundException e) {
                     Console.getInstance().postMessage("Could not load the default acoustic model.");
                     onFailure();
+                    beforeExit();
                     return;
                 }
             }
 
             if(!run_){
                 onFailure();
+                beforeExit();
                 return;
             }
 
@@ -209,12 +218,14 @@ public class DictateController extends Controller implements Observer{
                 logger_.log(Level.SEVERE, "Missing native library.\n" +
                     "Application will terminate.", e);
                 Platform.exit();
+                beforeExit();
                 return;
             } catch (LineUnavailableException e) {
                 Console.getInstance().postMessage("Could not open the Microphone.\n" +
                     "Maybe it is being used by another application.\n" +
                     "You will not be able to record your voice so it is advised you go back.");
                 onFailure();
+                beforeExit();
                 return;
             }
 
@@ -232,6 +243,7 @@ public class DictateController extends Controller implements Observer{
                     Console.getInstance().postMessage("Could not load the default dictionary" +
                         " model.\nCorrector will not be available.");
                     onFailure();
+                    beforeExit();
                     return;
                 }
             }
@@ -246,6 +258,7 @@ public class DictateController extends Controller implements Observer{
                     logger_.log(Level.SEVERE, "Missing POSDetector model.\n" +
                         "Application will terminate.", e);
                     Platform.exit();
+                    beforeExit();
                     return;
                 }
                 // TODO Improve OccurrenceDetector before using it
@@ -254,10 +267,12 @@ public class DictateController extends Controller implements Observer{
                 Console.getInstance().postMessage("Could not load the selected corpus.\n" +
                     "Corrector will not be available.");
                 onFailure();
+                beforeExit();
                 return;
             }
 
             onSuccess();
+            beforeExit();
         }
 
         private void onFailure(){
@@ -286,6 +301,10 @@ public class DictateController extends Controller implements Observer{
             });
         }
 
+        private void beforeExit(){
+            logger_.info("SetCorpusThread shut down gracefully!");
+        }
+
         public void terminate(){
             run_ = false;
         }
@@ -293,6 +312,8 @@ public class DictateController extends Controller implements Observer{
         private int id_;
 
         private volatile boolean run_ = true;
+
+        private Logger logger_ = Logger.getLogger(getClass().getName());
     }
 
     private void dictateToggleButtonOnAction(ActionEvent actionEvent){

@@ -99,10 +99,11 @@ public class GMailFetcher extends EmailFetcher{
 
         @Override
         public void run () {
+            logger_.info("FetcherThread started!");
+
             setChanged();
             notifyObservers(Stage.STARTED_FETCHING);
 
-            Logger logger = getLogger();
             Console console = Console.getInstance();
 
             String folderFullName = folder_.getFullName();
@@ -112,20 +113,20 @@ public class GMailFetcher extends EmailFetcher{
                 folder_.open(Folder.READ_ONLY);
                 messages = folder_.getMessages();
             } catch (FolderNotFoundException e) {
-                logger.warning("Tried to interact with a folder that doesn't exist.\n" +
+                logger_.warning("Tried to interact with a folder that doesn't exist.\n" +
                     "Folder name: " + folderFullName);
                 console.postMessage("Could not fetch emails from folder: " + folderFullName);
 
                 beforeExit();
                 return;
             } catch (IllegalStateException e) {
-                logger.warning("Got an illegal state on folder: " + folderFullName);
+                logger_.warning("Got an illegal state on folder: " + folderFullName);
                 console.postMessage("Could not fetch emails from folder: " + folderFullName);
 
                 beforeExit();
                 return;
             } catch (MessagingException e) {
-                logger.warning("Got an error while processing folder: " + folderFullName);
+                logger_.warning("Got an error while processing folder: " + folderFullName);
                 console.postMessage("Could not fetch emails from folder: " + folderFullName);
 
                 beforeExit();
@@ -145,7 +146,7 @@ public class GMailFetcher extends EmailFetcher{
                 try {
                     messageSubject = message.getSubject();
                 } catch (MessagingException e) {
-                    logger.log(Level.WARNING, "Could not get the subject of a message", e);
+                    logger_.log(Level.WARNING, "Could not get the subject of a message", e);
                     console.postMessage(
                         "There was an error processing an email in folder: " + folderFullName +
                             ". Email will not be used."
@@ -173,7 +174,7 @@ public class GMailFetcher extends EmailFetcher{
                         }
                     }
                 } catch (MessagingException e) {
-                    logger.log(Level.WARNING, "Could not get the senders of a message", e);
+                    logger_.log(Level.WARNING, "Could not get the senders of a message", e);
                     console.postMessage(
                         "There was an error processing the senders of email: " + messageSubject +
                             "in folder: " + folderFullName + ". Email will not be used."
@@ -201,7 +202,7 @@ public class GMailFetcher extends EmailFetcher{
                         }
                     }
                 } catch (MessagingException e) {
-                    logger.log(Level.WARNING, "Could not get \"TO\" recipients of a message", e);
+                    logger_.log(Level.WARNING, "Could not get \"TO\" recipients of a message", e);
                     console.postMessage(
                         "There was an error processing \"TO\" recipients of email: " +
                             messageSubject + "in folder: " + folderFullName +
@@ -230,7 +231,7 @@ public class GMailFetcher extends EmailFetcher{
                         }
                     }
                 } catch (MessagingException e) {
-                    logger.log(Level.WARNING, "Could not get \"CC\" recipients of a message", e);
+                    logger_.log(Level.WARNING, "Could not get \"CC\" recipients of a message", e);
                     console.postMessage(
                         "There was an error processing \"CC\" recipients of email: " +
                             messageSubject + "in folder: " + folderFullName +
@@ -259,7 +260,7 @@ public class GMailFetcher extends EmailFetcher{
                         }
                     }
                 } catch (MessagingException e) {
-                    logger.log(Level.WARNING, "Could not get \"BCC\" recipients of a message", e);
+                    logger_.log(Level.WARNING, "Could not get \"BCC\" recipients of a message", e);
                     console.postMessage(
                         "There was an error processing \"BCC\" recipients of email: " +
                             messageSubject + "in folder: " + folderFullName +
@@ -277,7 +278,7 @@ public class GMailFetcher extends EmailFetcher{
                 try {
                     messageReceivedDate = message.getSentDate().getTime();
                 } catch (MessagingException e) {
-                    logger.log(Level.WARNING, "Could not get sent date of a message", e);
+                    logger_.log(Level.WARNING, "Could not get sent date of a message", e);
                     console.postMessage(
                         "There was an error processing sent date of email: " +
                             messageSubject + "in folder: " + folderFullName +
@@ -306,7 +307,7 @@ public class GMailFetcher extends EmailFetcher{
                         messageBody = "";
                     }
                 } catch (IOException | MessagingException e) {
-                    logger.log(Level.WARNING, "Could not get the body of a message", e);
+                    logger_.log(Level.WARNING, "Could not get the body of a message", e);
                     console.postMessage(
                         "There was an error processing the body of email: " +
                             messageSubject + " in folder: " + folderFullName +
@@ -345,22 +346,20 @@ public class GMailFetcher extends EmailFetcher{
         }
 
         private void beforeExit () {
-            Logger logger = getLogger();
-
             if(folder_.isOpen()){
                 String folderFullName = folder_.getFullName();
 
                 try {
                     folder_.close(false);
                 } catch (IllegalStateException e) {
-                    logger.warning("Got an illegal state on folder: " + folderFullName +
+                    logger_.warning("Got an illegal state on folder: " + folderFullName +
                         " while closing it");
                 } catch (MessagingException e) {
-                    logger.warning("Got an error while closing folder: " + folderFullName);
+                    logger_.warning("Got an error while closing folder: " + folderFullName);
                 }
             }
 
-            logger.info("FetcherThread shut down gracefully!");
+            logger_.info("FetcherThread shut down gracefully!");
         }
 
         public synchronized void terminate(){
@@ -370,6 +369,8 @@ public class GMailFetcher extends EmailFetcher{
         private Folder folder_;
 
         private volatile boolean run_ = true;
+
+        private Logger logger_ = Logger.getLogger(getClass().getName());
     }
 
     private boolean notUsableFolder (Folder javaMailFolder){

@@ -108,6 +108,8 @@ public class BufferedRecorder extends Recorder {
     }
 
     private void run(){
+        logger_.info("BufferedRecorder thread started!");
+
         // Upon start, go to wait immediately after you signal that you are ready to
         synchronized (this){
             ready_ = true;

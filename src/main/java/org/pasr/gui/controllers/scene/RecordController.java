@@ -30,6 +30,7 @@ import java.util.Observable;
 import java.util.Observer;
 import java.util.Random;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static org.pasr.utilities.Utilities.getResourceStream;
 
@@ -75,6 +76,8 @@ public class RecordController extends Controller implements Observer{
 
         @Override
         public void run(){
+            logger_.info("FillCorpusSentencesThread started!");
+
             int currentSize = corpusSentences_.size();
             if (currentSize == corpusSentencesMaxSize_) {
                 return;
@@ -92,6 +95,8 @@ public class RecordController extends Controller implements Observer{
             }
 
             Platform.runLater(() -> corpusSentences_.addAll(randomSentences));
+
+            logger_.info("FillCorpusSentencesThread shut down gracefully!");
         }
 
         void terminate(){
@@ -100,6 +105,8 @@ public class RecordController extends Controller implements Observer{
 
 
         private boolean stop_ = false;
+
+        private Logger logger_ = Logger.getLogger(getClass().getName());
     }
 
     private void fillArcticSentences () {
@@ -356,6 +363,9 @@ public class RecordController extends Controller implements Observer{
     private static final int arcticSentencesMaxSize_ = 20;
     private Thread fillArcticSentencesThread_;
     private final Runnable fillArcticSentencesRunnable_ = () -> {
+        Logger logger = Logger.getLogger(getClass().getName());
+        logger.info("fillArcticSentences thread started!");
+
         int currentSize = arcticSentences_.size();
         if (currentSize == arcticSentencesMaxSize_) {
             return;
@@ -366,6 +376,8 @@ public class RecordController extends Controller implements Observer{
         );
 
         Platform.runLater(() -> arcticSentences_.addAll(newArcticSentences));
+
+        logger.info("fillArcticSentences thread shut down gracefully!");
     };
 
     @FXML

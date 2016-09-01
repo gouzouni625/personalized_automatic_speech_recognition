@@ -353,6 +353,8 @@ public class MainView extends Application implements MainController.API,
 
         @Override
         public void run(){
+            logger_.info("NewAcousticModelThread started!");
+
             boolean created = false;
             try {
                 created = DataBase.getInstance().newAcousticModel(10);
@@ -376,8 +378,10 @@ public class MainView extends Application implements MainController.API,
 
             Platform.runLater(MainView.this :: showDictateScene);
 
-            logger_.info("New Acoustic Model thread shut down gracefully!");
+            logger_.info("NewAcousticModelThread shut down gracefully!");
         }
+
+        private Logger logger_ = Logger.getLogger(getClass().getName());
     }
 
     private void createNewAcousticModel(){

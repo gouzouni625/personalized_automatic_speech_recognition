@@ -150,9 +150,14 @@ public class LDA extends Observable {
         // Use another thread to write data to the piped output stream so that this thread doesn't
         // deadlock (See https://docs.oracle.com/javase/8/docs/api/java/io/PipedInputStream.html)
         new Thread(() -> {
+            Logger logger = Logger.getLogger(getClass().getName());
+            logger.info("Thread started!");
+
             PrintWriter printWriter = new PrintWriter(pipedOutputStream);
             lda_.printDenseDocumentTopics(printWriter);
             printWriter.close();
+
+            logger.info("Thread shut down gracefully!");
         }).start();
 
         // Create a Scanner from the PipedInputStream that is connected to the PipedOutputStream
