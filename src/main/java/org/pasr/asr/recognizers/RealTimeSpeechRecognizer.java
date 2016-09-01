@@ -26,11 +26,11 @@ public class RealTimeSpeechRecognizer extends Observable {
         recorder_ = new Recorder();
         sampleRate_ = recorder_.getSampleRate();
 
-        decoderConfig_ = Decoder.defaultConfig();
-        decoderConfig_.setString("-hmm", configuration.getAcousticModelPath());
-        decoderConfig_.setString("-dict", configuration.getDictionaryPath());
-        decoderConfig_.setString("-lm", configuration.getLanguageModelPath());
-        decoder_ = new Decoder(decoderConfig_);
+        Config decoderConfig = Decoder.defaultConfig();
+        decoderConfig.setString("-hmm", configuration.getAcousticModelPath());
+        decoderConfig.setString("-dict", configuration.getDictionaryPath());
+        decoderConfig.setString("-lm", configuration.getLanguageModelPath());
+        decoder_ = new Decoder(decoderConfig);
 
         thread_ = new Thread(this :: run);
         thread_.setDaemon(true);
@@ -263,8 +263,6 @@ public class RealTimeSpeechRecognizer extends Observable {
     }
 
     private static boolean isLibraryLoaded_ = false;
-
-    private Config decoderConfig_;
 
     private Thread thread_;
 
