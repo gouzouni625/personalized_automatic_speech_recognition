@@ -42,7 +42,6 @@ public class EmailListController extends Controller implements Observer{
                 }
             }
         );
-        emailTreeView.addAll(emailFetcher.getFolderPaths());
 
         backButton.setOnAction(this :: backButtonOnAction);
         doneButton.setOnAction(this :: doneButtonOnAction);

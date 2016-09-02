@@ -133,9 +133,6 @@ public class GMailFetcher extends EmailFetcher{
                 return;
             }
 
-            org.pasr.prep.email.fetchers.Folder folder = new org.pasr.prep.email.fetchers.Folder(
-                folderFullName
-            );
             for (Message message : messages) {
                 if (! run_) {
                     beforeExit();
@@ -316,12 +313,10 @@ public class GMailFetcher extends EmailFetcher{
                     continue;
                 }
 
-                folder.add(new Email(senders, tORecipients, cCRecipients, bCCRecipients,
-                    messageReceivedDate, messageSubject, messageBody));
+                setChanged();
+                notifyObservers(new Email(senders, tORecipients, cCRecipients, bCCRecipients,
+                    messageReceivedDate, messageSubject, messageBody, folderFullName));
             }
-
-            setChanged();
-            notifyObservers(folder);
 
             beforeExit();
         }

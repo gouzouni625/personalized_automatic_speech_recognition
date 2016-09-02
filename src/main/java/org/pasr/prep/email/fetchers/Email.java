@@ -7,8 +7,8 @@ import java.util.Arrays;
 
 
 public class Email {
-    Email(String[] senders, String[] tORecipients, String[] cCRecipients,
-                 String[] bCCRecipients, long receivedDate, String subject, String body){
+    Email(String[] senders, String[] tORecipients, String[] cCRecipients, String[] bCCRecipients,
+          long receivedDate, String subject, String body, String path){
         senders_ = senders != null ? senders : new String[0];
 
         tORecipients_ = tORecipients != null ? tORecipients : new String[0];
@@ -18,6 +18,8 @@ public class Email {
         receivedDate_ = receivedDate;
         subject_ = subject;
         body_ = body;
+
+        path_ = path;
 
         id_ = receivedDate_;
     }
@@ -55,6 +57,10 @@ public class Email {
         return id_;
     }
 
+    public String getPath(){
+        return path_;
+    }
+
     @Override
     public int hashCode(){
         return new HashCodeBuilder(17, 37)
@@ -64,7 +70,8 @@ public class Email {
             .append(bCCRecipients_)
             .append(receivedDate_)
             .append(subject_)
-            .append(body_).toHashCode();
+            .append(body_)
+            .append(path_).toHashCode();
     }
 
     @Override
@@ -81,7 +88,8 @@ public class Email {
             && Arrays.equals(email.getRecipients(RecipientType.BCC), bCCRecipients_)
             && email.getReceivedDate() == receivedDate_
             && email.getSubject().equals(subject_)
-            && email.getBody().equals(body_);
+            && email.getBody().equals(body_)
+            && email.getPath().equals(path_);
     }
 
     private final String[] senders_;
@@ -92,6 +100,8 @@ public class Email {
     private final String subject_;
     private final String body_;
     private final long id_;
+
+    private final String path_;
 
     public enum RecipientType{
         TO,

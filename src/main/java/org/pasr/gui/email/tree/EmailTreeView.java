@@ -1,18 +1,16 @@
 package org.pasr.gui.email.tree;
 
 
-import javafx.collections.ObservableList;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
+import org.apache.commons.io.FilenameUtils;
 import org.pasr.prep.email.fetchers.Email;
 import org.pasr.prep.email.fetchers.EmailFetcher;
-import org.pasr.prep.email.fetchers.Folder;
 
 import java.util.Arrays;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 
 public class EmailTreeView extends TreeView<Value> implements Observer {
@@ -21,10 +19,16 @@ public class EmailTreeView extends TreeView<Value> implements Observer {
         emailFetcher_.addObserver(this);
 
         setRoot(createFolderTreeItem("E-mails", false));
+
+        emailFetcher.getFolderPaths().forEach(this :: addFolder);
     }
 
-    public Set<Email> getSelectedEmails (){
-        return ((EmailTreeItem) getRoot()).getSelectedEmails();
+    private void addFolder(String path){
+        add(FilenameUtils.getFullPathNoEndSeparator(path), createFolderTreeItem(path));
+    }
+
+    private void addEmail (Email email) {
+        add(email.getPath(), new EmailTreeItem(new EmailValue(email)));
     }
 
     private void add (String path, TreeItem<Value> treeItem) {
@@ -32,8 +36,8 @@ public class EmailTreeView extends TreeView<Value> implements Observer {
             throw new IllegalArgumentException("path must not be null!");
         }
 
-        if(path.isEmpty()){
-            throw new IllegalArgumentException("path must not be empty!");
+        if(treeItem == null){
+            throw new IllegalArgumentException("treeItem must not be null!");
         }
 
         if(path.startsWith("/")){
@@ -44,8 +48,15 @@ public class EmailTreeView extends TreeView<Value> implements Observer {
             throw new IllegalArgumentException("path must not end with /!");
         }
 
-        if(treeItem == null){
-            throw new IllegalArgumentException("treeItem must not be null!");
+        if(path.isEmpty()){
+            if(treeItem.getValue().isEmail()) {
+                throw new IllegalArgumentException("path must not be empty for an email!");
+            }
+            else{
+                // Top folders will be added here
+                getRoot().getChildren().add(treeItem);
+                return;
+            }
         }
 
         String[] folders = path.split("/");
@@ -63,8 +74,8 @@ public class EmailTreeView extends TreeView<Value> implements Observer {
                 break;
             }
         }
-        if(depth < numberOfFolders - 1){
-            for (int i = depth, n = numberOfFolders - 1; i < n; i++) {
+        if(depth < numberOfFolders){
+            for (int i = depth; i < numberOfFolders; i++) {
                 TreeItem<Value> parentFolder = createFolderTreeItem(
                     String.join("/", (CharSequence[]) Arrays.copyOfRange(folders, 0, i + 1))
                 );
@@ -76,13 +87,10 @@ public class EmailTreeView extends TreeView<Value> implements Observer {
 
             currentFolder.getChildren().add(treeItem);
         }
-        if(depth == numberOfFolders - 1){
-            // The path is there but there is no other folder with the same name with treeItem
-            currentFolder.getChildren().add(treeItem);
-        }
-        else if(depth == numberOfFolders){
-            // There is a folder with the same path and name with treeItem
-            moveChildren(treeItem, currentFolder);
+        if(depth == numberOfFolders){
+            if(!currentFolder.getChildren().contains(treeItem)) {
+                currentFolder.getChildren().add(treeItem);
+            }
         }
     }
 
@@ -98,31 +106,8 @@ public class EmailTreeView extends TreeView<Value> implements Observer {
         return null;
     }
 
-    private void moveChildren (TreeItem<Value> from, TreeItem<Value> to) {
-        ObservableList<TreeItem<Value>> destinationChildren = to.getChildren();
-
-        destinationChildren.addAll(from.getChildren().stream()
-            .filter(child -> ! destinationChildren.contains(child))
-            .collect(Collectors.toList()));
-    }
-
-    public void add (String path) {
-        add(path, createFolderTreeItem(path));
-    }
-
-    public void addAll(Set<String> stringSet){
-        stringSet.forEach(this :: add);
-    }
-
-    public void add (Folder folder) {
-        TreeItem<Value> folderTreeItem = createFolderTreeItem(folder.getPath());
-        folderTreeItem.getChildren().addAll(
-            folder.stream()
-                .map(email -> new EmailTreeItem(new EmailValue(email)))
-                .collect(Collectors.toList())
-        );
-
-        add(folder.getPath(), folderTreeItem);
+    public Set<Email> getSelectedEmails (){
+        return ((EmailTreeItem) getRoot()).getSelectedEmails();
     }
 
     private EmailTreeItem createFolderTreeItem(String folderPath){
@@ -141,8 +126,8 @@ public class EmailTreeView extends TreeView<Value> implements Observer {
 
     @Override
     public void update (Observable o, Object arg) {
-        if(arg instanceof Folder){
-            add((Folder) arg);
+        if(arg instanceof Email){
+            addEmail((Email) arg);
         }
     }
 
