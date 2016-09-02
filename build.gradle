@@ -25,7 +25,7 @@ dependencies {
     compile group: 'org.apache.commons'    , name: 'commons-lang3'       , version: '3.4'
     compile group: 'org.apache.commons'    , name: 'commons-collections4', version: '4.1'
     compile group: 'commons-io'            , name: 'commons-io'          , version: '2.5'
-    compile group: 'javax.mail'            , name: 'mail'                , version: '1.5.0-b01'
+    compile group: 'javax.mail'            , name: 'mail'                , version: '1.4.7'
     compile group: 'com.google.code.gson'  , name: 'gson'                , version: '2.6.2'
     compile group: 'com.github.gouzouni625', name: 'native-utils'        , version: '-SNAPSHOT'
     compile group: 'cc.mallet'             , name: 'mallet'              , version: '2.0.8'

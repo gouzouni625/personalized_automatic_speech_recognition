@@ -21,7 +21,7 @@ import java.util.logging.Logger;
 
 public class GMailFetcher extends EmailFetcher{
     public GMailFetcher () throws IOException {
-        super("/email/gmail-smtp.properties");
+        super("/email/gmail-imaps.properties");
     }
 
     @Override
@@ -30,8 +30,8 @@ public class GMailFetcher extends EmailFetcher{
             throw new IllegalStateException("Fetcher has already been opened");
         }
 
-        store_ = Session.getDefaultInstance(properties_, null).getStore("imaps");
-        store_.connect(properties_.getProperty("mail.smtp.host"), address, password);
+        store_ = Session.getInstance(properties_).getStore("imaps");
+        store_.connect(address, password);
 
         folderMap_ = new Hashtable<>();
         for(Folder folder : store_.getDefaultFolder().list("*")){
@@ -323,9 +323,6 @@ public class GMailFetcher extends EmailFetcher{
             setChanged();
             notifyObservers(folder);
 
-            setChanged();
-            notifyObservers(Stage.STOPPED_FETCHING);
-
             beforeExit();
         }
 
@@ -358,6 +355,9 @@ public class GMailFetcher extends EmailFetcher{
                     logger_.warning("Got an error while closing folder: " + folderFullName);
                 }
             }
+
+            setChanged();
+            notifyObservers(Stage.STOPPED_FETCHING);
 
             logger_.info("FetcherThread shut down gracefully!");
         }
@@ -405,7 +405,23 @@ public class GMailFetcher extends EmailFetcher{
 
         store_ = null;
 
-        folderMap_ = null;
+        if(folderMap_ != null) {
+            folderMap_.values().stream()
+                .filter(Folder:: isOpen).forEach(folder -> {
+
+                String folderFullName = folder.getFullName();
+                try {
+                    folder.close(false);
+                } catch (IllegalStateException e) {
+                    getLogger().warning("Got an illegal state on folder: " + folderFullName +
+                        " while closing it");
+                } catch (MessagingException e) {
+                    getLogger().warning("Got an error while closing folder: " + folderFullName);
+                }
+            });
+
+            folderMap_ = null;
+        }
     }
 
     private FetcherThread fetcherThread_;
