@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.control.TreeView?>
+<?import javafx.scene.control.ProgressIndicator?>
+<?import javafx.scene.control.Label?>
+
+<?import org.pasr.gui.nodes.IntegerField?>
+
+<fx:root type="javafx.scene.layout.AnchorPane" xmlns:fx="http://javafx.com/fxml">
+    <TreeView fx:id="treeView" AnchorPane.bottomAnchor="50.0" AnchorPane.leftAnchor="0.0"
+              AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
+    <ProgressIndicator fx:id="progressIndicator" AnchorPane.bottomAnchor="70.0" visible="false"
+                       AnchorPane.rightAnchor="20.0"/>
+    <Label prefHeight="30.0" prefWidth="180.0" text="Number of emails to fetch:"
+           AnchorPane.leftAnchor="10.0" AnchorPane.bottomAnchor="10.0"/>
+    <IntegerField fx:id="integerField" prefHeight="30.0" prefWidth="100.0" text="200"
+                  AnchorPane.leftAnchor="190.0" AnchorPane.bottomAnchor="10.0"/>
+</fx:root>

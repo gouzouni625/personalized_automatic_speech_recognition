@@ -91,7 +91,7 @@ public class OccurrenceDetector implements Detector{
 
         sortedList.addAll(map.entrySet());
 
-        return sortedList.valueList();
+        return sortedList.keyList();
     }
 
     @Override

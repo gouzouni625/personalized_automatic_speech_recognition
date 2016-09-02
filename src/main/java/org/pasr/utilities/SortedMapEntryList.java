@@ -61,9 +61,15 @@ public class SortedMapEntryList<K, V extends Comparable<V>> extends ArrayList<Ma
         return changed;
     }
 
-    public List<K> valueList(){
-        return this.stream()
+    public List<K> keyList (){
+        return stream()
             .map(Map.Entry :: getKey)
+            .collect(Collectors.toList());
+    }
+
+    public List<V> valueList (){
+        return stream()
+            .map(Map.Entry :: getValue)
             .collect(Collectors.toList());
     }
 

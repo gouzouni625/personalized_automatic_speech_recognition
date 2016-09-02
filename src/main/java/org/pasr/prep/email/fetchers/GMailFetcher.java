@@ -2,8 +2,10 @@ package org.pasr.prep.email.fetchers;
 
 
 import org.pasr.gui.console.Console;
+import org.pasr.utilities.SortedMapEntryList;
 
 import javax.mail.Address;
+import javax.mail.FetchProfile;
 import javax.mail.Folder;
 import javax.mail.FolderNotFoundException;
 import javax.mail.Message;
@@ -12,8 +14,11 @@ import javax.mail.Multipart;
 import javax.mail.Session;
 import javax.mail.Store;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -63,16 +68,16 @@ public class GMailFetcher extends EmailFetcher{
     }
 
     @Override
-    public synchronized void fetch() {
+    public synchronized void fetch(int count) {
         if(store_ == null){
             throw new IllegalStateException("Fetcher is not open or has been terminated.");
         }
 
-        fetch(SENT_MAIL_FOLDER_PATH);
+        fetch(SENT_MAIL_FOLDER_PATH, count);
     }
 
     @Override
-    public synchronized void fetch(String folderPath) {
+    public synchronized void fetch(String folderPath, int count) {
         if(store_ == null){
             throw new IllegalStateException("Fetcher is not open or has been terminated.");
         }
@@ -87,7 +92,7 @@ public class GMailFetcher extends EmailFetcher{
             return;
         }
 
-        startNewFetcherThread(folderPath);
+        startNewFetcherThread(folderPath, count);
     }
 
     @Override
@@ -101,9 +106,9 @@ public class GMailFetcher extends EmailFetcher{
         fetcherThread_.terminate();
     }
 
-    private void startNewFetcherThread(String folderPath) {
+    private void startNewFetcherThread(String folderPath, int count) {
         if(fetcherThread_ == null || !fetcherThread_.isAlive()){
-            fetcherThread_ = new FetcherThread(folderMap_.get(folderPath));
+            fetcherThread_ = new FetcherThread(folderMap_.get(folderPath), count);
             fetcherThread_.start();
         }
         else{
@@ -112,8 +117,9 @@ public class GMailFetcher extends EmailFetcher{
     }
 
     private class FetcherThread extends Thread {
-        FetcherThread (Folder folder) {
+        FetcherThread (Folder folder, int count) {
             folder_ = folder;
+            count_ = count;
 
             setDaemon(true);
         }
@@ -132,7 +138,12 @@ public class GMailFetcher extends EmailFetcher{
 
             try {
                 folder_.open(Folder.READ_ONLY);
+
                 messages = folder_.getMessages();
+
+                FetchProfile fetchProfile = new FetchProfile();
+                fetchProfile.add(FetchProfile.Item.ENVELOPE);
+                folder_.fetch(messages, fetchProfile);
             } catch (FolderNotFoundException e) {
                 logger_.warning("Tried to interact with a folder that doesn't exist.\n" +
                     "Folder name: " + folderFullName);
@@ -154,7 +165,9 @@ public class GMailFetcher extends EmailFetcher{
                 return;
             }
 
-            for (Message message : messages) {
+            List<Message> mostRecentMessageList = getMostRecent(messages);
+
+            for (Message message : mostRecentMessageList) {
                 if (! run_) {
                     beforeExit();
                     return;
@@ -378,11 +391,31 @@ public class GMailFetcher extends EmailFetcher{
             logger_.info("FetcherThread shut down gracefully!");
         }
 
+        private List<Message> getMostRecent(Message[] messages){
+            SortedMapEntryList<Message, Long> sortedMapEntryList = new SortedMapEntryList<>(
+                count_, false
+            );
+
+            sortedMapEntryList.addAll(Arrays.stream(messages)
+                .collect(Collectors.toMap(Function.identity(), message -> {
+                    try {
+                        return message.getSentDate().getTime();
+                    } catch (MessagingException e) {
+                        logger_.warning("Error while fetching message sent date");
+                        return (long) 0;
+                    }
+                })).entrySet());
+
+            return sortedMapEntryList.keyList();
+        }
+
         public synchronized void terminate(){
             run_ = false;
         }
 
         private Folder folder_;
+
+        private int count_;
 
         private volatile boolean run_ = true;
 

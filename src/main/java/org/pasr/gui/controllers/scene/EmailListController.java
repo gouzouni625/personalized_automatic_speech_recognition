@@ -4,22 +4,19 @@ package org.pasr.gui.controllers.scene;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
-import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TextArea;
 import org.pasr.gui.console.Console;
-import org.pasr.gui.email.tree.EmailTreeView;
+import org.pasr.gui.email.tree.EmailTreePane;
 import org.pasr.gui.email.tree.EmailValue;
 import org.pasr.gui.email.tree.Value;
 import org.pasr.prep.email.fetchers.Email;
 import org.pasr.prep.email.fetchers.EmailFetcher;
 
 import java.util.Date;
-import java.util.Observable;
-import java.util.Observer;
 import java.util.Set;
 
 
-public class EmailListController extends Controller implements Observer{
+public class EmailListController extends Controller {
     public EmailListController (Controller.API api) {
         super(api);
     }
@@ -27,10 +24,9 @@ public class EmailListController extends Controller implements Observer{
     @FXML
     public void initialize() {
         EmailFetcher emailFetcher = ((API) api_).getEmailFetcher();
-        emailFetcher.addObserver(this);
 
-        emailTreeView.init(emailFetcher);
-        emailTreeView.getSelectionModel().selectedItemProperty().addListener(
+        emailTreePane.init(emailFetcher);
+        emailTreePane.addSelectionListener(
             (observable, oldValue, newValue) -> {
                 if (newValue != null) {
                     Value value = newValue.getValue();
@@ -46,7 +42,7 @@ public class EmailListController extends Controller implements Observer{
         backButton.setOnAction(this :: backButtonOnAction);
         doneButton.setOnAction(this :: doneButtonOnAction);
 
-        emailFetcher.fetch();
+        emailFetcher.fetch(emailTreePane.getFieldValue());
     }
 
     private void updateSubjectTextArea(Email email){
@@ -96,7 +92,7 @@ public class EmailListController extends Controller implements Observer{
     }
 
     private void doneButtonOnAction(ActionEvent actionEvent){
-        Set<Email> selectedEmailSet = emailTreeView.getSelectedEmails();
+        Set<Email> selectedEmailSet = emailTreePane.getSelectedEmails();
 
         if(selectedEmailSet.size() > 0) {
             ((API) api_).processEmail(selectedEmailSet);
@@ -107,20 +103,6 @@ public class EmailListController extends Controller implements Observer{
         }
     }
 
-    @Override
-    public void update (Observable o, Object arg) {
-        if(arg instanceof EmailFetcher.Stage){
-            switch ((EmailFetcher.Stage) arg){
-                case STARTED_FETCHING:
-                    progressIndicator.setVisible(true);
-                    break;
-                case STOPPED_FETCHING:
-                    progressIndicator.setVisible(false);
-                    break;
-            }
-        }
-    }
-
     public interface API extends Controller.API{
         EmailFetcher getEmailFetcher();
         void initialScene();
@@ -128,10 +110,7 @@ public class EmailListController extends Controller implements Observer{
     }
 
     @FXML
-    private EmailTreeView emailTreeView;
-
-    @FXML
-    private ProgressIndicator progressIndicator;
+    private EmailTreePane emailTreePane;
 
     @FXML
     private TextArea subjectTextArea;

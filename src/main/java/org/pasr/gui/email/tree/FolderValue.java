@@ -30,12 +30,12 @@ import static org.pasr.utilities.Utilities.getResourceStream;
 
 
 class FolderValue extends AnchorPane implements Value, Observer {
-    FolderValue (String path, EmailTreeItem emailTreeItem, EmailFetcher emailFetcher,
+    FolderValue (String path, EmailTreeItem emailTreeItem, HasEmailFetcher hasEmailFetcher,
                  int numberOfContainedEmails, boolean isRoot) {
 
         path_ = path;
         emailTreeItem_ = emailTreeItem;
-        emailFetcher_ = emailFetcher;
+        hasEmailFetcher_ = hasEmailFetcher;
         numberOfContainedEmails_ = numberOfContainedEmails;
 
         name_ = FilenameUtils.getName(path_);
@@ -50,7 +50,7 @@ class FolderValue extends AnchorPane implements Value, Observer {
                 (ListChangeListener<TreeItem<Value>>) c -> emailTreeItem_.expandUpToRoot()
             );
 
-            emailFetcher_.addObserver(this);
+            hasEmailFetcher_.addObserver(this);
         }
 
         try {
@@ -122,7 +122,7 @@ class FolderValue extends AnchorPane implements Value, Observer {
     private void toggleButtonOnAction (ActionEvent actionEvent) {
         if(toggleButton.isSelected()) {
             try {
-                emailFetcher_.fetch(path_);
+                hasEmailFetcher_.fetch(path_);
 
                 setState(State.DOWNLOADING);
             } catch (IllegalStateException e) {
@@ -131,7 +131,7 @@ class FolderValue extends AnchorPane implements Value, Observer {
             }
         }
         else{
-            emailFetcher_.stop();
+            hasEmailFetcher_.stop();
             if(currentState_ == State.DOWNLOADING) {
                 setState(State.IDLE);
             }
@@ -310,6 +310,10 @@ class FolderValue extends AnchorPane implements Value, Observer {
                             break;
                     }
 
+                    if(toggleButton.isSelected()){
+                        Platform.runLater(() -> toggleButton.fire());
+                    }
+
                     break;
             }
         }
@@ -347,7 +351,7 @@ class FolderValue extends AnchorPane implements Value, Observer {
 
     private int numberOfContainedEmails_;
 
-    private EmailFetcher emailFetcher_;
+    private HasEmailFetcher hasEmailFetcher_;
 
     private EmailTreeItem emailTreeItem_;
 

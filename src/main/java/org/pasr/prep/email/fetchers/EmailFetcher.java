@@ -31,8 +31,8 @@ public abstract class EmailFetcher extends Observable {
 
     public abstract Map<String, Integer> getFolderInfo();
 
-    public abstract void fetch ();
-    public abstract void fetch (String folderPath);
+    public abstract void fetch (int count);
+    public abstract void fetch (String folderPath, int count);
 
     public abstract  void stop ();
 

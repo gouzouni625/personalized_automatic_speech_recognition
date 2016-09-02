@@ -6,18 +6,11 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
-<?import org.pasr.gui.email.tree.EmailTreeView?>
+<?import org.pasr.gui.email.tree.EmailTreePane?>
 
-<?import javafx.scene.control.ProgressIndicator?>
 <SplitPane dividerPositions="0.3" prefHeight="800.0" prefWidth="1280.0"
            xmlns:fx="http://javafx.com/fxml">
-    <AnchorPane>
-        <EmailTreeView fx:id="emailTreeView" prefHeight="798.0" prefWidth="379.0"
-                       AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
-                       AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
-        <ProgressIndicator fx:id="progressIndicator" AnchorPane.bottomAnchor="20.0" visible="false"
-                           AnchorPane.rightAnchor="20.0"/>
-    </AnchorPane>
+    <EmailTreePane fx:id="emailTreePane" prefHeight="798.0" prefWidth="379.0"/>
     <SplitPane dividerPositions="0.2" orientation="VERTICAL" prefHeight="798.0" prefWidth="891.0">
         <AnchorPane>
             <TextArea fx:id="subjectTextArea" editable="false" prefHeight="155.0" prefWidth="889.0"
