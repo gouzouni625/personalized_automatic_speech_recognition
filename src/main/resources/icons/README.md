@@ -14,7 +14,7 @@
   - made by [Freepik](http://www.freepik.com)
   - from [www.flaticon.com](http://www.flaticon.com)
   - are licensed by [CC 3.0 BY](http://creativecommons.org/licenses/by/3.0/)
-- download_black.png icon
+- download_black.png and download_green.png icons
   - made by [Google](http://www.flaticon.com/authors/google)
   - from [www.flaticon.com](http://www.flaticon.com)
   - are licensed by [CC 3.0 BY](http://creativecommons.org/licenses/by/3.0/)

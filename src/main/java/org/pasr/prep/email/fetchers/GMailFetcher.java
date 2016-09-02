@@ -90,6 +90,17 @@ public class GMailFetcher extends EmailFetcher{
         startNewFetcherThread(folderPath);
     }
 
+    @Override
+    public synchronized void stop(){
+        if(fetcherThread_ == null || !fetcherThread_.isAlive()){
+            return;
+        }
+
+        // There is no need to join fetcherThread_. Any observer of this EmailFetcher will be
+        // notified when fetching is stopped
+        fetcherThread_.terminate();
+    }
+
     private void startNewFetcherThread(String folderPath) {
         if(fetcherThread_ == null || !fetcherThread_.isAlive()){
             fetcherThread_ = new FetcherThread(folderMap_.get(folderPath));

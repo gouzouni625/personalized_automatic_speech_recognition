@@ -6,13 +6,17 @@ import javafx.collections.ListChangeListener;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.control.Button;
+import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.control.TreeItem;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import org.apache.commons.io.FilenameUtils;
+import org.pasr.gui.console.Console;
 import org.pasr.prep.email.fetchers.EmailFetcher;
 
 import java.io.IOException;
@@ -22,6 +26,7 @@ import java.util.Observer;
 import java.util.logging.Logger;
 
 import static org.pasr.utilities.Utilities.getResource;
+import static org.pasr.utilities.Utilities.getResourceStream;
 
 
 class FolderValue extends AnchorPane implements Value, Observer {
@@ -103,16 +108,34 @@ class FolderValue extends AnchorPane implements Value, Observer {
                 }
             });
 
-            button.setOnAction(this :: buttonOnAction);
+            toggleButton.setOnAction(this :: toggleButtonOnAction);
+            toggleButton.selectedProperty().addListener((observable, oldValue, newValue) -> {
+                toggleButton.setGraphic(
+                    newValue ? toggleButtonPressedGraphic : toggleButtonDefaultGraphic
+                );
+            });
         }
 
         checkBox.setOnAction(this :: checkBoxOnAction);
     }
 
-    private void buttonOnAction (ActionEvent actionEvent) {
-        setState(State.DOWNLOADING);
+    private void toggleButtonOnAction (ActionEvent actionEvent) {
+        if(toggleButton.isSelected()) {
+            try {
+                emailFetcher_.fetch(path_);
 
-        emailFetcher_.fetch(path_);
+                setState(State.DOWNLOADING);
+            } catch (IllegalStateException e) {
+                Console.getInstance().postMessage("Could not start fetching emails. Please try" +
+                    " again in a few moments.");
+            }
+        }
+        else{
+            emailFetcher_.stop();
+            if(currentState_ == State.DOWNLOADING) {
+                setState(State.IDLE);
+            }
+        }
     }
 
     private void checkBoxOnAction (ActionEvent actionEvent) {
@@ -160,8 +183,8 @@ class FolderValue extends AnchorPane implements Value, Observer {
             case DOWNLOADING:
                 disableSelection();
                 showInformation();
-                disableButton();
-                hideButton();
+                enableButton();
+                showButton();
                 showProgressIndicator();
                 break;
             case BLOCKED:
@@ -220,27 +243,26 @@ class FolderValue extends AnchorPane implements Value, Observer {
     }
 
     private void enableButton () {
-        if (button.isDisabled()) {
-            button.setDisable(false);
+        if (toggleButton.isDisabled()) {
+            toggleButton.setDisable(false);
         }
     }
 
     private void disableButton () {
-        if (! button.isDisabled()) {
-            button.setDisable(true);
+        if (! toggleButton.isDisabled()) {
+            toggleButton.setDisable(true);
         }
     }
 
     private void showButton () {
-        if (! button.isVisible()) {
-            button.setVisible(true);
+        if (! toggleButton.isVisible()) {
+            toggleButton.setVisible(true);
         }
     }
 
     private void hideButton () {
-        button.setVisible(false);
-        if (button.isVisible()) {
-            button.setVisible(false);
+        if (toggleButton.isVisible()) {
+            toggleButton.setVisible(false);
         }
     }
 
@@ -311,10 +333,14 @@ class FolderValue extends AnchorPane implements Value, Observer {
     private Label informationLabel;
 
     @FXML
-    private Button button;
+    private ProgressIndicator progressIndicator;
 
     @FXML
-    private ProgressIndicator progressIndicator;
+    private ToggleButton toggleButton;
+    private final Node toggleButtonDefaultGraphic = new ImageView(
+        new Image(getResourceStream("/icons/download_black.png")));
+    private final Node toggleButtonPressedGraphic = new ImageView(
+        new Image(getResourceStream("/icons/download_green.png")));
 
     private String path_;
     private String name_;

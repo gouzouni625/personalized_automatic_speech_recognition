@@ -34,6 +34,8 @@ public abstract class EmailFetcher extends Observable {
     public abstract void fetch ();
     public abstract void fetch (String folderPath);
 
+    public abstract  void stop ();
+
     public abstract void terminate ();
 
     Logger getLogger(){
