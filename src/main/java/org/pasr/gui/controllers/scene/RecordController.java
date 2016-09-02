@@ -391,30 +391,30 @@ public class RecordController extends Controller implements Observer{
 
     @FXML
     private Button eraseButton;
-    private static final Node eraseButtonDefaultGraphic = new ImageView(
+    private final Node eraseButtonDefaultGraphic = new ImageView(
         new Image(getResourceStream("/icons/bin_black.png")));
-    private static final Node eraseButtonPressedGraphic = new ImageView(
+    private final Node eraseButtonPressedGraphic = new ImageView(
         new Image(getResourceStream("/icons/bin_green.png")));
 
     @FXML
     private ToggleButton recordToggleButton;
-    private static final Node recordToggleButtonDefaultGraphic = new ImageView(
+    private final Node recordToggleButtonDefaultGraphic = new ImageView(
         new Image(getResourceStream("/icons/microphone_black.png")));
-    private static final Node recordToggleButtonSelectedGraphic = new ImageView(
+    private final Node recordToggleButtonSelectedGraphic = new ImageView(
         new Image(getResourceStream("/icons/microphone_green.png")));
 
     @FXML
     private ToggleButton playToggleButton;
-    private static final Node playToggleButtonDefaultGraphic = new ImageView(
+    private final Node playToggleButtonDefaultGraphic = new ImageView(
         new Image(getResourceStream("/icons/play_black.png")));
-    private static final Node playToggleButtonSelectedGraphic = new ImageView(
+    private final Node playToggleButtonSelectedGraphic = new ImageView(
         new Image(getResourceStream("/icons/play_green.png")));
 
     @FXML
     private Button saveButton;
-    private static final Node saveButtonDefaultGraphic = new ImageView(
+    private final Node saveButtonDefaultGraphic = new ImageView(
         new Image(getResourceStream("/icons/save_black.png")));
-    private static final Node saveButtonPressedGraphic = new ImageView(
+    private final Node saveButtonPressedGraphic = new ImageView(
         new Image(getResourceStream("/icons/save_green.png")));
 
     @FXML
