@@ -18,13 +18,18 @@ public class EmailTreeView extends TreeView<Value> implements Observer {
         emailFetcher_ = emailFetcher;
         emailFetcher_.addObserver(this);
 
-        setRoot(createFolderTreeItem("E-mails", false));
+        setRoot(createFolderTreeItem("E-mails", 0, true));
 
-        emailFetcher.getFolderPaths().forEach(this :: addFolder);
+        emailFetcher.getFolderInfo().entrySet().forEach(
+            entry -> addFolder(entry.getKey(), entry.getValue())
+        );
     }
 
-    private void addFolder(String path){
-        add(FilenameUtils.getFullPathNoEndSeparator(path), createFolderTreeItem(path));
+    private void addFolder(String path, int numberOfContainedEmails){
+        add(
+            FilenameUtils.getFullPathNoEndSeparator(path),
+            createFolderTreeItem(path, numberOfContainedEmails)
+        );
     }
 
     private void addEmail (Email email) {
@@ -76,8 +81,11 @@ public class EmailTreeView extends TreeView<Value> implements Observer {
         }
         if(depth < numberOfFolders){
             for (int i = depth; i < numberOfFolders; i++) {
+                // At this point, in order to add a folder of depth1, we should create a folder
+                // of depth2 < depth1 but we don't known the number of contained Emails for the
+                // second folder. Set the number of contained Emails to zero, for the second folder.
                 TreeItem<Value> parentFolder = createFolderTreeItem(
-                    String.join("/", (CharSequence[]) Arrays.copyOfRange(folders, 0, i + 1))
+                    String.join("/", (CharSequence[]) Arrays.copyOfRange(folders, 0, i + 1)), 0
                 );
 
                 currentFolder.getChildren().add(parentFolder);
@@ -88,8 +96,21 @@ public class EmailTreeView extends TreeView<Value> implements Observer {
             currentFolder.getChildren().add(treeItem);
         }
         if(depth == numberOfFolders){
-            if(!currentFolder.getChildren().contains(treeItem)) {
+            if (! currentFolder.getChildren().contains(treeItem)) {
                 currentFolder.getChildren().add(treeItem);
+            }
+            else{
+                // Replace old folders with new ones since the new might have information regarding
+                // the number of Emails that they contain. Note that, there is no need to replace
+                // the TreeItem which would force us to move the children to the new TreeItem. We
+                // only need to move the values.
+                if(treeItem.getValue().isFolder()){
+                    TreeItem<Value> oldFolder = currentFolder.getChildren().get(
+                        currentFolder.getChildren().indexOf(treeItem)
+                    );
+
+                    oldFolder.setValue(treeItem.getValue());
+                }
             }
         }
     }
@@ -110,14 +131,16 @@ public class EmailTreeView extends TreeView<Value> implements Observer {
         return ((EmailTreeItem) getRoot()).getSelectedEmails();
     }
 
-    private EmailTreeItem createFolderTreeItem(String folderPath){
-        return createFolderTreeItem(folderPath, true);
+    private EmailTreeItem createFolderTreeItem(String folderPath, int numberOfContainedEmails){
+        return createFolderTreeItem(folderPath, numberOfContainedEmails, false);
     }
 
-    private EmailTreeItem createFolderTreeItem(String folderPath, boolean canDownload){
+    private EmailTreeItem createFolderTreeItem(String folderPath, int numberOfContainedEmails,
+                                               boolean isRoot){
         EmailTreeItem treeItem = new EmailTreeItem();
 
-        FolderValue folderValue = new FolderValue(folderPath, treeItem, emailFetcher_, canDownload);
+        FolderValue folderValue = new FolderValue(folderPath, treeItem, emailFetcher_,
+            numberOfContainedEmails, isRoot);
 
         treeItem.setValue(folderValue);
 

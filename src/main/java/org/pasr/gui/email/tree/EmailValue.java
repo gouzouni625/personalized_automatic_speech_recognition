@@ -17,13 +17,13 @@ import static org.pasr.utilities.Utilities.getResource;
 
 
 public class EmailValue extends AnchorPane implements Value {
-    EmailValue (Email email){
+    EmailValue (Email email) {
         email_ = email;
 
-        try{
+        try {
             URL location = getResource("/fxml/tree/email_value.fxml");
 
-            if(location == null){
+            if (location == null) {
                 throw new IOException("getResource(\"/fxml/tree/email_value.fxml\") returned null");
             }
 
@@ -32,23 +32,23 @@ public class EmailValue extends AnchorPane implements Value {
             loader.setController(this);
 
             loader.load();
-        } catch (IOException e){
+        } catch (IOException e) {
             Logger.getLogger(getClass().getName()).severe(
                 "Could not load resource:/fxml/tree/email_value.fxml\n" +
-                "The file might be missing or be corrupted.\n" +
-                "Application will terminate.\n" +
-                "Exception Message: " + e.getMessage()
+                    "The file might be missing or be corrupted.\n" +
+                    "Application will terminate.\n" +
+                    "Exception Message: " + e.getMessage()
             );
             Platform.exit();
         }
     }
 
     @FXML
-    public void initialize(){
+    public void initialize () {
         label.setText(email_.getSubject());
     }
 
-    public Email getEmail(){
+    public Email getEmail () {
         return email_;
     }
 
@@ -73,15 +73,15 @@ public class EmailValue extends AnchorPane implements Value {
     }
 
     @Override
-    public String toString(){
+    public String toString () {
         return email_.getSubject();
     }
 
     @FXML
-    private Label label;
+    private CheckBox checkBox;
 
     @FXML
-    private CheckBox checkBox;
+    private Label label;
 
     private Email email_;
 

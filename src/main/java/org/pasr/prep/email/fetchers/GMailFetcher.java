@@ -14,9 +14,9 @@ import javax.mail.Store;
 import java.io.IOException;
 import java.util.Hashtable;
 import java.util.Map;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 
 public class GMailFetcher extends EmailFetcher{
@@ -44,12 +44,22 @@ public class GMailFetcher extends EmailFetcher{
     }
 
     @Override
-    public Set<String> getFolderPaths(){
+    public Map<String, Integer> getFolderInfo(){
         if(folderMap_ == null){
             throw new IllegalStateException("Fetcher is not open or has been terminated.");
         }
 
-        return folderMap_.keySet();
+        return folderMap_.entrySet().stream()
+            .collect(Collectors.toMap(
+                Map.Entry :: getKey,
+                entry -> {
+                    try {
+                        return entry.getValue().getMessageCount();
+                    } catch (MessagingException e) {
+                        return 0;
+                    }
+                }
+            ));
     }
 
     @Override

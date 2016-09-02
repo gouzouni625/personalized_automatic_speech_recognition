@@ -4,9 +4,9 @@ package org.pasr.prep.email.fetchers;
 import javax.mail.MessagingException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Map;
 import java.util.Observable;
 import java.util.Properties;
-import java.util.Set;
 import java.util.logging.Logger;
 
 import static org.pasr.utilities.Utilities.getResourceStream;
@@ -29,7 +29,7 @@ public abstract class EmailFetcher extends Observable {
 
     public abstract void open (String address, String password) throws MessagingException;
 
-    public abstract Set<String> getFolderPaths();
+    public abstract Map<String, Integer> getFolderInfo();
 
     public abstract void fetch ();
     public abstract void fetch (String folderPath);

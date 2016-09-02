@@ -29,9 +29,8 @@ class EmailTreeItem extends TreeItem<Value> {
     }
 
     void setSelectedDownToLeaves(boolean selected){
-        for(TreeItem<Value> child : getChildren()){
-            child.getValue().setSelected(selected);
-        }
+        getChildren().stream()
+            .forEach(child -> child.getValue().setSelected(selected));
     }
 
     Set<Email> getSelectedEmails(){
