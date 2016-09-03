@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+
+<?import org.pasr.gui.email.tree.EmailTreePane?>
+
+<SplitPane dividerPositions="0.3" prefHeight="800.0" prefWidth="1280.0"
+           xmlns:fx="http://javafx.com/fxml">
+    <EmailTreePane fx:id="emailTreePane" prefHeight="798.0" prefWidth="379.0"/>
+    <SplitPane dividerPositions="0.2" orientation="VERTICAL" prefHeight="798.0" prefWidth="891.0">
+        <AnchorPane>
+            <TextArea fx:id="subjectTextArea" editable="false" prefHeight="155.0" prefWidth="889.0"
+                      AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                      AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                <font>
+                    <Font name="Carlito" size="15.0"/>
+                </font>
+            </TextArea>
+        </AnchorPane>
+        <AnchorPane>
+            <TextArea fx:id="bodyTextArea" editable="false" prefHeight="633.0" prefWidth="889.0"
+                      AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                      AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                <font>
+                    <Font name="Carlito" size="15.0"/>
+                </font>
+            </TextArea>
+            <Button fx:id="backButton" prefHeight="30.0" prefWidth="60.0" text="back"
+                    AnchorPane.bottomAnchor="20.0" AnchorPane.rightAnchor="90.0"/>
+            <Button fx:id="doneButton" prefHeight="30.0" prefWidth="60.0" text="done"
+                    AnchorPane.bottomAnchor="20.0" AnchorPane.rightAnchor="20.0"/>
+        </AnchorPane>
+    </SplitPane>
+</SplitPane>

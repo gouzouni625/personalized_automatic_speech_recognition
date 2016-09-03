@@ -1,0 +1,21 @@
+- microphone_back.png, microphone_green.png icons
+  - made by [Stephen Hutchings](http://www.flaticon.com/authors/stephen-hutchings)
+  - from [www.flaticon.com](http://www.flaticon.com)
+  - are licensed by [CC 3.0 BY](http://creativecommons.org/licenses/by/3.0/)
+- play_black.png and play_green.png icons
+  - made by [Egor Rumyantsev](http://www.flaticon.com/authors/egor-rumyantsev)
+  - from [www.flaticon.com](http://www.flaticon.com)
+  - are licensed by [CC 3.0 BY](http://creativecommons.org/licenses/by/3.0/)
+- bin_black.png and bin_green.png icons
+  - made by [Elegant Themes](http://www.flaticon.com/authors/elegant-themes)
+  - from [www.flaticon.com](http://www.flaticon.com)
+  - are licensed by [CC 3.0 BY](http://creativecommons.org/licenses/by/3.0/)
+- save_black.png and save_green.png icons
+  - made by [Freepik](http://www.freepik.com)
+  - from [www.flaticon.com](http://www.flaticon.com)
+  - are licensed by [CC 3.0 BY](http://creativecommons.org/licenses/by/3.0/)
+- download_black.png and download_green.png icons
+  - made by [Google](http://www.flaticon.com/authors/google)
+  - from [www.flaticon.com](http://www.flaticon.com)
+  - are licensed by [CC 3.0 BY](http://creativecommons.org/licenses/by/3.0/)
+
