@@ -348,11 +348,13 @@ public class LDAController extends Controller {
             progressIndicator_.showProgress();
 
             try {
-                dictionary_ = corpus_.process(Dictionary.getDefaultDictionary());
+                Dictionary defaultDictionary = Dictionary.getDefaultDictionary();
+
+                dictionary_ = corpus_.process(defaultDictionary);
 
                 unknownWords_.addAll(dictionary_.getUnknownWords());
                 candidateWords_.addAll(unknownWords_.stream()
-                    .map(dictionary_ :: fuzzyMatch)
+                    .map(defaultDictionary :: fuzzyMatch)
                     .map(FXCollections :: observableArrayList)
                     .collect(Collectors.toList()));
             } catch (FileNotFoundException e) {
