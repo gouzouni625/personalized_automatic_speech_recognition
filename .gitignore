@@ -10,3 +10,7 @@ pocketsphinx/installation/
 
 *.log.*
 setup.log
+
+doxygen/html/
+doxygen/latex/
+
