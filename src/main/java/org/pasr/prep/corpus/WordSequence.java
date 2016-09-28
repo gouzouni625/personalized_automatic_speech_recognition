@@ -6,12 +6,33 @@ import java.util.Random;
 import java.util.stream.Collectors;
 
 
+/**
+ * @class WordSequence
+ * @brief Implements a List of Word objects backed by an ArrayList
+ */
 public class WordSequence extends ArrayList<Word> {
-    public WordSequence(String text){
-        this(text, -1, "");
+
+    /**
+     * @brief Constructor
+     *
+     * @param text
+     *     The text of this WordSequence
+     */
+    public WordSequence (String text) {
+        this(text, - 1, "");
     }
 
-    public WordSequence(String text, long documentID, String documentTitle) {
+    /**
+     * @brief Constructor
+     *
+     * @param text
+     *     The text of this WordSequence
+     * @param documentID
+     *     The id of the Document that this WordSequence belongs to
+     * @param documentTitle
+     *     The title of the Document that this WordSequence belongs to
+     */
+    public WordSequence (String text, long documentID, String documentTitle) {
         documentID_ = documentID;
         documentTitle_ = documentTitle;
 
@@ -19,51 +40,99 @@ public class WordSequence extends ArrayList<Word> {
 
         String[] words = text.split(" ");
         int index = 0;
-        for(String word : words){
-            if(!word.isEmpty()){
+        for (String word : words) {
+            if (! word.isEmpty()) {
                 add(new Word(word, this, index));
                 index++;
             }
         }
     }
 
-    private String escape(String text){
-        return text.toLowerCase().replaceAll(" {2,}", " ").trim();
-    }
-
-    public WordSequence(List<Word> words, long documentID, String documentTitle){
+    /**
+     * @brief Constructor
+     *
+     * @param words
+     *     The Word objects of this WordSequence
+     * @param documentID
+     *     The id of the Document that this WordSequence belongs to
+     * @param documentTitle
+     *     The title of the Document that this WordSequence belongs to
+     */
+    public WordSequence (List<Word> words, long documentID, String documentTitle) {
         documentID_ = documentID;
         documentTitle_ = documentTitle;
 
         addAll(words);
     }
 
-    public long getDocumentId (){
+    /**
+     * @brief Escapes a String
+     *        Escaping is done to ensure that all characters are in lower case in order to be
+     *        compatible with CMU Sphinx.
+     *
+     * @param text
+     *     The String to escape
+     *
+     * @return The escaped String
+     */
+    private String escape (String text) {
+        return text.toLowerCase().replaceAll(" {2,}", " ").trim();
+    }
+
+    /**
+     * @brief Returns the id of the Document that this WordSequence belongs to
+     *
+     * @return The id of the Document that this WordSequence belongs to
+     */
+    public long getDocumentId () {
         return documentID_;
     }
 
-    public String getDocumentTitle(){
+    /**
+     * @brief Returns the title of the Document that this WordSequence belongs to
+     *
+     * @return The title of the Document that this WordSequence belongs to
+     */
+    public String getDocumentTitle () {
         return documentTitle_;
     }
 
+    /**
+     * @brief Returns the String of this WordSequence
+     *
+     * @return The String of this WordSequence
+     */
     @Override
-    public String toString(){
+    public String toString () {
         StringBuilder stringBuilder = new StringBuilder();
 
-        for(Word word : this){
+        for (Word word : this) {
             stringBuilder.append(word).append(" ");
         }
 
         return stringBuilder.toString().trim();
     }
 
+    /**
+     * @brief Returns a List containing the Word objects of this WordSequence
+     *
+     * @return A List containing the Word objects of this WordSequence
+     */
     public List<String> getWordTextList () {
         return stream()
             .map(Word:: toString)
             .collect(Collectors.toList());
     }
 
-    public boolean contains(String string){
+    /**
+     * @brief Returns true if and only if the String of this WordSequence contains the given String
+     *
+     * @param string
+     *     The String to test whether or not this WordSequence contains
+     *
+     * @return True if and only if the String of this WordSequence contains the given String
+     */
+    public boolean contains (String string) {
         return toString().contains(string);
     }
 
@@ -77,26 +146,42 @@ public class WordSequence extends ArrayList<Word> {
      *
      * @return A new WordSequence that is a sub-sequence of this WordSequence
      */
-    public WordSequence subSequence(int beginIndex, int endIndex){
+    public WordSequence subSequence (int beginIndex, int endIndex) {
         return new WordSequence(subList(beginIndex, endIndex), documentID_, documentTitle_);
     }
 
-    public WordSequence subSequence(int beginIndex){
+    /**
+     * @brief Returns a new WordSequence that is a sub-sequence of this WordSequence
+     *
+     * @param beginIndex
+     *     The beginning index inclusive
+     *
+     * @return A new WordSequence that is a sub-sequence of this WordSequence
+     */
+    public WordSequence subSequence (int beginIndex) {
         return subSequence(beginIndex, size());
     }
 
-    String getRandomSubsequence(Random random){
+    /**
+     * @brief Returns a random sub-String of this WordSequence String
+     *
+     * @param random
+     *     The Random number generator to be used
+     *
+     * @return A random sub-String of this WordSequence String
+     */
+    String getRandomSubsequence (Random random) {
         int size = size();
 
-        if(size <= 5){
+        if (size <= 5) {
             return toString();
         }
 
         int subSequenceSize;
-        do{
+        do {
             // Note that nextInt argument is exclusive, that is why +1 is added
             subSequenceSize = random.nextInt(size + 1);
-        } while(subSequenceSize == 0);
+        } while (subSequenceSize == 0);
 
         // Note that nextInt argument is exclusive, that is why +1 is added
         int beginIndex = random.nextInt(size - subSequenceSize + 1);
@@ -104,10 +189,18 @@ public class WordSequence extends ArrayList<Word> {
         return subSequence(beginIndex, beginIndex + subSequenceSize).toString();
     }
 
-    void replaceWordText(String oldText, String newText){
+    /**
+     * @brief Replaces the String of each Word of this WordSequence
+     *
+     * @param oldText
+     *     The text to be replaced
+     * @param newText
+     *     The text to be placed
+     */
+    void replaceWordText (String oldText, String newText) {
         // If new text is empty then the words should be removed instead of having their text
         // replaced
-        if(newText.isEmpty()){
+        if (newText.isEmpty()) {
             removeByText(oldText);
         }
         else {
@@ -117,14 +210,21 @@ public class WordSequence extends ArrayList<Word> {
         }
     }
 
-    void removeByText(String text){
+    /**
+     * @brief Removes any Word objects inside this WordSequence that their String matches the given
+     *
+     * @param text
+     *     The String to match upon
+     */
+    void removeByText (String text) {
         removeAll(stream()
             .filter(word -> word.toString().equals(text))
             .collect(Collectors.toList())
         );
     }
 
-    private final long documentID_;
-    private final String documentTitle_;
+    private final long documentID_; //!< The id of the Document that this WordSequence belongs to
+    private final String documentTitle_; //!< The title of the Document that this WordSequence
+                                         //!< belongs to
 
 }
