@@ -1,6 +1,5 @@
 package org.pasr.prep.recorder;
 
-
 import org.apache.commons.io.output.ByteArrayOutputStream;
 
 import javax.sound.sampled.AudioSystem;
@@ -14,8 +13,18 @@ import java.util.logging.Logger;
 import static org.pasr.utilities.Utilities.rootMeanSquare;
 
 
+/**
+ * @class BufferedRecorder
+ * @brief Implements a Recorder that buffs its data in a Stream
+ */
 public class BufferedRecorder extends Recorder {
-    public BufferedRecorder() throws LineUnavailableException {
+
+    /**
+     * @brief Default Constructor
+     *
+     * @throws LineUnavailableException If the sound line is unavailable
+     */
+    public BufferedRecorder () throws LineUnavailableException {
         super();
 
         byteArrayOutputStream_ = new ByteArrayOutputStream();
@@ -24,28 +33,31 @@ public class BufferedRecorder extends Recorder {
         thread_.setDaemon(true);
     }
 
+    /**
+     * @brief Starts the recording process
+     */
     @Override
-    public synchronized void startRecording() {
+    public synchronized void startRecording () {
         lock_.lock();
 
         // Make sure that successive calls of this method doesn't cause any harm
-        if(run_ && live_){
+        if (run_ && live_) {
             lock_.unlock();
             return;
         }
 
         // Make sure that terminate hasn't been called before
-        if(byteArrayOutputStream_ == null || thread_ == null){
+        if (byteArrayOutputStream_ == null || thread_ == null) {
             lock_.unlock();
             return;
         }
 
-        if(!thread_.isAlive()){
+        if (! thread_.isAlive()) {
             // Start the thread
             thread_.start();
 
             // wait for the thread to go to sleep in a while loop to avoid a spurious wake up
-            while(!ready_) {
+            while (! ready_) {
                 try {
                     wait();
                 } catch (InterruptedException e) {
@@ -64,7 +76,7 @@ public class BufferedRecorder extends Recorder {
 
         super.startRecording();
 
-        while(!ready_){
+        while (! ready_) {
             try {
                 wait();
             } catch (InterruptedException e) {
@@ -75,18 +87,21 @@ public class BufferedRecorder extends Recorder {
         lock_.unlock();
     }
 
+    /**
+     * @brief Stops the recording process
+     */
     @Override
-    public synchronized void stopRecording(){
+    public synchronized void stopRecording () {
         lock_.lock();
 
         // Make sure that successive calls of this method doesn't cause any harm
-        if(!(run_ && live_)){
+        if (! (run_ && live_)) {
             lock_.unlock();
             return;
         }
 
         // Make sure that terminate hasn't been called before
-        if(byteArrayOutputStream_ == null || thread_ == null){
+        if (byteArrayOutputStream_ == null || thread_ == null) {
             lock_.unlock();
             return;
         }
@@ -94,7 +109,7 @@ public class BufferedRecorder extends Recorder {
         run_ = false;
         ready_ = false;
 
-        while(!ready_){
+        while (! ready_) {
             try {
                 wait();
             } catch (InterruptedException e) {
@@ -107,15 +122,18 @@ public class BufferedRecorder extends Recorder {
         lock_.unlock();
     }
 
-    private void run(){
+    /**
+     * @brief The recording method
+     */
+    private void run () {
         logger_.info("BufferedRecorder thread started!");
 
         // Upon start, go to wait immediately after you signal that you are ready to
-        synchronized (this){
+        synchronized (this) {
             ready_ = true;
             notifyAll();
 
-            while(!live_){
+            while (! live_) {
                 try {
                     wait();
                 } catch (InterruptedException e) {
@@ -131,7 +149,7 @@ public class BufferedRecorder extends Recorder {
         // https://docs.oracle.com/javase/tutorial/sound/capturing.html
         byte[] buffer = new byte[targetDataLine_.getBufferSize() / 5];
 
-        while(live_) {
+        while (live_) {
             while (run_) {
                 int readSize = read(buffer);
 
@@ -145,15 +163,15 @@ public class BufferedRecorder extends Recorder {
             setLevel(0);
 
             // There is no need to go to wait if you should die
-            if(!live_){
+            if (! live_) {
                 break;
             }
 
-            synchronized(this) {
+            synchronized (this) {
                 ready_ = true;
                 notifyAll();
 
-                while(!run_ && live_){
+                while (! run_ && live_) {
                     try {
                         wait();
                     } catch (InterruptedException e) {
@@ -169,15 +187,27 @@ public class BufferedRecorder extends Recorder {
         logger_.info("BufferedRecorder thread shut down gracefully!");
     }
 
-    public byte[] getData(){
+    /**
+     * @brief Returns the buffed data
+     *
+     * @return The buffed data
+     */
+    public byte[] getData () {
         return byteArrayOutputStream_.toByteArray();
     }
 
-    public Clip getClip() throws LineUnavailableException {
+    /**
+     * @brief Returns a Clip created from the buffed data
+     *
+     * @return A Clip created from the buffed data
+     *
+     * @throws LineUnavailableException If a Clip cannot be created
+     */
+    public Clip getClip () throws LineUnavailableException {
         byte[] array = byteArrayOutputStream_.toByteArray();
 
         int length = array.length;
-        if(length == 0){
+        if (length == 0) {
             return null;
         }
         else {
@@ -188,12 +218,21 @@ public class BufferedRecorder extends Recorder {
         }
     }
 
-    private void setLevel(double level){
+    /**
+     * @brief Sets the input sound level
+     *
+     * @param level
+     *     The level valu
+     */
+    private void setLevel (double level) {
         setChanged();
         notifyObservers(level);
     }
 
-    public synchronized void flush(){
+    /**
+     * @brief Deletes all the buffed data
+     */
+    public synchronized void flush () {
         lock_.lock();
 
         byteArrayOutputStream_.reset();
@@ -201,18 +240,21 @@ public class BufferedRecorder extends Recorder {
         lock_.unlock();
     }
 
+    /**
+     * @brief Terminates this Recorder releasing all of its resources
+     */
     @Override
-    public synchronized void terminate() {
+    public synchronized void terminate () {
         lock_.lock();
 
         // Make sure that successive calls of this method doesn't cause any harm
-        if(byteArrayOutputStream_ == null || thread_ == null){
+        if (byteArrayOutputStream_ == null || thread_ == null) {
             lock_.unlock();
             return;
         }
 
-        if(live_){
-            if(run_){
+        if (live_) {
+            if (run_) {
                 stopRecording();
             }
 
@@ -220,7 +262,7 @@ public class BufferedRecorder extends Recorder {
             ready_ = false;
             notifyAll();
 
-            while (!ready_){
+            while (! ready_) {
                 try {
                     wait();
                 } catch (InterruptedException e) {
@@ -241,8 +283,7 @@ public class BufferedRecorder extends Recorder {
             byteArrayOutputStream_.close();
         } catch (IOException e) {
             logger_.log(Level.WARNING, "Could not close the ByteArrayOutputStream instance.", e);
-        }
-        finally {
+        } finally {
             byteArrayOutputStream_ = null;
         }
 
@@ -253,16 +294,16 @@ public class BufferedRecorder extends Recorder {
         lock_.unlock();
     }
 
-    private Thread thread_;
+    private Thread thread_; //!< The Thread reading the TargetDataLine
 
-    private volatile boolean ready_ = false;
-    private volatile boolean live_ = false;
-    private volatile boolean run_ = false;
+    private volatile boolean ready_ = false; //!< Thread synchronization flag
+    private volatile boolean live_ = false; //!< Thread synchronization flag
+    private volatile boolean run_ = false; //!< Thread synchronization flag
 
-    private final ReentrantLock lock_ = new ReentrantLock();
+    private final ReentrantLock lock_ = new ReentrantLock(); //!< Thread synchronization lock
 
-    private volatile ByteArrayOutputStream byteArrayOutputStream_;
+    private volatile ByteArrayOutputStream byteArrayOutputStream_; //!< The Stream buffer
 
-    private final Logger logger_ = Logger.getLogger(getClass().getName());
+    private final Logger logger_ = Logger.getLogger(getClass().getName()); //!< The Logger
 
 }
