@@ -1,19 +1,47 @@
 package org.pasr.utilities;
 
 
+/**
+ * @class NumberSpeller
+ * @brief Implements a mapper to map numbers to their spoken version
+ *        This class is a Singleton.
+ */
 public class NumberSpeller {
+
+    /**
+     * @brief Default Constructor
+     *        private so that this class cannot be instantiated
+     */
     private NumberSpeller () {
     }
 
-    public String spell(int number) {
+    /**
+     * @brief Spells a number
+     *
+     * @param number
+     *     The number to spell
+     *
+     * @return The spelled number
+     */
+    public String spell (int number) {
         return spell(number, Types.NORMAL);
     }
 
-    public String spell(int number, Types type) {
+    /**
+     * @brief Spells a number
+     *
+     * @param number
+     *     The number to spell
+     * @param type
+     *     The spelling type to apply
+     *
+     * @return The spelled number
+     */
+    public String spell (int number, Types type) {
         // Google Translate pronounces:
         // 1009 -> one thousand and nine
         // 1010 -> ten ten
-        switch (type){
+        switch (type) {
             case NORMAL:
                 return spellNormal(number);
             case DATE:
@@ -23,14 +51,22 @@ public class NumberSpeller {
         }
     }
 
-    private String spellNormal(int number){
-        if(number <= 20){
+    /**
+     * @brief Spells a number using NORMAL Type for spelling
+     *
+     * @param number
+     *     The number to spell
+     *
+     * @return The spelled number
+     */
+    private String spellNormal (int number) {
+        if (number <= 20) {
             return spellUpToTwenty(number);
         }
-        else if(number <= 100){
+        else if (number <= 100) {
             return spellUpToAHundred(number);
         }
-        else if(number <= 1000){
+        else if (number <= 1000) {
             return spellUpToAThousand(number);
         }
         else {
@@ -38,7 +74,7 @@ public class NumberSpeller {
             for (int thousand = 0; thousand < 4; thousand++) {
                 int currentNumber = number % 1000;
 
-                if(currentNumber != 0) {
+                if (currentNumber != 0) {
                     stringBuilder.insert(0, spellUpToAThousand(currentNumber) + " " +
                         THOUSANDS[thousand] + " ");
                 }
@@ -50,8 +86,16 @@ public class NumberSpeller {
         }
     }
 
-    private String spellDate(int number){
-        if(number <= 1009 || number > 10000){
+    /**
+     * @brief Spells a number using DATE Type for spelling
+     *
+     * @param number
+     *     The number to spell
+     *
+     * @return The spelled number
+     */
+    private String spellDate (int number) {
+        if (number <= 1009 || number > 10000) {
             return spellNormal(number);
         }
         else {
@@ -66,7 +110,7 @@ public class NumberSpeller {
             if (remainder != 0) {
                 stringBuilder.append(" ").append(spellUpToAHundred(remainder));
             }
-            else{
+            else {
                 stringBuilder.append(" hundred");
             }
 
@@ -74,62 +118,95 @@ public class NumberSpeller {
         }
     }
 
-    private String spellUpToAThousand(int number){
-        if(number <= 20){
+    /**
+     * @brief Spells a number that is less or equal than 1000
+     *
+     * @param number
+     *     The number to spell
+     *
+     * @return The spelled number
+     */
+    private String spellUpToAThousand (int number) {
+        if (number <= 20) {
             return spellUpToTwenty(number);
         }
-        else if(number <= 100){
+        else if (number <= 100) {
             return spellUpToAHundred(number);
         }
-        else if(number < 1000){
+        else if (number < 1000) {
             int hundreds = number / 100;
             int remainder = number % 100;
 
             StringBuilder stringBuilder = new StringBuilder();
-            if(hundreds != 0){
+            if (hundreds != 0) {
                 stringBuilder.append(spellUpToTwenty(hundreds)).append(" hundred");
             }
 
-            if(remainder != 0){
+            if (remainder != 0) {
                 stringBuilder.append(" ").append(spellUpToAHundred(remainder));
             }
 
             return stringBuilder.toString();
         }
-        else{
+        else {
             return "one thousand";
         }
     }
 
-    private String spellUpToAHundred(int number){
-        if(number <= 20){
+    /**
+     * @brief Spells a number that is less or equal to 100
+     *
+     * @param number
+     *     The number to spell
+     *
+     * @return The spelled number
+     */
+    private String spellUpToAHundred (int number) {
+        if (number <= 20) {
             return spellUpToTwenty(number);
         }
-        else if(number < 100){
+        else if (number < 100) {
             int tens = number / 10;
             int units = number % 10;
 
-            if(units == 0){
+            if (units == 0) {
                 return TENS[tens];
             }
-            else{
+            else {
                 return TENS[tens] + " " + TWENTIES[units];
             }
         }
-        else{
+        else {
             return "one hundred";
         }
     }
 
-    private String spellUpToTwenty(int number){
+    /**
+     * @brief Spells a number that is less or equal to 20
+     *
+     * @param number
+     *     The number to spell
+     *
+     * @return The spelled number
+     */
+    private String spellUpToTwenty (int number) {
         return TWENTIES[number];
     }
 
+    /**
+     * @brief Returns the NumberSpeller instance
+     *
+     * @return The NumberSpeller instance
+     */
     public static NumberSpeller getInstance () {
         return instance;
     }
 
-    public enum Types{
+    /**
+     * @class Types
+     * @brief Holds the spelling types
+     */
+    public enum Types {
         NORMAL,
         DATE
     }
@@ -179,6 +256,6 @@ public class NumberSpeller {
         "billion"
     };
 
-    private static NumberSpeller instance = new NumberSpeller();
+    private static NumberSpeller instance = new NumberSpeller(); //!< The NumberSpeller instance
 
 }
