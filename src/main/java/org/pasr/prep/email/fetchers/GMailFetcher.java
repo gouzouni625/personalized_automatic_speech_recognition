@@ -1,6 +1,5 @@
 package org.pasr.prep.email.fetchers;
 
-
 import org.pasr.gui.console.Console;
 import org.pasr.utilities.SortedMapEntryList;
 
@@ -24,14 +23,34 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 
-public class GMailFetcher extends EmailFetcher{
+/**
+ * @class GMailFetcher
+ * @brief Implements an EmailFetcher connecting to Google Mail
+ */
+public class GMailFetcher extends EmailFetcher {
+
+    /**
+     * @brief Constructor
+     *
+     * @throws IOException If the properties file is not found
+     */
     public GMailFetcher () throws IOException {
         super("/email/gmail-imaps.properties");
     }
 
+    /**
+     * @brief Opens the EmailFetcher
+     *
+     * @param address
+     *     The e-mail address to connect to
+     * @param password
+     *     The password of the e-mail address
+     *
+     * @throws MessagingException If the address-password combinaton is incorrect
+     */
     @Override
-    public synchronized void open(String address, String password) throws MessagingException {
-        if(store_ != null){
+    public synchronized void open (String address, String password) throws MessagingException {
+        if (store_ != null) {
             throw new IllegalStateException("Fetcher has already been opened");
         }
 
@@ -39,8 +58,8 @@ public class GMailFetcher extends EmailFetcher{
         store_.connect(address, password);
 
         folderMap_ = new Hashtable<>();
-        for(Folder folder : store_.getDefaultFolder().list("*")){
-            if(notUsableFolder(folder)){
+        for (Folder folder : store_.getDefaultFolder().list("*")) {
+            if (notUsableFolder(folder)) {
                 continue;
             }
 
@@ -48,15 +67,20 @@ public class GMailFetcher extends EmailFetcher{
         }
     }
 
+    /**
+     * @brief Returns a Map with the folder names and number of e-mails in each folder
+     *
+     * @return A Map with the folder names and the number of e-mails in each folder
+     */
     @Override
-    public Map<String, Integer> getFolderInfo(){
-        if(folderMap_ == null){
+    public Map<String, Integer> getFolderInfo () {
+        if (folderMap_ == null) {
             throw new IllegalStateException("Fetcher is not open or has been terminated.");
         }
 
         return folderMap_.entrySet().stream()
             .collect(Collectors.toMap(
-                Map.Entry :: getKey,
+                Map.Entry:: getKey,
                 entry -> {
                     try {
                         return entry.getValue().getMessageCount();
@@ -67,27 +91,42 @@ public class GMailFetcher extends EmailFetcher{
             ));
     }
 
+    /**
+     * @brief Fetches count number of e-mails
+     *
+     * @param count
+     *     The number of e-mails to fetch
+     */
     @Override
-    public synchronized void fetch(int count) {
-        if(store_ == null){
+    public synchronized void fetch (int count) {
+        if (store_ == null) {
             throw new IllegalStateException("Fetcher is not open or has been terminated.");
         }
 
         fetch(SENT_MAIL_FOLDER_PATH, count);
     }
 
+
+    /**
+     * @brief Fetches count number of e-mails from inside the given folder
+     *
+     * @param folderPath
+     *     The path of the folder
+     * @param count
+     *     The number of e-mails to fetch
+     */
     @Override
-    public synchronized void fetch(String folderPath, int count) {
-        if(store_ == null){
+    public synchronized void fetch (String folderPath, int count) {
+        if (store_ == null) {
             throw new IllegalStateException("Fetcher is not open or has been terminated.");
         }
 
-        if(folderPath == null){
+        if (folderPath == null) {
             getLogger().warning("folderPath must not be null!");
             return;
         }
 
-        if(!folderMap_.containsKey(folderPath)){
+        if (! folderMap_.containsKey(folderPath)) {
             Console.getInstance().postMessage("Could not fetch folder: " + folderPath);
             return;
         }
@@ -95,9 +134,12 @@ public class GMailFetcher extends EmailFetcher{
         startNewFetcherThread(folderPath, count);
     }
 
+    /**
+     * @brief Stops the fetching process
+     */
     @Override
-    public synchronized void stop(){
-        if(fetcherThread_ == null || !fetcherThread_.isAlive()){
+    public synchronized void stop () {
+        if (fetcherThread_ == null || ! fetcherThread_.isAlive()) {
             return;
         }
 
@@ -106,17 +148,31 @@ public class GMailFetcher extends EmailFetcher{
         fetcherThread_.terminate();
     }
 
-    private void startNewFetcherThread(String folderPath, int count) {
-        if(fetcherThread_ == null || !fetcherThread_.isAlive()){
+
+    private void startNewFetcherThread (String folderPath, int count) {
+        if (fetcherThread_ == null || ! fetcherThread_.isAlive()) {
             fetcherThread_ = new FetcherThread(folderMap_.get(folderPath), count);
             fetcherThread_.start();
         }
-        else{
+        else {
             throw new IllegalStateException("Already fetching!");
         }
     }
 
+    /**
+     * @class FetcherThread
+     * @brief Implements a Thread that will fetch e-mails from the store. A separate thread is used
+     *        to prevent API calls from blocking.
+     */
     private class FetcherThread extends Thread {
+        /**
+         * @brief Constructor
+         *
+         * @param folder
+         *     The Folder to fetch
+         * @param count
+         *     The number of e-mails to fetch from the given Folder
+         */
         FetcherThread (Folder folder, int count) {
             folder_ = folder;
             count_ = count;
@@ -124,6 +180,9 @@ public class GMailFetcher extends EmailFetcher{
             setDaemon(true);
         }
 
+        /**
+         * @brief The run method of this FetcherThread
+         */
         @Override
         public void run () {
             logger_.info("FetcherThread started!");
@@ -355,6 +414,17 @@ public class GMailFetcher extends EmailFetcher{
             beforeExit();
         }
 
+        /**
+         * @brief Returns the String representation of the body of a Multipart
+         *
+         * @param multipart
+         *     The Multipart
+         *
+         * @return The String representation of the body of the given Multipart
+         *
+         * @throws MessagingException If the content of the Multipart is not available
+         * @throws IOException If the content of the Multipart is not available
+         */
         private String getBodyFromMultiPart (Multipart multipart)
             throws MessagingException, IOException {
 
@@ -371,8 +441,11 @@ public class GMailFetcher extends EmailFetcher{
             return stringBuilder.toString();
         }
 
+        /**
+         * @brief Method to run before the run method of this FetcherThread returns
+         */
         private void beforeExit () {
-            if(folder_.isOpen()){
+            if (folder_.isOpen()) {
                 String folderFullName = folder_.getFullName();
 
                 try {
@@ -391,7 +464,15 @@ public class GMailFetcher extends EmailFetcher{
             logger_.info("FetcherThread shut down gracefully!");
         }
 
-        private List<Message> getMostRecent(Message[] messages){
+        /**
+         * @brief Sorts the given Message array based on the received time
+         *
+         * @param messages
+         *     The Message array to sort
+         *
+         * @return A List containing the ordered Message objects
+         */
+        private List<Message> getMostRecent (Message[] messages) {
             SortedMapEntryList<Message, Long> sortedMapEntryList = new SortedMapEntryList<>(
                 count_, false
             );
@@ -409,26 +490,42 @@ public class GMailFetcher extends EmailFetcher{
             return sortedMapEntryList.keyList();
         }
 
-        public synchronized void terminate(){
+        /**
+         * @brief Terminates this FetcherThread
+         */
+        public synchronized void terminate () {
             run_ = false;
         }
 
-        private Folder folder_;
+        private Folder folder_; //!< The folder to fetch
 
-        private int count_;
+        private int count_; //!< The number of e-mails to fetch from the given folder
 
-        private volatile boolean run_ = true;
+        private volatile boolean run_ = true; //!< Flag denoting whether this FetcherThread should
+                                              //!< run
 
-        private Logger logger_ = Logger.getLogger(getClass().getName());
+        private Logger logger_ = Logger.getLogger(getClass().getName()); //!< The Logger of this
+                                                                         //!< FetcherThread
     }
 
-    private boolean notUsableFolder (Folder javaMailFolder){
+    /**
+     * @brief Returns true if and only if the given Folder should not be used
+     *
+     * @param javaMailFolder
+     *     The Folder to check for usage
+     *
+     * @return True if and only if the given Folder should not be used
+     */
+    private boolean notUsableFolder (Folder javaMailFolder) {
         return javaMailFolder.getFullName().equals("[Gmail]");
     }
 
+    /**
+     * @brief Terminates the EmailFetcher releasing all of its resources
+     */
     @Override
     public synchronized void terminate () {
-        if(fetcherThread_ != null && fetcherThread_.isAlive()) {
+        if (fetcherThread_ != null && fetcherThread_.isAlive()) {
             fetcherThread_.terminate();
 
             try {
@@ -442,7 +539,7 @@ public class GMailFetcher extends EmailFetcher{
 
         fetcherThread_ = null;
 
-        if(store_ != null && store_.isConnected()) {
+        if (store_ != null && store_.isConnected()) {
             try {
                 store_.close();
             } catch (MessagingException e) {
@@ -454,7 +551,7 @@ public class GMailFetcher extends EmailFetcher{
 
         store_ = null;
 
-        if(folderMap_ != null) {
+        if (folderMap_ != null) {
             folderMap_.values().stream()
                 .filter(Folder:: isOpen).forEach(folder -> {
 
@@ -473,12 +570,13 @@ public class GMailFetcher extends EmailFetcher{
         }
     }
 
-    private FetcherThread fetcherThread_;
+    private FetcherThread fetcherThread_; //!< The fetcher thread of this GmailFetcher
 
-    private Store store_;
+    private Store store_; //!< The store of this GmailFetcher
 
-    private volatile Map<String, Folder> folderMap_;
+    private volatile Map<String, Folder> folderMap_; //!< The folder-count map of this GmailFetcher
 
-    private static final String SENT_MAIL_FOLDER_PATH = "[Gmail]/Sent Mail";
+    private static final String SENT_MAIL_FOLDER_PATH = "[Gmail]/Sent Mail"; //!< The path of the
+                                                                             //!< sent e-mails
 
 }
