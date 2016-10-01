@@ -1,6 +1,5 @@
 package org.pasr.database.processes;
 
-
 import org.pasr.database.Configuration;
 
 import java.io.File;
@@ -9,8 +8,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 
-public class LanguageModelProcess extends Process{
-    public LanguageModelProcess(Path inputPath, Path outputPath, int depth) throws IOException {
+/**
+ * @class LanguageModelProcess
+ * @brief A process that will create a language model
+ */
+public class LanguageModelProcess extends Process {
+    public LanguageModelProcess (Path inputPath, Path outputPath, int depth) throws IOException {
         File inputFile = inputPath.toFile();
 
         String inputFileName = inputFile.getName();
