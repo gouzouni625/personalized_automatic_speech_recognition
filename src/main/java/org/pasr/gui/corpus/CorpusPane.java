@@ -1,6 +1,5 @@
 package org.pasr.gui.corpus;
 
-
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
@@ -23,7 +22,16 @@ import java.util.logging.Logger;
 import static org.pasr.utilities.Utilities.getResource;
 
 
+/**
+ * @class CorpusPane
+ * @brief Implements a Pane holding many corpora
+ *        The user can choose a corpus and see its contents
+ */
 public class CorpusPane extends SplitPane {
+
+    /**
+     * @brief Default Constructor
+     */
     public CorpusPane () {
         try {
             URL location = getResource("/fxml/corpus/pane.fxml");
@@ -49,14 +57,14 @@ public class CorpusPane extends SplitPane {
     }
 
     @FXML
-    public void initialize(){
+    public void initialize () {
         fillEntryListView();
         entryListView.getSelectionModel().selectedItemProperty().addListener(
             (observable, oldValue, newValue) -> {
-                if(newValue == null){
+                if (newValue == null) {
                     textArea.clear();
                 }
-                else{
+                else {
                     try {
                         textArea.setText(DataBase.getInstance()
                             .getCorpusById(newValue.getId()).toPrettyString());
@@ -77,13 +85,16 @@ public class CorpusPane extends SplitPane {
                 }
 
                 // If there was no problem loading the chosen corpus, call all the other listeners
-                for(ChangeListener<Index.Entry> listener : changeListenerList_){
+                for (ChangeListener<Index.Entry> listener : changeListenerList_) {
                     listener.changed(observable, oldValue, newValue);
                 }
-        });
+            });
     }
 
-    private void fillEntryListView(){
+    /**
+     * @brief Gets the available corpora from the DataBase
+     */
+    private void fillEntryListView () {
         entryListView.setItems(
             FXCollections.observableArrayList(
                 DataBase.getInstance().getCorpusEntryList()
@@ -91,29 +102,46 @@ public class CorpusPane extends SplitPane {
         );
     }
 
-    public int getSelectedCorpusId (){
+    /**
+     * @brief Returns the id of the selected Corpus
+     *
+     * @return The id of the selected Corpus
+     */
+    public int getSelectedCorpusId () {
         Index.Entry selectedEntry = entryListView.getSelectionModel().getSelectedItem();
 
-        if(selectedEntry == null){
-            return -1;
+        if (selectedEntry == null) {
+            return - 1;
         }
-        else{
+        else {
             return selectedEntry.getId();
         }
     }
 
-    public void selectCorpus(int corpusId){
+    /**
+     * @brief Selects a Corpus based on a given id
+     *
+     * @param corpusId
+     *     The id of the Corpus to select
+     */
+    public void selectCorpus (int corpusId) {
         Optional<Index.Entry> selectedEntry = entryListView.getItems().stream()
             .filter(entry -> entry.getId() == corpusId)
             .findFirst();
 
-        if(selectedEntry.isPresent()){
+        if (selectedEntry.isPresent()) {
             entryListView.getSelectionModel().select(selectedEntry.get());
         }
     }
 
-    public void addSelectionListener(ChangeListener<Index.Entry> listener){
-        if(listener != null) {
+    /**
+     * @brief Adds a listener to fire when a new Corpus is selected
+     *
+     * @param listener
+     *     The listener
+     */
+    public void addSelectionListener (ChangeListener<Index.Entry> listener) {
+        if (listener != null) {
             changeListenerList_.add(listener);
         }
     }
