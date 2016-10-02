@@ -1,6 +1,5 @@
 package org.pasr.gui.controllers.scene;
 
-
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -16,13 +15,24 @@ import java.util.Date;
 import java.util.Set;
 
 
+/**
+ * @class EmailListController
+ * @brief Controller for the e-mail list scene of the application
+ */
 public class EmailListController extends Controller {
+
+    /**
+     * @brief Constructor
+     *
+     * @param api
+     *     The implementation of the API of this Controller
+     */
     public EmailListController (Controller.API api) {
         super(api);
     }
 
     @FXML
-    public void initialize() {
+    public void initialize () {
         EmailFetcher emailFetcher = ((API) api_).getEmailFetcher();
 
         emailTreePane.init(emailFetcher);
@@ -31,9 +41,9 @@ public class EmailListController extends Controller {
                 if (newValue != null) {
                     Value value = newValue.getValue();
 
-                    if(value.isEmail()) {
-                        updateSubjectTextArea(((EmailValue)value).getEmail());
-                        updateBodyTextArea(((EmailValue)value).getEmail());
+                    if (value.isEmail()) {
+                        updateSubjectTextArea(((EmailValue) value).getEmail());
+                        updateBodyTextArea(((EmailValue) value).getEmail());
                     }
                 }
             }
@@ -45,34 +55,34 @@ public class EmailListController extends Controller {
         emailFetcher.fetch(emailTreePane.getFieldValue());
     }
 
-    private void updateSubjectTextArea(Email email){
+    private void updateSubjectTextArea (Email email) {
         StringBuilder stringBuilder = new StringBuilder();
 
         stringBuilder.append("Subject: ").append(email.getSubject()).append("\n");
 
         String[] senders = email.getSenders();
-        if(senders.length != 0){
+        if (senders.length != 0) {
             stringBuilder.append("From: ")
                 .append(String.join(", ", (CharSequence[]) senders))
                 .append("\n");
         }
 
         String[] tORecipients = email.getRecipients(Email.RecipientType.TO);
-        if(tORecipients.length != 0){
+        if (tORecipients.length != 0) {
             stringBuilder.append("To: ")
                 .append(String.join(", ", (CharSequence[]) tORecipients))
                 .append("\n");
         }
 
         String[] cCRecipients = email.getRecipients(Email.RecipientType.CC);
-        if(cCRecipients.length != 0){
+        if (cCRecipients.length != 0) {
             stringBuilder.append("CC: ")
                 .append(String.join(", ", (CharSequence[]) cCRecipients))
                 .append("\n");
         }
 
         String[] bCCRecipients = email.getRecipients(Email.RecipientType.BCC);
-        if(bCCRecipients.length != 0){
+        if (bCCRecipients.length != 0) {
             stringBuilder.append("BCC: ")
                 .append(String.join(", ", (CharSequence[]) bCCRecipients))
                 .append("\n");
@@ -83,30 +93,32 @@ public class EmailListController extends Controller {
         subjectTextArea.setText(stringBuilder.toString());
     }
 
-    private void updateBodyTextArea(Email email){
+    private void updateBodyTextArea (Email email) {
         bodyTextArea.setText(email.getBody());
     }
 
-    private void backButtonOnAction(ActionEvent actionEvent){
+    private void backButtonOnAction (ActionEvent actionEvent) {
         ((API) api_).initialScene();
     }
 
-    private void doneButtonOnAction(ActionEvent actionEvent){
+    private void doneButtonOnAction (ActionEvent actionEvent) {
         Set<Email> selectedEmailSet = emailTreePane.getSelectedEmails();
 
-        if(selectedEmailSet.size() > 0) {
+        if (selectedEmailSet.size() > 0) {
             ((API) api_).processEmail(selectedEmailSet);
         }
-        else{
+        else {
             Console.getInstance().postMessage("You must choose at least one e-mail before moving" +
                 " on!");
         }
     }
 
-    public interface API extends Controller.API{
-        EmailFetcher getEmailFetcher();
-        void initialScene();
-        void processEmail(Set<Email> emailList);
+    public interface API extends Controller.API {
+        EmailFetcher getEmailFetcher ();
+
+        void initialScene ();
+
+        void processEmail (Set<Email> emailList);
     }
 
     @FXML

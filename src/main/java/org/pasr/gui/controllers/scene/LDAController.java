@@ -1,6 +1,5 @@
 package org.pasr.gui.controllers.scene;
 
-
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -35,7 +34,18 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 
+/**
+ * @class LDAController
+ * @brief Controller for the LDA scene of the application
+ */
 public class LDAController extends Controller {
+
+    /**
+     * @brief Constructor
+     *
+     * @param api
+     *     The implementation of the API of this Controller
+     */
     public LDAController (Controller.API api) {
         super(api);
 
@@ -43,7 +53,7 @@ public class LDAController extends Controller {
     }
 
     @FXML
-    public void initialize(){
+    public void initialize () {
         unknownWords_ = FXCollections.observableArrayList();
         candidateWords_ = FXCollections.observableArrayList();
 
@@ -73,35 +83,35 @@ public class LDAController extends Controller {
         wordsListView.getSelectionModel().selectedItemProperty().addListener(
             (observable, oldValue, newValue) -> {
                 int selectedIndex = wordsListView.getSelectionModel().getSelectedIndex();
-                if(selectedIndex != -1) {
+                if (selectedIndex != - 1) {
                     candidatesListView.setItems(candidateWords_.get(selectedIndex));
                 }
-                else{
+                else {
                     candidatesListView.setItems(null);
                 }
-        });
+            });
 
         useLDACheckBox.setTooltip(new Tooltip(USE_LDA_CHECK_BOX_TOOLTIP));
     }
 
-    private void startDictionaryThread(){
+    private void startDictionaryThread () {
         // The dictionary thread will run only once during the life cycle of this controller
-        if(dictionaryThread_ == null){
+        if (dictionaryThread_ == null) {
             dictionaryThread_ = new DictionaryThread();
             dictionaryThread_.start();
         }
     }
 
-    private void stopDictionaryThread(){
-        if(dictionaryThread_ != null && dictionaryThread_.isAlive()){
+    private void stopDictionaryThread () {
+        if (dictionaryThread_ != null && dictionaryThread_.isAlive()) {
             dictionaryThread_.terminate();
         }
     }
 
-    private void removeButtonOnAction(ActionEvent actionEvent){
+    private void removeButtonOnAction (ActionEvent actionEvent) {
         int selectedIndex = wordsListView.getSelectionModel().getSelectedIndex();
 
-        if(selectedIndex != -1){
+        if (selectedIndex != - 1) {
             String selectedWord = wordsListView.getSelectionModel().getSelectedItem();
 
             dictionary_.removeUnknownWord(selectedWord);
@@ -112,10 +122,10 @@ public class LDAController extends Controller {
         }
     }
 
-    private void autoPronounceButtonOnAction (ActionEvent actionEvent){
+    private void autoPronounceButtonOnAction (ActionEvent actionEvent) {
         int selectedIndex = wordsListView.getSelectionModel().getSelectedIndex();
 
-        if(selectedIndex != -1){
+        if (selectedIndex != - 1) {
             String selectedWord = wordsListView.getSelectionModel().getSelectedItem();
 
             dictionary_.put(
@@ -128,10 +138,10 @@ public class LDAController extends Controller {
         }
     }
 
-    private void chooseButtonOnAction(ActionEvent actionEvent){
+    private void chooseButtonOnAction (ActionEvent actionEvent) {
         int selectedIndex = candidatesListView.getSelectionModel().getSelectedIndex();
 
-        if(selectedIndex != -1){
+        if (selectedIndex != - 1) {
             // Note that wrongWordIndex is guaranteed not equal to -1 because if the wordsListView
             // selection had been clear cleared, then the candidateListView items would have been
             // set to null and thus, selectedIndex would be equal to -1.
@@ -151,29 +161,29 @@ public class LDAController extends Controller {
         }
     }
 
-    private void runButtonOnAction (ActionEvent actionEvent){
+    private void runButtonOnAction (ActionEvent actionEvent) {
         startLDAThread();
     }
 
-    private void startLDAThread(){
-        if(dictionaryThread_ != null && dictionaryThread_.isAlive()){
+    private void startLDAThread () {
+        if (dictionaryThread_ != null && dictionaryThread_.isAlive()) {
             Console.getInstance().postMessage("Cannot start LDA while your e-mails are being" +
                 " processed.\nPlease try again when the processing has finished.");
             return;
         }
 
-        if(lDAThread_ == null || !lDAThread_.isAlive()){
+        if (lDAThread_ == null || ! lDAThread_.isAlive()) {
             lDAThread_ = new LDAThread();
             lDAThread_.start();
         }
     }
 
-    private void interactButtonOnAction(ActionEvent actionEvent){
+    private void interactButtonOnAction (ActionEvent actionEvent) {
         LDAInteractDialog lDAInteractDialog;
         try {
             lDAInteractDialog = new LDAInteractDialog(lda_);
             lDAInteractDialog.showAndWait();
-        } catch (IllegalArgumentException e){
+        } catch (IllegalArgumentException e) {
             Console.getInstance().postMessage("You should first run the LDA algorithm before" +
                 "interacting with the results (press \"run\" button before \"interact\" button)");
             return;
@@ -190,21 +200,21 @@ public class LDAController extends Controller {
         ldaResults_ = lDAInteractDialog.getValue();
     }
 
-    private void backButtonOnAction(ActionEvent actionEvent){
+    private void backButtonOnAction (ActionEvent actionEvent) {
         terminate();
 
         ((API) api_).initialScene();
     }
 
-    private void doneButtonOnAction(ActionEvent actionEvent){
+    private void doneButtonOnAction (ActionEvent actionEvent) {
         DataBase database = DataBase.getInstance();
 
         Map<Integer, String> corpusInformation = new LinkedHashMap<>();
 
-        if(useLDACheckBox.isSelected()){
+        if (useLDACheckBox.isSelected()) {
             List<Document> documents = corpus_.getDocuments();
 
-            for(Map.Entry<String, List<Long>> entry : ldaResults_.entries()){
+            for (Map.Entry<String, List<Long>> entry : ldaResults_.entries()) {
                 List<Long> documentIDs = entry.getValue();
 
                 Corpus corpus = new Corpus();
@@ -278,7 +288,7 @@ public class LDAController extends Controller {
             return;
         }
 
-        if(corpusInformation.size() == 0){
+        if (corpusInformation.size() == 0) {
             getLogger().severe("Corpus information is empty");
 
             Console.getInstance().postMessage(
@@ -332,8 +342,9 @@ public class LDAController extends Controller {
         }
     }
 
-    private class DictionaryThread extends Thread{
-        DictionaryThread (){
+    private class DictionaryThread extends Thread {
+
+        DictionaryThread () {
             progressIndicator_ = new ProgressIndicator(
                 wordsPane, wordsProgressBar, wordsProgressPane, corpus_.getProgress()
             );
@@ -342,7 +353,7 @@ public class LDAController extends Controller {
         }
 
         @Override
-        public void run(){
+        public void run () {
             logger_.info("DictionaryThread started!");
 
             progressIndicator_.showProgress();
@@ -354,8 +365,8 @@ public class LDAController extends Controller {
 
                 unknownWords_.addAll(dictionary_.getUnknownWords());
                 candidateWords_.addAll(unknownWords_.stream()
-                    .map(defaultDictionary :: fuzzyMatch)
-                    .map(FXCollections :: observableArrayList)
+                    .map(defaultDictionary:: fuzzyMatch)
+                    .map(FXCollections:: observableArrayList)
                     .collect(Collectors.toList()));
             } catch (FileNotFoundException e) {
                 logger_.log(Level.SEVERE, "Default dictionary was not found.\n" +
@@ -371,16 +382,16 @@ public class LDAController extends Controller {
             logger_.info("DictionaryThread shut down gracefully!");
         }
 
-        private void setLDAApplicability (){
-            if(corpus_.numberOfDocuments() > 1){
+        private void setLDAApplicability () {
+            if (corpus_.numberOfDocuments() > 1) {
                 lDAPane.setDisable(false);
             }
-            else{
+            else {
                 disabledLDALabel.setVisible(true);
             }
         }
 
-        public void terminate(){
+        public void terminate () {
             corpus_.cancelProcess();
         }
 
@@ -389,31 +400,32 @@ public class LDAController extends Controller {
         private Logger logger_ = Logger.getLogger(getClass().getName());
     }
 
-    private class LDAThread extends Thread{
-        LDAThread (){
+    private class LDAThread extends Thread {
+
+        LDAThread () {
             progressIndicator_ = new ProgressIndicator(lDAPane, lDAProgressBar, lDAProgressPane);
 
             setDaemon(true);
         }
 
         @Override
-        public void run(){
+        public void run () {
             logger_.info("LDAThread started!");
 
             progressIndicator_.showProgress();
 
             try {
-                if(lda_ == null) {
+                if (lda_ == null) {
                     lda_ = new LDA(corpus_.getDocuments(), topicsSpinner.getValue(),
                         iterationsSpinner.getValue(), threadsSpinner.getValue());
                 }
-                else{
+                else {
                     lda_.setDocuments(corpus_.getDocuments())
                         .setNumberOfTopics(topicsSpinner.getValue())
                         .setNumberOfIterations(iterationsSpinner.getValue())
                         .setNumberOfThreads(threadsSpinner.getValue());
                 }
-            } catch(IllegalArgumentException e){
+            } catch (IllegalArgumentException e) {
                 logger_.log(Level.SEVERE, "An illegal argument was provided to the LDA.\n" +
                     "LDA should not be used.", e);
 
@@ -437,19 +449,18 @@ public class LDAController extends Controller {
 
                 Console.getInstance().postMessage("An error has occurred while running LDA.\n" +
                     "Please try again in a few moments");
-            }
-            finally {
+            } finally {
                 beforeExit();
             }
         }
 
-        private void beforeExit (){
+        private void beforeExit () {
             progressIndicator_.hideProgress();
 
             logger_.info("LDAThread shut down gracefully!");
         }
 
-        private void showResults(LDA lda){
+        private void showResults (LDA lda) {
             StringBuilder stringBuilder = new StringBuilder();
 
             int numberOfTopics = lda.getNumberOfTopics();
@@ -461,11 +472,11 @@ public class LDAController extends Controller {
 
             List<List<String>> topWords = lda.getTopWords(10);
 
-            for(int i = 0;i < numberOfTopics;i++){
+            for (int i = 0; i < numberOfTopics; i++) {
                 stringBuilder.append("topic ").append(String.valueOf(i)).append(": ");
 
                 List<String> currentTopicTopWords = topWords.get(i);
-                for(int j = 0, m = currentTopicTopWords.size() - 1;j < m;j++){
+                for (int j = 0, m = currentTopicTopWords.size() - 1; j < m; j++) {
                     stringBuilder.append(currentTopicTopWords.get(j)).append(" ");
                 }
                 // Do not append a space for the last word
@@ -488,25 +499,26 @@ public class LDAController extends Controller {
         private Logger logger_ = Logger.getLogger(getClass().getName());
     }
 
-    private class ProgressIndicator implements Observer{
-        ProgressIndicator(Node waitingNode, ProgressBar progressBar, Node progressNode){
+    private class ProgressIndicator implements Observer {
+
+        ProgressIndicator (Node waitingNode, ProgressBar progressBar, Node progressNode) {
             waitingNode_ = waitingNode;
             progressBar_ = progressBar;
             progressNode_ = progressNode;
         }
 
-        ProgressIndicator(Node waitingNode, ProgressBar progressBar, Node progressNode,
-                          Observable observable){
+        ProgressIndicator (Node waitingNode, ProgressBar progressBar, Node progressNode,
+                           Observable observable) {
             this(waitingNode, progressBar, progressNode);
 
             observe(observable);
         }
 
-        void observe(Observable observable){
+        void observe (Observable observable) {
             observable.addObserver(this);
         }
 
-        void showProgress (){
+        void showProgress () {
             waitingNode_.setDisable(true);
             progressBar_.setProgress(0.0);
             progressNode_.setVisible(true);
@@ -514,7 +526,7 @@ public class LDAController extends Controller {
             setButtonsDisable(true);
         }
 
-        void hideProgress (){
+        void hideProgress () {
             waitingNode_.setDisable(false);
             progressNode_.setVisible(false);
 
@@ -531,7 +543,7 @@ public class LDAController extends Controller {
         private final Node progressNode_;
     }
 
-    private void setButtonsDisable(boolean disable){
+    private void setButtonsDisable (boolean disable) {
         removeButton.setDisable(disable);
         autoPronounceButton.setDisable(disable);
         chooseButton.setDisable(disable);
@@ -542,15 +554,18 @@ public class LDAController extends Controller {
     }
 
     @Override
-    public void terminate(){
+    public void terminate () {
         stopDictionaryThread();
     }
 
-    public interface API extends Controller.API{
-        Corpus getCorpus();
-        void initialScene();
-        void record(int corpusID);
-        void dictate(int corpusID);
+    public interface API extends Controller.API {
+        Corpus getCorpus ();
+
+        void initialScene ();
+
+        void record (int corpusID);
+
+        void dictate (int corpusID);
     }
 
     @FXML

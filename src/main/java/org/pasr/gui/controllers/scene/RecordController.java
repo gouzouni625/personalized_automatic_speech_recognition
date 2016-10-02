@@ -1,6 +1,5 @@
 package org.pasr.gui.controllers.scene;
 
-
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -35,8 +34,19 @@ import java.util.logging.Logger;
 import static org.pasr.utilities.Utilities.getResourceStream;
 
 
-public class RecordController extends Controller implements Observer{
-    public RecordController(Controller.API api){
+/**
+ * @class RecordController
+ * @brief Controller for the record scene of the application
+ */
+public class RecordController extends Controller implements Observer {
+
+    /**
+     * @brief Constructor
+     *
+     * @param api
+     *     The implementation of the API of this Controller
+     */
+    public RecordController (Controller.API api) {
         super(api);
 
         corpus_ = ((API) api_).getCorpus();
@@ -59,23 +69,24 @@ public class RecordController extends Controller implements Observer{
     }
 
     private void fillCorpusSentences () {
-        if(corpus_ == null){
+        if (corpus_ == null) {
             return;
         }
 
-        if(fillCorpusSentencesThread_ == null || !fillCorpusSentencesThread_.isAlive()){
+        if (fillCorpusSentencesThread_ == null || ! fillCorpusSentencesThread_.isAlive()) {
             fillCorpusSentencesThread_ = new FillCorpusSentencesThread();
             fillCorpusSentencesThread_.start();
         }
     }
 
-    private class FillCorpusSentencesThread extends Thread{
-        FillCorpusSentencesThread(){
+    private class FillCorpusSentencesThread extends Thread {
+
+        FillCorpusSentencesThread () {
             setDaemon(true);
         }
 
         @Override
-        public void run(){
+        public void run () {
             logger_.info("FillCorpusSentencesThread started!");
 
             int currentSize = corpusSentences_.size();
@@ -87,7 +98,7 @@ public class RecordController extends Controller implements Observer{
 
             Random random = new Random(System.currentTimeMillis());
             for (int i = currentSize; i < corpusSentencesMaxSize_; i++) {
-                if(stop_){
+                if (stop_) {
                     return;
                 }
 
@@ -99,7 +110,7 @@ public class RecordController extends Controller implements Observer{
             logger_.info("FillCorpusSentencesThread shut down gracefully!");
         }
 
-        void terminate(){
+        void terminate () {
             stop_ = true;
         }
 
@@ -110,7 +121,7 @@ public class RecordController extends Controller implements Observer{
     }
 
     private void fillArcticSentences () {
-        if(fillArcticSentencesThread_ == null || !fillArcticSentencesThread_.isAlive()) {
+        if (fillArcticSentencesThread_ == null || ! fillArcticSentencesThread_.isAlive()) {
             fillArcticSentencesThread_ = new Thread(fillArcticSentencesRunnable_);
             fillArcticSentencesThread_.setDaemon(true);
             fillArcticSentencesThread_.start();
@@ -118,7 +129,7 @@ public class RecordController extends Controller implements Observer{
     }
 
     @FXML
-    public void initialize(){
+    public void initialize () {
         eraseButton.setGraphic(eraseButtonDefaultGraphic);
         eraseButton.pressedProperty().addListener((observable, oldValue, newValue) -> {
             eraseButton.setGraphic(
@@ -157,73 +168,73 @@ public class RecordController extends Controller implements Observer{
         corpusListView.setItems(corpusSentences_);
         corpusListView.getSelectionModel().selectedItemProperty().addListener(
             (observable, oldValue, newValue) -> {
-                if(newValue != null){
+                if (newValue != null) {
                     sentenceLabel.setText(newValue);
 
                     arcticListView.getSelectionModel().clearSelection();
                 }
-                else{
-                    if(arcticListView.getSelectionModel().getSelectedIndex() == -1){
+                else {
+                    if (arcticListView.getSelectionModel().getSelectedIndex() == - 1) {
                         sentenceLabel.setText("");
                     }
                 }
-        });
+            });
 
         arcticListView.setItems(arcticSentences_);
         arcticListView.getSelectionModel().selectedItemProperty().addListener(
             (observable, oldValue, newValue) -> {
-                if(newValue != null){
+                if (newValue != null) {
                     sentenceLabel.setText(newValue);
 
                     corpusListView.getSelectionModel().clearSelection();
                 }
-                else{
-                    if(corpusListView.getSelectionModel().getSelectedIndex() == -1){
+                else {
+                    if (corpusListView.getSelectionModel().getSelectedIndex() == - 1) {
                         sentenceLabel.setText("");
                     }
                 }
-        });
+            });
     }
 
-    private void eraseButtonOnAction(ActionEvent actionEvent){
-        if(recordToggleButton.isSelected()){
+    private void eraseButtonOnAction (ActionEvent actionEvent) {
+        if (recordToggleButton.isSelected()) {
             recordToggleButton.fire();
         }
 
-        if(playToggleButton.isSelected()){
+        if (playToggleButton.isSelected()) {
             playToggleButton.fire();
         }
 
         recorder_.flush();
     }
 
-    private void recordToggleButtonOnAction(ActionEvent actionEvent){
-        if(recordToggleButton.isSelected()){
-            if(playToggleButton.isSelected()){
+    private void recordToggleButtonOnAction (ActionEvent actionEvent) {
+        if (recordToggleButton.isSelected()) {
+            if (playToggleButton.isSelected()) {
                 playToggleButton.fire();
             }
 
             recorder_.startRecording();
         }
-        else{
+        else {
             recorder_.stopRecording();
             setProgressBarLevel(0);
         }
     }
 
-    private void playToggleButtonOnAction(ActionEvent actionEvent){
-        if(playToggleButton.isSelected()){
-            if(recordToggleButton.isSelected()){
+    private void playToggleButtonOnAction (ActionEvent actionEvent) {
+        if (playToggleButton.isSelected()) {
+            if (recordToggleButton.isSelected()) {
                 recordToggleButton.fire();
             }
 
             try {
                 clip_ = recorder_.getClip();
-                if(clip_ != null) {
+                if (clip_ != null) {
                     clip_.addLineListener(clipLineListener_);
                     clip_.start();
                 }
-                else{
+                else {
                     playToggleButton.fire();
                 }
             } catch (LineUnavailableException e) {
@@ -233,26 +244,26 @@ public class RecordController extends Controller implements Observer{
                 playToggleButton.setSelected(false);
             }
         }
-        else{
-            if(clip_ != null && clip_.isRunning()) {
+        else {
+            if (clip_ != null && clip_.isRunning()) {
                 clip_.stop();
             }
             setProgressBarLevel(0);
         }
     }
 
-    private void saveButtonOnAction(ActionEvent actionEvent){
-        if(recordToggleButton.isSelected()){
+    private void saveButtonOnAction (ActionEvent actionEvent) {
+        if (recordToggleButton.isSelected()) {
             recordToggleButton.fire();
         }
 
-        if(playToggleButton.isSelected()) {
+        if (playToggleButton.isSelected()) {
             playToggleButton.fire();
         }
 
         String sentence = sentenceLabel.getText();
 
-        if(sentence.isEmpty()){
+        if (sentence.isEmpty()) {
             Console.getInstance().postMessage("You should choose a sentence from the two lists" +
                 "on the write as a transcription of your recording.");
             return;
@@ -260,12 +271,12 @@ public class RecordController extends Controller implements Observer{
 
         int index;
         int corpusId;
-        if((index = corpusListView.getSelectionModel().getSelectedIndex()) != -1){
+        if ((index = corpusListView.getSelectionModel().getSelectedIndex()) != - 1) {
             corpusListView.getItems().remove(index);
             fillCorpusSentences();
             corpusId = corpus_.getId();
         }
-        else{
+        else {
             index = arcticListView.getSelectionModel().getSelectedIndex();
 
             arcticListView.getItems().remove(index);
@@ -287,16 +298,16 @@ public class RecordController extends Controller implements Observer{
         eraseButton.fire();
     }
 
-    private void backButtonOnAction(ActionEvent actionEvent){
+    private void backButtonOnAction (ActionEvent actionEvent) {
         terminate();
 
         ((API) api_).initialScene();
     }
 
-    private void doneButtonOnAction(ActionEvent actionEvent){
+    private void doneButtonOnAction (ActionEvent actionEvent) {
         terminate();
 
-        ((API) api_).dictate(corpus_ == null ? -1 : corpus_.getId());
+        ((API) api_).dictate(corpus_ == null ? - 1 : corpus_.getId());
     }
 
     @Override
@@ -304,26 +315,26 @@ public class RecordController extends Controller implements Observer{
         setProgressBarLevel((Double) arg);
     }
 
-    private void setProgressBarLevel(double level){
+    private void setProgressBarLevel (double level) {
         leftProgressBar.setProgress(level);
         rightProgressBar.setProgress(level);
     }
 
     @Override
-    public void terminate() {
-        if(clip_ != null && clip_.isOpen()) {
-            if(clip_.isRunning()){
+    public void terminate () {
+        if (clip_ != null && clip_.isOpen()) {
+            if (clip_.isRunning()) {
                 clip_.stop();
             }
 
             clip_.close();
         }
 
-        if(recorder_ != null) {
+        if (recorder_ != null) {
             recorder_.terminate();
         }
 
-        if(fillCorpusSentencesThread_ != null && fillCorpusSentencesThread_.isAlive()) {
+        if (fillCorpusSentencesThread_ != null && fillCorpusSentencesThread_.isAlive()) {
             fillCorpusSentencesThread_.terminate();
             try {
                 // Don't wait forever on this thread since it is a daemon and will not block the JVM
@@ -334,7 +345,7 @@ public class RecordController extends Controller implements Observer{
             }
         }
 
-        if(fillArcticSentencesThread_ != null && fillArcticSentencesThread_.isAlive()) {
+        if (fillArcticSentencesThread_ != null && fillArcticSentencesThread_.isAlive()) {
             try {
                 // Don't wait forever on this thread since it is a daemon and will not block the JVM
                 // from shutting down
@@ -345,10 +356,12 @@ public class RecordController extends Controller implements Observer{
         }
     }
 
-    public interface API extends Controller.API{
-        Corpus getCorpus();
-        void initialScene();
-        void dictate(int corpusId);
+    public interface API extends Controller.API {
+        Corpus getCorpus ();
+
+        void initialScene ();
+
+        void dictate (int corpusId);
     }
 
     @FXML
@@ -428,7 +441,7 @@ public class RecordController extends Controller implements Observer{
     private BufferedRecorder recorder_;
     private Clip clip_;
     private final LineListener clipLineListener_ = event -> {
-        if(event.getType() == LineEvent.Type.STOP){
+        if (event.getType() == LineEvent.Type.STOP) {
             Platform.runLater(() -> playToggleButton.setSelected(false));
         }
     };
