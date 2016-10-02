@@ -3,6 +3,7 @@ package org.pasr.gui.email.tree;
 
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.ProgressIndicator;
@@ -115,7 +116,20 @@ public class EmailTreePane extends AnchorPane implements Observer, HasEmailFetch
             }
             else{
                 // Top folders will be added here
-                treeView.getRoot().getChildren().add(treeItem);
+                ObservableList<TreeItem<Value>> rootChildren = treeView.getRoot().getChildren();
+                if(! rootChildren.contains(treeItem)) {
+                    rootChildren.add(treeItem);
+                }
+                else{
+                    TreeItem<Value> existingChild = rootChildren.get(
+                        rootChildren.indexOf(treeItem)
+                    );
+
+                    // No need to copy the children of treeItem to existingChild since we are
+                    // at folder state and e-mails will start arriving later.
+                    existingChild.setValue(treeItem.getValue());
+                }
+
                 return;
             }
         }
@@ -151,22 +165,24 @@ public class EmailTreePane extends AnchorPane implements Observer, HasEmailFetch
 
             currentFolder.getChildren().add(treeItem);
         }
-        if(depth == numberOfFolders){
-            if (! currentFolder.getChildren().contains(treeItem)) {
-                currentFolder.getChildren().add(treeItem);
+        else if(depth == numberOfFolders){
+            ObservableList<TreeItem<Value>> currentFolderChildren = currentFolder.getChildren();
+
+            if (! currentFolderChildren.contains(treeItem)) {
+                currentFolderChildren.add(treeItem);
             }
             else{
                 // Replace old folders with new ones since the new might have information regarding
                 // the number of Emails that they contain. Note that, there is no need to replace
                 // the TreeItem which would force us to move the children to the new TreeItem. We
                 // only need to move the values.
-                if(treeItem.getValue().isFolder()){
-                    TreeItem<Value> oldFolder = currentFolder.getChildren().get(
-                        currentFolder.getChildren().indexOf(treeItem)
-                    );
+                // No need to check if the existing child is a Folder since to match treeItem it
+                // has to be a folder.
+                TreeItem<Value> oldFolder = currentFolderChildren.get(
+                    currentFolderChildren.indexOf(treeItem)
+                );
 
-                    oldFolder.setValue(treeItem.getValue());
-                }
+                oldFolder.setValue(treeItem.getValue());
             }
         }
     }

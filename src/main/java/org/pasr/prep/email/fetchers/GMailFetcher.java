@@ -59,10 +59,6 @@ public class GMailFetcher extends EmailFetcher {
 
         folderMap_ = new Hashtable<>();
         for (Folder folder : store_.getDefaultFolder().list("*")) {
-            if (notUsableFolder(folder)) {
-                continue;
-            }
-
             folderMap_.put(folder.getFullName(), folder);
         }
     }
@@ -506,18 +502,6 @@ public class GMailFetcher extends EmailFetcher {
 
         private Logger logger_ = Logger.getLogger(getClass().getName()); //!< The Logger of this
                                                                          //!< FetcherThread
-    }
-
-    /**
-     * @brief Returns true if and only if the given Folder should not be used
-     *
-     * @param javaMailFolder
-     *     The Folder to check for usage
-     *
-     * @return True if and only if the given Folder should not be used
-     */
-    private boolean notUsableFolder (Folder javaMailFolder) {
-        return javaMailFolder.getFullName().equals("[Gmail]");
     }
 
     /**
