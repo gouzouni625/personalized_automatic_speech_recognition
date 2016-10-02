@@ -86,6 +86,14 @@ public class Dictionary extends LinkedHashMap<String, String> {
         return getPhones(word.toString());
     }
 
+    /**
+     * @brief Returns a List containing a List of phones for each word in the WordSequence
+     *
+     * @param wordSequence
+     *     The WordSequence
+     *
+     * @return A List containing a List of phones for each word in the WordSequence
+     */
     public List<List<String>> getPhones (WordSequence wordSequence) {
         return wordSequence.stream()
             .map(this :: getPhones)
