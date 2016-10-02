@@ -1,6 +1,5 @@
 package org.pasr.gui.lda;
 
-
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -21,8 +20,22 @@ import java.util.logging.Logger;
 import static org.pasr.utilities.Utilities.getResource;
 
 
+/**
+ * @class InteractPane
+ * @brief Implements a Pane which holds interactables
+ *        The interactables can be moved by the user with drag and drop gestures
+ */
 public class InteractPane extends AnchorPane {
-    public InteractPane(String title, String defaultName){
+
+    /**
+     * @brief Constructor
+     *
+     * @param title
+     *     The title of the Pane
+     * @param defaultName
+     *     The default name of the Pane
+     */
+    public InteractPane (String title, String defaultName) {
         title_ = title;
         defaultName_ = defaultName;
 
@@ -31,7 +44,7 @@ public class InteractPane extends AnchorPane {
 
             if (location == null) {
                 throw new IOException(
-                    "getResource(\"/fxml/corpus/interact_pane.fxml\") returned null"
+                    "getResource(\"/fxml/lda/interact_pane.fxml\") returned null"
                 );
             }
 
@@ -41,7 +54,7 @@ public class InteractPane extends AnchorPane {
 
             loader.load();
         } catch (IOException e) {
-            logger_.severe("Could not load resource:/fxml/corpus/interact_pane.fxml\n" +
+            logger_.severe("Could not load resource:/fxml/lda/interact_pane.fxml\n" +
                 "The file might be missing or be corrupted.\n" +
                 "Application will terminate.\n" +
                 "Exception Message: " + e.getMessage());
@@ -50,7 +63,7 @@ public class InteractPane extends AnchorPane {
     }
 
     @FXML
-    public void initialize(){
+    public void initialize () {
         label.setText(title_);
 
         textField.setText(defaultName_);
@@ -61,22 +74,22 @@ public class InteractPane extends AnchorPane {
         setOnDragDropped(this :: onDragDropped);
     }
 
-    private void onDragOver (DragEvent dragEvent){
+    private void onDragOver (DragEvent dragEvent) {
         dragEvent.acceptTransferModes(TransferMode.COPY_OR_MOVE);
         dragEvent.consume();
     }
 
-    private void onDragEntered (DragEvent dragEvent){
+    private void onDragEntered (DragEvent dragEvent) {
         setStyle("-fx-background-color: green;");
         dragEvent.consume();
     }
 
-    private void onDragExited (DragEvent dragEvent){
+    private void onDragExited (DragEvent dragEvent) {
         setStyle("");
         dragEvent.consume();
     }
 
-    private void onDragDropped (DragEvent dragEvent){
+    private void onDragDropped (DragEvent dragEvent) {
         addChild(new Interactable(
             (Document) dragEvent.getDragboard().getContent(Document.DATA_FORMAT)
         ));
@@ -85,21 +98,32 @@ public class InteractPane extends AnchorPane {
         dragEvent.consume();
     }
 
-    public void addChild(Interactable interactable){
+    /**
+     * @brief Adds an Interactable
+     *
+     * @param interactable
+     *     The Interactable to be added
+     */
+    public void addChild (Interactable interactable) {
         hBox.getChildren().add(interactable);
     }
 
-    public List<Node> getDocumentNodeList(){
+    public List<Node> getDocumentNodeList () {
         return hBox.getChildren();
     }
 
-    public String getName(){
+    /**
+     * @brief Returns the name of the Pane
+     *
+     * @return The name of the Pane
+     */
+    public String getName () {
         String textFieldText = textField.getText();
 
-        if(textFieldText.isEmpty()){
+        if (textFieldText.isEmpty()) {
             return defaultName_;
         }
-        else{
+        else {
             return textFieldText;
         }
     }

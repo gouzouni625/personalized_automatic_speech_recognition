@@ -1,6 +1,5 @@
 package org.pasr.gui.lda;
 
-
 import javafx.event.ActionEvent;
 import javafx.scene.Parent;
 import javafx.scene.control.ToggleButton;
@@ -22,8 +21,20 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 
+/**
+ * @class Interactable
+ * @brief Implements an interactable as a ToggleButton which wraps a Document
+ *        The user can press the ToggleButton to see the Document's contents
+ */
 public class Interactable extends ToggleButton {
-    public Interactable (Document document){
+
+    /**
+     * @brief Constructor
+     *
+     * @param document
+     *     The Document
+     */
+    public Interactable (Document document) {
         document_ = document;
 
         String text = "subject: " + document.getTitle() + "\n" +
@@ -47,7 +58,7 @@ public class Interactable extends ToggleButton {
         }
         dialog_ = dialog;
 
-        if(dialog_ != null){
+        if (dialog_ != null) {
             dialog_.setOnHidden(event -> setSelected(false));
         }
 
@@ -57,8 +68,8 @@ public class Interactable extends ToggleButton {
         setOnDragDone(this :: onDragDone);
     }
 
-    private void onAction(ActionEvent actionEvent){
-        if(dialog_ != null) {
+    private void onAction (ActionEvent actionEvent) {
+        if (dialog_ != null) {
             if (isSelected()) {
                 dialog_.show();
             }
@@ -68,21 +79,22 @@ public class Interactable extends ToggleButton {
         }
     }
 
-    private void onDragDetected(MouseEvent mouseEvent){
+    private void onDragDetected (MouseEvent mouseEvent) {
         logger_.fine("onDragDetected called");
 
-        if(isSelected()){
+        if (isSelected()) {
             fire();
         }
 
         Dragboard dragboard;
 
-        if(mouseEvent.getButton() == MouseButton.PRIMARY) {
+        if (mouseEvent.getButton() == MouseButton.PRIMARY) {
             dragboard = startDragAndDrop(TransferMode.MOVE);
-        } else if(mouseEvent.getButton() == MouseButton.SECONDARY){
+        }
+        else if (mouseEvent.getButton() == MouseButton.SECONDARY) {
             dragboard = startDragAndDrop(TransferMode.COPY);
         }
-        else{
+        else {
             return;
         }
 
@@ -94,10 +106,10 @@ public class Interactable extends ToggleButton {
         mouseEvent.consume();
     }
 
-    private void onDragDone(DragEvent dragEvent){
+    private void onDragDone (DragEvent dragEvent) {
         logger_.fine("onDragDone called");
 
-        if(dragEvent.getTransferMode() == TransferMode.MOVE){
+        if (dragEvent.getTransferMode() == TransferMode.MOVE) {
             Parent parent = getParent();
 
             if (parent != null && parent instanceof Pane) {
@@ -107,13 +119,18 @@ public class Interactable extends ToggleButton {
         dragEvent.consume();
     }
 
-    public Document getDocument(){
+    /**
+     * @brief Returns the Document of this Interactable
+     *
+     * @return The Document of this Interactable
+     */
+    public Document getDocument () {
         return document_;
     }
 
-    private final LDAInteractableDialog dialog_;
+    private final LDAInteractableDialog dialog_; //!< The dialog showing the Document contents
 
-    private final Document document_;
+    private final Document document_; //!< The Document of this Interactable
 
     private final Logger logger_ = Logger.getLogger(getClass().getName());
 
