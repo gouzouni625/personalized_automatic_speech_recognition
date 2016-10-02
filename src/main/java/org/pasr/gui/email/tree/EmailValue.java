@@ -1,6 +1,5 @@
 package org.pasr.gui.email.tree;
 
-
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -16,7 +15,19 @@ import java.util.logging.Logger;
 import static org.pasr.utilities.Utilities.getResource;
 
 
+/**
+ * @class EmailValue
+ * @brief Implements a Value wrapping an Email
+ *        The user can select an EmailValue or un-select it.
+ */
 public class EmailValue extends AnchorPane implements Value {
+
+    /**
+     * @brief Constructor
+     *
+     * @param email
+     *     The Email of this EmailValue
+     */
     EmailValue (Email email) {
         email_ = email;
 
