@@ -5,8 +5,24 @@ import java.util.List;
 import static java.lang.Integer.min;
 
 
+/**
+ * @class LevenshteinMatrix
+ * @brief Implements a dynamic programming algorithm for calculating the Levenshtein Distance
+ *
+ * @param <T>
+ *     The type of the Comparable used as an individual symbol
+ */
 public class LevenshteinMatrix<T extends Comparable<T>> {
-    public LevenshteinMatrix(List<T> source, List<T> destination){
+
+    /**
+     * @brif Constructor
+     *
+     * @param source
+     *     The first list of items
+     * @param destination
+     *     The second list of items
+     */
+    LevenshteinMatrix (List<T> source, List<T> destination) {
         source_ = source;
         destination_ = destination;
 
@@ -19,11 +35,14 @@ public class LevenshteinMatrix<T extends Comparable<T>> {
             for (int j = 0; j <= sourceSize; j++) {
                 if (j == 0 && i == 0) {
                     matrix_[0][0] = 0;
-                } else if (i == 0) {
+                }
+                else if (i == 0) {
                     matrix_[0][j] = j;
-                } else if (j == 0) {
+                }
+                else if (j == 0) {
                     matrix_[i][0] = i;
-                } else {
+                }
+                else {
                     matrix_[i][j] = 0;
                 }
             }
@@ -32,7 +51,10 @@ public class LevenshteinMatrix<T extends Comparable<T>> {
         calculateMatrix();
     }
 
-    private void calculateMatrix(){
+    /**
+     * @brief Creates the Levenshtein Matrix
+     */
+    private void calculateMatrix () {
         int sourceSize = source_.size();
         int destinationSize = destination_.size();
 
@@ -42,7 +64,8 @@ public class LevenshteinMatrix<T extends Comparable<T>> {
             for (int i = 1; i <= destinationSize; i++) {
                 if (destination_.get(i - 1).compareTo(source_.get(j - 1)) == 0) {
                     substitutionCost = 0;
-                } else {
+                }
+                else {
                     substitutionCost = 1;
                 }
 
@@ -76,7 +99,7 @@ public class LevenshteinMatrix<T extends Comparable<T>> {
         int minValue;
         int pathIndex = 0;
         while (currentScore > 0) {
-            if(row == 0 && column == 0){
+            if (row == 0 && column == 0) {
                 break;
             }
 
@@ -97,9 +120,11 @@ public class LevenshteinMatrix<T extends Comparable<T>> {
             if (minValue == diagonalValue && row != previousRow && column != previousColumn) {
                 row--;
                 column--;
-            } else if (minValue == leftValue && column != previousColumn) {
+            }
+            else if (minValue == leftValue && column != previousColumn) {
                 column--;
-            } else {
+            }
+            else {
                 row--;
             }
 
@@ -107,27 +132,32 @@ public class LevenshteinMatrix<T extends Comparable<T>> {
         }
     }
 
+    /**
+     * @brief Returns a pretty String representation of the Levenshtein Matrix
+     *
+     * @return A pretty String representation of the Levenshtein Matrix
+     */
     @Override
-    public String toString(){
+    public String toString () {
         StringBuilder stringBuilder = new StringBuilder();
 
         stringBuilder.append("|" + "  " + "|" + "  ");
-        for(Comparable symbol : source_){
+        for (Comparable symbol : source_) {
             stringBuilder.append(symbol.toString()).append("  ");
         }
         stringBuilder.append("\n");
 
         stringBuilder.append("|").append("  ");
-        for(int i = 0, n = destination_.size();i <= n;i++){
-            if(i > 0) {
+        for (int i = 0, n = destination_.size(); i <= n; i++) {
+            if (i > 0) {
                 stringBuilder.append(destination_.get(i - 1).toString()).append("  ");
             }
 
-            for(int j = 0, m = source_.size();j <= m;j++){
-                if(matrix_[i][j] >= 10) {
+            for (int j = 0, m = source_.size(); j <= m; j++) {
+                if (matrix_[i][j] >= 10) {
                     stringBuilder.append(matrix_[i][j]).append(" ");
                 }
-                else{
+                else {
                     stringBuilder.append(matrix_[i][j]).append("  ");
                 }
             }
@@ -137,29 +167,48 @@ public class LevenshteinMatrix<T extends Comparable<T>> {
         return stringBuilder.toString();
     }
 
-    public static <T extends Comparable<T>> int getDistance(List<T> source, List<T> destination){
+    /**
+     * @brief Returns the Levenshtein Distance between two Comparable sequences
+     *
+     * @param source
+     *     The first List
+     * @param destination
+     *     The second List
+     *
+     * @param <T>
+     *     The type of the Comparable used as an individual symbol
+     *
+     * @return The Levenshtein Distance
+     */
+    public static <T extends Comparable<T>> int getDistance (List<T> source, List<T> destination) {
         return new LevenshteinMatrix<>(source, destination).getDistance();
     }
 
-    public int[][] getMatrix(){
-        return matrix_;
-    }
-
-    public int[][] getPath(){
+    /**
+     * @brief Returns the change path that should be applied so that source matches destination
+     *
+     * @return The change path that should be applied so that source matches destination
+     */
+    public int[][] getPath () {
         return path_;
     }
 
-    public int getDistance(){
+    /**
+     * @brief Returns the Levenshtein Distance
+     *
+     * @return The Levenshtein Distance
+     */
+    int getDistance () {
         return distance_;
     }
 
-    private List<T> source_;
-    private List<T> destination_;
+    private List<T> source_; //!< The source
+    private List<T> destination_; //!< The destination
 
-    private int[][] matrix_;
+    private int[][] matrix_; //!< The Levenshtein matrix
 
-    private int[][] path_;
+    private int[][] path_; //!< The change path
 
-    private int distance_;
+    private int distance_; //!< The Levenshtein Distance
 
 }

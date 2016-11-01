@@ -1,6 +1,5 @@
 package org.pasr.gui.controllers.dialog;
 
-
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -21,19 +20,32 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class LDAInteractController extends Controller<MultiValuedMap<String, List<Long>>>{
-    public LDAInteractController(LDAInteractDialog dialog, LDA lda){
+/**
+ * @class LDAInteractController
+ * @brief Controller for LDAInteractDialog
+ */
+public class LDAInteractController extends Controller<MultiValuedMap<String, List<Long>>> {
+
+    /**
+     * @brief Constructor
+     *
+     * @param dialog
+     *     The Dialog of this Controller
+     * @param lda
+     *     The LDA algorithm implementation
+     */
+    public LDAInteractController (LDAInteractDialog dialog, LDA lda) {
         super(dialog);
 
         lda_ = lda;
     }
 
     @FXML
-    public void initialize(){
+    public void initialize () {
         List<List<String>> topWords = lda_.getTopWords(10);
 
         List<InteractPane> interactPaneList = new ArrayList<>();
-        for(int i = 0, n = topWords.size();i < n;i++){
+        for (int i = 0, n = topWords.size(); i < n; i++) {
             interactPaneList.add(new InteractPane(
                 "topic " + i + ": " + String.join(" ", topWords.get(i)),
                 "corpus " + String.valueOf(DataBase.getInstance().getCorpusEntryList().nextId() + i)
@@ -53,7 +65,7 @@ public class LDAInteractController extends Controller<MultiValuedMap<String, Lis
             return;
         }
 
-        for(int i = 0, n = documentTopicArray.length;i < n;i++){
+        for (int i = 0, n = documentTopicArray.length; i < n; i++) {
             interactPaneList.get(documentTopicArray[i])
                 .addChild(new Interactable(documentList.get(i)));
         }
@@ -63,22 +75,22 @@ public class LDAInteractController extends Controller<MultiValuedMap<String, Lis
         button.setOnAction(this :: buttonOnAction);
     }
 
-    private void buttonOnAction(ActionEvent actionEvent){
+    private void buttonOnAction (ActionEvent actionEvent) {
         MultiValuedMap<String, List<Long>> map = new ArrayListValuedHashMap<>();
 
-        for(Node interactPaneNode : vBox.getChildren()){
+        for (Node interactPaneNode : vBox.getChildren()) {
             InteractPane interactPane = (InteractPane) interactPaneNode;
 
             String corpusName = interactPane.getName();
 
             ArrayList<Long> documentIds = new ArrayList<>();
-            for(Node interactableNode : interactPane.getDocumentNodeList()){
+            for (Node interactableNode : interactPane.getDocumentNodeList()) {
                 Interactable interactable = (Interactable) interactableNode;
 
                 documentIds.add(interactable.getDocument().getId());
             }
 
-            if(!documentIds.isEmpty()) {
+            if (! documentIds.isEmpty()) {
                 map.put(corpusName, documentIds);
             }
         }
@@ -86,7 +98,7 @@ public class LDAInteractController extends Controller<MultiValuedMap<String, Lis
         dialog_.setValue(map);
     }
 
-    public void terminate(){
+    public void terminate () {
         button.fire();
     }
 

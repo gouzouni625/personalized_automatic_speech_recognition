@@ -15,10 +15,11 @@ import java.util.List;
 
 
 /**
- * A process that will adapt the acoustic model
+ * @class AcousticModelProcess
+ * @bfief A process that will adapt the acoustic model
  */
-public class AcousticModelProcess extends Process{
-    public AcousticModelProcess() throws IOException{
+public class AcousticModelProcess extends Process {
+    public AcousticModelProcess () throws IOException {
         org.pasr.database.Configuration dataBaseConfiguration = org.pasr.database.Configuration
             .getInstance();
 
@@ -92,13 +93,13 @@ public class AcousticModelProcess extends Process{
     }
 
     @Override
-    public boolean startAndWaitFor(long timeout) throws IOException, InterruptedException {
+    public boolean startAndWaitFor (long timeout) throws IOException, InterruptedException {
         processAudioEntries();
 
         return super.startAndWaitFor(timeout);
     }
 
-    private void processAudioEntries() throws IOException {
+    private void processAudioEntries () throws IOException {
         List<Index.Entry> audioEntryList = DataBase.getInstance().getAudioEntryList();
 
         org.pasr.database.Configuration dataBaseConfiguration = org.pasr.database.Configuration
@@ -116,7 +117,7 @@ public class AcousticModelProcess extends Process{
             )
         ));
 
-        for(Index.Entry entry : audioEntryList){
+        for (Index.Entry entry : audioEntryList) {
             String filename = entry.getFilename();
 
             FileUtils.copyFile(

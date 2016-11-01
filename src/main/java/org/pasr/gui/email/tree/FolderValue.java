@@ -1,6 +1,5 @@
 package org.pasr.gui.email.tree;
 
-
 import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.event.ActionEvent;
@@ -29,7 +28,28 @@ import static org.pasr.utilities.Utilities.getResource;
 import static org.pasr.utilities.Utilities.getResourceStream;
 
 
+/**
+ * @class FolderValue
+ * @brief Implements a Value as a folder
+ *        The user can select a folder (selecting all its containing folders and e-mails) or
+ *        download it if it hasn't been downloaded yet.
+ */
 class FolderValue extends AnchorPane implements Value, Observer {
+
+    /**
+     * @brief Constructor
+     *
+     * @param path
+     *     The folder path inside the e-mail tree
+     * @param emailTreeItem
+     *     The EmailTreeItem holding this FolderValue
+     * @param hasEmailFetcher
+     *     An implementation of the HasEmailFetcher interface to trigger downloading of this folder
+     * @param numberOfContainedEmails
+     *     The number of e-mails contained by this folder
+     * @param isRoot
+     *     Whether this is the root folder of the e-mail tree
+     */
     FolderValue (String path, EmailTreeItem emailTreeItem, HasEmailFetcher hasEmailFetcher,
                  int numberOfContainedEmails, boolean isRoot) {
 
@@ -120,7 +140,7 @@ class FolderValue extends AnchorPane implements Value, Observer {
     }
 
     private void toggleButtonOnAction (ActionEvent actionEvent) {
-        if(toggleButton.isSelected()) {
+        if (toggleButton.isSelected()) {
             try {
                 hasEmailFetcher_.fetch(path_);
 
@@ -130,9 +150,9 @@ class FolderValue extends AnchorPane implements Value, Observer {
                     " again in a few moments.");
             }
         }
-        else{
+        else {
             hasEmailFetcher_.stop();
-            if(currentState_ == State.DOWNLOADING) {
+            if (currentState_ == State.DOWNLOADING) {
                 setState(State.IDLE);
             }
         }
@@ -188,10 +208,10 @@ class FolderValue extends AnchorPane implements Value, Observer {
                 showProgressIndicator();
                 break;
             case BLOCKED:
-                if(currentState_ == State.IDLE){
+                if (currentState_ == State.IDLE) {
                     disableSelection();
                 }
-                else{
+                else {
                     enableSelection();
                 }
                 showInformation();
@@ -310,7 +330,7 @@ class FolderValue extends AnchorPane implements Value, Observer {
                             break;
                     }
 
-                    if(toggleButton.isSelected()){
+                    if (toggleButton.isSelected()) {
                         Platform.runLater(() -> toggleButton.fire());
                     }
 
@@ -319,12 +339,17 @@ class FolderValue extends AnchorPane implements Value, Observer {
         }
     }
 
+    /**
+     * @class State
+     * @brief Holds the different states of a folder
+     */
     public enum State {
-        IDLE,
-        DOWNLOADING,
-        BLOCKED,
-        DOWNLOADED,
-        DISABLED
+        IDLE, //!< Waiting for an action
+        DOWNLOADING, //!< Downloading the contents of this folder
+        BLOCKED, //!< Blocked because another folder is downloading
+        DOWNLOADED, //!< The contents of this folder have been downloaded
+        DISABLED //!< If this is the root folder of the e-mail tree
+                 //!< or contains no e-mails or folders
     }
 
     @FXML

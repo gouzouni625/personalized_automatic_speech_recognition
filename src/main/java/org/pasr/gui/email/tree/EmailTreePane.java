@@ -1,8 +1,8 @@
 package org.pasr.gui.email.tree;
 
-
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.ProgressIndicator;
@@ -25,8 +25,19 @@ import java.util.logging.Logger;
 import static org.pasr.utilities.Utilities.getResource;
 
 
+/**
+ * @class EmailTreePane
+ * @brief Implements an e-mail tree
+ *        It wraps a JavaFX TreeView which hosts TreeItem objects as children. The TreeItem is
+ *        implemented as an EmailTreeItem with a value of type Value. The value can be either a
+ *        FolderValue or an EmailValue each with different visualization and functionality.
+ */
 public class EmailTreePane extends AnchorPane implements Observer, HasEmailFetcher {
-    public EmailTreePane(){
+
+    /**
+     * @brief Default Constructor
+     */
+    public EmailTreePane () {
         try {
             URL location = getResource("/fxml/tree/pane.fxml");
 
@@ -43,34 +54,39 @@ public class EmailTreePane extends AnchorPane implements Observer, HasEmailFetch
         } catch (IOException e) {
             Logger.getLogger(getClass().getName())
                 .severe("Could not load resource:/fxml/corpus/pane.fxml\n" +
-                "The file might be missing or be corrupted.\n" +
-                "Application will terminate.\n" +
-                "Exception Message: " + e.getMessage());
+                    "The file might be missing or be corrupted.\n" +
+                    "Application will terminate.\n" +
+                    "Exception Message: " + e.getMessage());
             Platform.exit();
         }
     }
 
     @FXML
-    public void initialize(){
+    public void initialize () {
         integerField.setMinValue(1);
         integerField.updateFilter();
     }
 
-    public void addSelectionListener(ChangeListener<TreeItem<Value>> changeListener){
-        if(changeListener != null){
+    public void addSelectionListener (ChangeListener<TreeItem<Value>> changeListener) {
+        if (changeListener != null) {
             treeView.getSelectionModel().selectedItemProperty().addListener(changeListener);
         }
     }
 
-    public int getFieldValue(){
+    /**
+     * @brief Returns the value of the field with the number of e-mails to fetch
+     *
+     * @return The value of the field with the number of e-mails to fetch
+     */
+    public int getFieldValue () {
         return integerField.getValue();
     }
 
-    public Set<Email> getSelectedEmails (){
+    public Set<Email> getSelectedEmails () {
         return ((EmailTreeItem) treeView.getRoot()).getSelectedEmails();
     }
 
-    public void init(EmailFetcher emailFetcher){
+    public void init (EmailFetcher emailFetcher) {
         emailFetcher_ = emailFetcher;
         emailFetcher_.addObserver(this);
 
@@ -81,7 +97,7 @@ public class EmailTreePane extends AnchorPane implements Observer, HasEmailFetch
         );
     }
 
-    private void addFolder(String path, int numberOfContainedEmails){
+    private void addFolder (String path, int numberOfContainedEmails) {
         add(
             FilenameUtils.getFullPathNoEndSeparator(path),
             createFolderTreeItem(path, numberOfContainedEmails)
@@ -93,29 +109,42 @@ public class EmailTreePane extends AnchorPane implements Observer, HasEmailFetch
     }
 
     private void add (String path, TreeItem<Value> treeItem) {
-        if(path == null){
+        if (path == null) {
             throw new IllegalArgumentException("path must not be null!");
         }
 
-        if(treeItem == null){
+        if (treeItem == null) {
             throw new IllegalArgumentException("treeItem must not be null!");
         }
 
-        if(path.startsWith("/")){
+        if (path.startsWith("/")) {
             throw new IllegalArgumentException("path must not start with /!");
         }
 
-        if(path.endsWith("/")){
+        if (path.endsWith("/")) {
             throw new IllegalArgumentException("path must not end with /!");
         }
 
-        if(path.isEmpty()){
-            if(treeItem.getValue().isEmail()) {
+        if (path.isEmpty()) {
+            if (treeItem.getValue().isEmail()) {
                 throw new IllegalArgumentException("path must not be empty for an email!");
             }
-            else{
+            else {
                 // Top folders will be added here
-                treeView.getRoot().getChildren().add(treeItem);
+                ObservableList<TreeItem<Value>> rootChildren = treeView.getRoot().getChildren();
+                if (! rootChildren.contains(treeItem)) {
+                    rootChildren.add(treeItem);
+                }
+                else {
+                    TreeItem<Value> existingChild = rootChildren.get(
+                        rootChildren.indexOf(treeItem)
+                    );
+
+                    // No need to copy the children of treeItem to existingChild since we are
+                    // at folder state and e-mails will start arriving later.
+                    existingChild.setValue(treeItem.getValue());
+                }
+
                 return;
             }
         }
@@ -135,7 +164,7 @@ public class EmailTreePane extends AnchorPane implements Observer, HasEmailFetch
                 break;
             }
         }
-        if(depth < numberOfFolders){
+        if (depth < numberOfFolders) {
             for (int i = depth; i < numberOfFolders; i++) {
                 // At this point, in order to add a folder of depth1, we should create a folder
                 // of depth2 < depth1 but we don't known the number of contained Emails for the
@@ -151,22 +180,24 @@ public class EmailTreePane extends AnchorPane implements Observer, HasEmailFetch
 
             currentFolder.getChildren().add(treeItem);
         }
-        if(depth == numberOfFolders){
-            if (! currentFolder.getChildren().contains(treeItem)) {
-                currentFolder.getChildren().add(treeItem);
+        else if (depth == numberOfFolders) {
+            ObservableList<TreeItem<Value>> currentFolderChildren = currentFolder.getChildren();
+
+            if (! currentFolderChildren.contains(treeItem)) {
+                currentFolderChildren.add(treeItem);
             }
-            else{
+            else {
                 // Replace old folders with new ones since the new might have information regarding
                 // the number of Emails that they contain. Note that, there is no need to replace
                 // the TreeItem which would force us to move the children to the new TreeItem. We
                 // only need to move the values.
-                if(treeItem.getValue().isFolder()){
-                    TreeItem<Value> oldFolder = currentFolder.getChildren().get(
-                        currentFolder.getChildren().indexOf(treeItem)
-                    );
+                // No need to check if the existing child is a Folder since to match treeItem it
+                // has to be a folder.
+                TreeItem<Value> oldFolder = currentFolderChildren.get(
+                    currentFolderChildren.indexOf(treeItem)
+                );
 
-                    oldFolder.setValue(treeItem.getValue());
-                }
+                oldFolder.setValue(treeItem.getValue());
             }
         }
     }
@@ -183,12 +214,12 @@ public class EmailTreePane extends AnchorPane implements Observer, HasEmailFetch
         return null;
     }
 
-    private EmailTreeItem createFolderTreeItem(String folderPath, int numberOfContainedEmails){
+    private EmailTreeItem createFolderTreeItem (String folderPath, int numberOfContainedEmails) {
         return createFolderTreeItem(folderPath, numberOfContainedEmails, false);
     }
 
-    private EmailTreeItem createFolderTreeItem(String folderPath, int numberOfContainedEmails,
-                                               boolean isRoot){
+    private EmailTreeItem createFolderTreeItem (String folderPath, int numberOfContainedEmails,
+                                                boolean isRoot) {
         EmailTreeItem treeItem = new EmailTreeItem();
 
         FolderValue folderValue = new FolderValue(folderPath, treeItem, this,
@@ -200,17 +231,17 @@ public class EmailTreePane extends AnchorPane implements Observer, HasEmailFetch
     }
 
     @Override
-    public void fetch(String path){
+    public void fetch (String path) {
         emailFetcher_.fetch(path, integerField.getValue());
     }
 
     @Override
-    public void stop(){
+    public void stop () {
         emailFetcher_.stop();
     }
 
     @Override
-    public void addObserver(Observer observer){
+    public void addObserver (Observer observer) {
         emailFetcher_.addObserver(observer);
     }
 

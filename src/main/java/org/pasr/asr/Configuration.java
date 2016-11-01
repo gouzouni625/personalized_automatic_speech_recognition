@@ -1,57 +1,105 @@
 package org.pasr.asr;
 
-
 import com.google.gson.Gson;
+
 import java.io.InputStreamReader;
 
 import static org.pasr.utilities.Utilities.getResourceStream;
 
+
+/**
+ * @class Configuration
+ * @brief Implements the configuration of the CMU Sphinx ASR engine
+ *        Contains the path to the acoustic model, the language model and the dictionary.
+ */
 public class Configuration {
-    static{
+
+    static {
         DEFAULT_CONFIGURATION = new Gson().fromJson(
             new InputStreamReader(getResourceStream("/asr/default_paths.json")),
             Configuration.class
         );
     }
 
+    /**
+     * @brief Default Constructor
+     */
     public Configuration () {
         acousticModelPath = "";
         dictionaryPath = "";
         languageModelPath = "";
     }
 
-    public String getAcousticModelPath(){
+    /**
+     * @brief Returns the acoustic model path
+     *
+     * @return The acoustic model path
+     */
+    public String getAcousticModelPath () {
         return acousticModelPath;
     }
 
-    public String getDictionaryPath(){
+    /**
+     * @brief Returns the dictionary path
+     *
+     * @return The dictionary path
+     */
+    public String getDictionaryPath () {
         return dictionaryPath;
     }
 
-    public String getLanguageModelPath(){
+    /**
+     * @brief Returns the language model path
+     *
+     * @return The language model path
+     */
+    public String getLanguageModelPath () {
         return languageModelPath;
     }
 
-    public void setAcousticModelPath(String acousticModelPath){
+    /**
+     * @brief Sets the acoustic model path
+     *
+     * @param acousticModelPath
+     *     The new acoustic model path
+     */
+    public void setAcousticModelPath (String acousticModelPath) {
         this.acousticModelPath = acousticModelPath;
     }
 
-    public void setDictionaryPath(String dictionaryPath){
+    /**
+     * @brief Sets the dictionary path
+     *
+     * @param dictionaryPath
+     *     The new dictionary path
+     */
+    public void setDictionaryPath (String dictionaryPath) {
         this.dictionaryPath = dictionaryPath;
     }
 
-    public void setLanguageModelPath(String languageModelPath){
+    /**
+     * @brief Sets the language model path
+     *
+     * @param languageModelPath
+     *     The new language model path
+     */
+    public void setLanguageModelPath (String languageModelPath) {
         this.languageModelPath = languageModelPath;
     }
 
-    public static Configuration getDefaultConfiguration(){
+    /**
+     * @brief Returns the default ASR configuration
+     *
+     * @return The default ASR configuration
+     */
+    public static Configuration getDefaultConfiguration () {
         return DEFAULT_CONFIGURATION;
     }
 
-    private String acousticModelPath;
-    private String dictionaryPath;
-    private String languageModelPath;
+    private String acousticModelPath; //!< The acoustic model path of this Configuration
+    private String dictionaryPath; //!< The dictionary path of this Configuration
+    private String languageModelPath; //!< The language model path of this Configuration
 
-    private static final Configuration DEFAULT_CONFIGURATION;
+    private static final Configuration DEFAULT_CONFIGURATION; //!< The default configuration
 
 }

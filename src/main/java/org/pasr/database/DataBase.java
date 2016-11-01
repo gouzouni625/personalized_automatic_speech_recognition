@@ -1,6 +1,5 @@
 package org.pasr.database;
 
-
 import org.apache.commons.io.FileUtils;
 import org.pasr.asr.dictionary.Dictionary;
 import org.pasr.database.corpus.Index;
@@ -34,7 +33,18 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 
+/**
+ * @class DataBase
+ * @brief Implements the data storage API as a singleton
+ */
 public class DataBase {
+
+    /**
+     * @brief Constructor
+     *        Made private to prevent from instantiation
+     *
+     * @throws IOException If the Configuration fails to load
+     */
     private DataBase () throws IOException {
         configuration_ = Configuration.create();
         corpusIndex_ = org.pasr.database.corpus.Index.getInstance();
@@ -42,32 +52,69 @@ public class DataBase {
         audioIndex_ = org.pasr.database.audio.Index.getInstance();
     }
 
-    public static DataBase create() throws IOException {
-        if(instance_ == null) {
+    /**
+     * @brief Creates the DataBase instance
+     *
+     * @return The DataBase instance
+     *
+     * @throws IOException If the Configuration fails to load
+     */
+    public static DataBase create () throws IOException {
+        if (instance_ == null) {
             instance_ = new DataBase();
         }
 
         return instance_;
     }
 
-    public Configuration getConfiguration(){
+    /**
+     * @brief Returns the DataBase Configuration
+     *
+     * @return The DataBase Configuration
+     */
+    public Configuration getConfiguration () {
         return configuration_;
     }
 
-    public org.pasr.database.corpus.Index getCorpusEntryList (){
+    /**
+     * @brief Returns the corpus Index
+     *
+     * @return The corpus Index
+     */
+    public org.pasr.database.corpus.Index getCorpusEntryList () {
         return corpusIndex_;
     }
 
-    public int getNumberOfCorpora(){
+    /**
+     * @brief Returns the number of corpora in the DataBase
+     *
+     * @return The number of corpora in the DataBase
+     */
+    public int getNumberOfCorpora () {
         return corpusIndex_.size();
     }
 
-    public List<org.pasr.database.audio.Index.Entry> getAudioEntryList() {
+    /**
+     * @brief Returns the audio Index
+     *
+     * @return The audio Index
+     */
+    public List<org.pasr.database.audio.Index.Entry> getAudioEntryList () {
         return audioIndex_;
     }
 
+    /**
+     * @brief Returns a Corpus given its id
+     *
+     * @param corpusId
+     *     The id of the Corpus
+     *
+     * @return The Corpus with the given id
+     *
+     * @throws IOException If the Corpus does not exist or at least one of its files is corrupted
+     */
     public Corpus getCorpusById (int corpusId) throws IOException {
-        if(! corpusIndex_.containsId(corpusId)){
+        if (! corpusIndex_.containsId(corpusId)) {
             throw new IllegalArgumentException("Id does not exist.");
         }
 
@@ -98,11 +145,11 @@ public class DataBase {
 
         try {
             Scanner documentTitleScanner = new Scanner(new File(directory, "document_titles.txt"));
-            while(documentTitleScanner.hasNextLine()){
+            while (documentTitleScanner.hasNextLine()) {
                 Matcher matcher = Pattern.compile("([0-9]+) (.+)")
                     .matcher(documentTitleScanner.nextLine());
 
-                if(matcher.matches()){
+                if (matcher.matches()) {
                     documentTitleMap.put(Long.parseLong(matcher.group(1)), matcher.group(2));
                 }
             }
@@ -128,19 +175,19 @@ public class DataBase {
             throw new FileNotFoundException("document_ids.txt");
         }
 
-        while(sentencesScanner.hasNextLine()){
+        while (sentencesScanner.hasNextLine()) {
             Matcher matcher = sentencePattern.matcher(sentencesScanner.nextLine());
 
-            if(matcher.matches()){
+            if (matcher.matches()) {
                 long documentId;
-                if(documentIdsScanner.hasNextLine()){
+                if (documentIdsScanner.hasNextLine()) {
                     documentId = Long.parseLong(documentIdsScanner.nextLine());
                 }
-                else{
+                else {
                     throw new IOException("Malformed file: document_ids.txt");
                 }
 
-                if(documentTitleMap.containsKey(documentId)) {
+                if (documentTitleMap.containsKey(documentId)) {
                     sentences.add(new WordSequence(
                         matcher.group(1), documentId, documentTitleMap.get(documentId)
                     ));
@@ -157,15 +204,35 @@ public class DataBase {
         return new Corpus(sentences);
     }
 
-    public Dictionary getDictionaryById(int id) throws FileNotFoundException {
+    /**
+     * @brief Returns a Dictionary given its id
+     *
+     * @param id
+     *     The id of the Dictionary
+     *
+     * @return The Dictionary with the given id
+     *
+     * @throws FileNotFoundException If the Dictionary does not exist
+     */
+    public Dictionary getDictionaryById (int id) throws FileNotFoundException {
         return Dictionary.createFromStream(new FileInputStream(getDictionaryPathById(id)));
     }
 
+    /**
+     * @brief Returns the path of a Dictionary given its id
+     *
+     * @param id
+     *     The id of the Dictionary
+     *
+     * @return The path of the Dictionary
+     *
+     * @throws FileNotFoundException If the Dictionary does not exist
+     */
     public String getDictionaryPathById (int id) throws FileNotFoundException {
         String path = configuration_.getCorpusDirectoryPath() +
             String.valueOf(id) + "/dictionary.dict";
 
-        if(!(new File(path).isFile())){
+        if (! (new File(path).isFile())) {
             // TODO Maybe don't throw an exception but first, try creating a new dictionary
             throw new FileNotFoundException("Dictionary doesn't exist.");
         }
@@ -173,11 +240,21 @@ public class DataBase {
         return path;
     }
 
+    /**
+     * @brief Returns a LanguageModel given its id
+     *
+     * @param id
+     *     The id of the LanguageModel
+     *
+     * @return The LanguageModel with the given id
+     *
+     * @throws FileNotFoundException If the LanguageModel doesn't exist
+     */
     public String getLanguageModelPathById (int id) throws FileNotFoundException {
         String path = configuration_.getCorpusDirectoryPath() +
             String.valueOf(id) + "/language_model.lm";
 
-        if((!new File(path).isFile())){
+        if ((! new File(path).isFile())) {
             // TODO Maybe don't throw an exception but first, try creating a new language model
             throw new FileNotFoundException("Language Model doesn't exist.");
         }
@@ -185,10 +262,17 @@ public class DataBase {
         return path;
     }
 
-    public String getAcousticModelPath() throws FileNotFoundException {
+    /**
+     * @brief Returns the path to the acoustic model
+     *
+     * @return The path to the acoustic model
+     *
+     * @throws FileNotFoundException If the acoustic model does not exist
+     */
+    public String getAcousticModelPath () throws FileNotFoundException {
         String path = configuration_.getAcousticModelPath();
 
-        if(!new File(path).isDirectory()){
+        if (! new File(path).isDirectory()) {
             // TODO Maybe don't throw an exception but first, try creating a new acoustic model
             throw new FileNotFoundException("Acoustic Model doesn't exist.");
         }
@@ -196,22 +280,42 @@ public class DataBase {
         return path;
     }
 
-    public List<String> getUnUsedArcticSentences(int count){
+    /**
+     * @brief Returns the unused arctic sentences
+     *
+     * @param count
+     *     The number of sentences to return
+     *
+     * @return The unused arctic sentences
+     */
+    public List<String> getUnUsedArcticSentences (int count) {
         List<String> sentences = arcticIndex_.stream()
-            .filter(entry -> !entry.isUsed())
-            .map(org.pasr.database.arctic.Index.Entry :: getSentence)
+            .filter(entry -> ! entry.isUsed())
+            .map(org.pasr.database.arctic.Index.Entry:: getSentence)
             .collect(Collectors.toList());
 
         Collections.shuffle(sentences);
 
-        if(count < 0 || count > sentences.size()){
+        if (count < 0 || count > sentences.size()) {
             return sentences;
         }
-        else{
+        else {
             return sentences.subList(0, count);
         }
     }
 
+    /**
+     * @brief Creates a new Corpus entry
+     *
+     * @param corpus
+     *     The Corpus of the entry
+     * @param dictionary
+     *     The Dictionary of the Corpus
+     *
+     * @return The id of the newly created Corpus
+     *
+     * @throws IOException If an I/O error occurs
+     */
     public int newCorpusEntry (Corpus corpus, Dictionary dictionary) throws IOException {
         File corpusDirectory = new File(configuration_.getCorpusDirectoryPath());
 
@@ -219,13 +323,13 @@ public class DataBase {
         corpus.setId(newCorpusId);
 
         File newCorpusDirectory = new File(corpusDirectory, String.valueOf(newCorpusId));
-        if(newCorpusDirectory.exists()){
-            if(newCorpusDirectory.isFile()){
-                if(!newCorpusDirectory.delete()){
+        if (newCorpusDirectory.exists()) {
+            if (newCorpusDirectory.isFile()) {
+                if (! newCorpusDirectory.delete()) {
                     throw new IOException("Could not delete file: " + newCorpusDirectory.getPath());
                 }
             }
-            else if(newCorpusDirectory.isDirectory()){
+            else if (newCorpusDirectory.isDirectory()) {
                 try {
                     FileUtils.deleteDirectory(newCorpusDirectory);
                 } catch (IOException e) {
@@ -234,12 +338,12 @@ public class DataBase {
                     );
                 }
             }
-            else{
+            else {
                 throw new IOException("Unknown file type: " + newCorpusDirectory.getPath());
             }
         }
 
-        if(!newCorpusDirectory.mkdir()){
+        if (! newCorpusDirectory.mkdir()) {
             throw new IOException("Could not create directory: " + newCorpusDirectory.getPath());
         }
 
@@ -264,7 +368,9 @@ public class DataBase {
         return newCorpusId;
     }
 
-    private void saveCorpusToDirectory(Corpus corpus, File directory) throws FileNotFoundException {
+    private void saveCorpusToDirectory (Corpus corpus, File directory)
+        throws FileNotFoundException {
+
         PrintWriter sentencesPrintWriter;
         try {
             sentencesPrintWriter = new PrintWriter(new File(directory, "sentences.txt"));
@@ -300,9 +406,9 @@ public class DataBase {
 
         corpus.stream()
             .collect(Collectors.toMap(
-                WordSequence :: getDocumentId, WordSequence :: getDocumentTitle,
+                WordSequence:: getDocumentId, WordSequence:: getDocumentTitle,
                 (title1, title2) -> {
-                    if(!title1.equals(title2)) {
+                    if (! title1.equals(title2)) {
                         logger_.warning(
                             "Found 2 documents with the same id but different title.\n" +
                                 "This should not happen since a document is an e-mail," +
@@ -320,7 +426,7 @@ public class DataBase {
         documentTitlesPrintWriter.close();
     }
 
-    private void saveDictionaryToDirectory(Dictionary dictionary, File directory)
+    private void saveDictionaryToDirectory (Dictionary dictionary, File directory)
         throws IOException {
 
         try {
@@ -339,19 +445,31 @@ public class DataBase {
                 new File(directory, "unknown_words.txt")
             );
 
-            dictionary.getUnknownWords().forEach(unknownWordPrintWriter :: println);
+            dictionary.getUnknownWords().forEach(unknownWordPrintWriter:: println);
             unknownWordPrintWriter.close();
         } catch (FileNotFoundException e) {
             throw new FileNotFoundException("unknown_words.txt");
         }
     }
 
-    public void newAudioEntry(byte[] audioData, String sentence, int corpusId) throws IOException {
+    /**
+     * @brief Creates a new audio entry
+     *
+     * @param audioData
+     *     The audioData of the entry
+     * @param sentence
+     *     The sentence of the entry
+     * @param corpusId
+     *     The id of the Corpus that the sentence belongs
+     *
+     * @throws IOException If an I/O error occurs
+     */
+    public void newAudioEntry (byte[] audioData, String sentence, int corpusId) throws IOException {
         int newEntryId = audioIndex_.size() + 1;
 
         File newEntryFile = new File(configuration_.getAudioDirectoryPath(), newEntryId + ".wav");
 
-        long numberOfFrames = (long)(audioData.length / Recorder.AUDIO_FORMAT.getFrameSize());
+        long numberOfFrames = (long) (audioData.length / Recorder.AUDIO_FORMAT.getFrameSize());
 
         AudioInputStream audioInputStream = new AudioInputStream(
             new ByteArrayInputStream(audioData, 0, audioData.length),
@@ -367,17 +485,38 @@ public class DataBase {
         ));
     }
 
-    public boolean newAcousticModel(long timeout) throws IOException, InterruptedException {
+    /**
+     * @brief Creates a new acoustic model
+     *
+     * @param timeout
+     *     The time to wait for the acoustic model to be created
+     *
+     * @return True if the new acoustic model was created
+     *
+     * @throws IOException If an I/O error occurs
+     * @throws InterruptedException If the process gets interrupted
+     */
+    public boolean newAcousticModel (long timeout) throws IOException, InterruptedException {
         return new AcousticModelProcess().startAndWaitFor(timeout);
     }
 
-    public void setArcticSentenceAsUsed(String sentence){
+    /**
+     * @brief Sets the given arctic sentence as used
+     *
+     * @param sentence
+     *     The arctic sentence
+     */
+    public void setArcticSentenceAsUsed (String sentence) {
         arcticIndex_.stream()
             .filter(entry -> entry.getSentence().equals(sentence))
             .forEach(entry -> entry.setUsed(true));
     }
 
-    public void close(){
+    /**
+     * @brief Closes the DataBase releasing all of its resources
+     *        The new data entries are stored inside the indices during this method run
+     */
+    public void close () {
         try {
             corpusIndex_.save();
         } catch (FileNotFoundException e) {
@@ -409,17 +548,22 @@ public class DataBase {
         }
     }
 
+    /**
+     * @brief Returns the instance of the DataBase
+     *
+     * @return The instance of the DataBase
+     */
     public static DataBase getInstance () {
         return instance_;
     }
 
-    private final Configuration configuration_;
-    private final org.pasr.database.corpus.Index corpusIndex_;
-    private final org.pasr.database.arctic.Index arcticIndex_;
-    private final org.pasr.database.audio.Index audioIndex_;
+    private final Configuration configuration_; //!< The configuration of the DataBase
+    private final org.pasr.database.corpus.Index corpusIndex_; //!< The corpus index
+    private final org.pasr.database.arctic.Index arcticIndex_; //!< The arctic index
+    private final org.pasr.database.audio.Index audioIndex_; //!< The audio index
 
-    private static DataBase instance_;
+    private static DataBase instance_; //!< The instance of this singleton
 
-    private final Logger logger_ = Logger.getLogger(DataBase.class.getName());
+    private final Logger logger_ = Logger.getLogger(DataBase.class.getName()); //!< The logger
 
 }

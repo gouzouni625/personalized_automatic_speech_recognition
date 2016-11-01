@@ -1,6 +1,5 @@
 package org.pasr.gui;
 
-
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.stage.Stage;
@@ -34,9 +33,23 @@ import java.util.stream.Collectors;
 import static org.pasr.utilities.Utilities.getResourceStream;
 
 
+/**
+ * @class MainView
+ * @brief Main entry point for the JavaFX application
+ *        The structure is the following:
+ *
+ *        Each controller extends a base controller and defines an API interface which wraps all the
+ *        interactions of the controller with the outer world. An implementation of this interface
+ *        is injected in the constructor of the controller making it independent of the rest of the
+ *        application. The MainView implements all the API interfaces of the controllers and is
+ *        passed in the constructor of each controller during instantiation. The instantiation of
+ *        each controller is done inside a factory class which acts as the intermediate between the
+ *        MainView and the controllers. In the future, this can be done more efficiently using the
+ *        Spring framework.
+ */
 public class MainView extends Application implements MainController.API,
     EmailListController.API, LDAController.API, RecordController.API, DictateController.API,
-    IntermediateController.API{
+    IntermediateController.API {
 
     private static Logger logger_ = Logger.getLogger(MainView.class.getName());
 
@@ -55,15 +68,16 @@ public class MainView extends Application implements MainController.API,
     private Corpus corpus_;
 
     private String intermediateMessage_ = "Please wait...";
-    private enum IntermediateMessages{
+
+    private enum IntermediateMessages {
         NEW_ACOUSTIC_MODEL("Please wait while the acoustic model is being adapted...");
 
-        IntermediateMessages(String message){
+        IntermediateMessages (String message) {
             message_ = message;
         }
 
         @Override
-        public String toString(){
+        public String toString () {
             return message_;
         }
 
@@ -72,13 +86,13 @@ public class MainView extends Application implements MainController.API,
 
     private NewAcousticModelThread newAcousticModelThread_;
 
-    public static void main(String[] args){
+    public static void main (String[] args) {
         logger_.info("Initializing logger...");
 
         try {
             InputStream inputStream = getResourceStream("/logging/logging.properties");
 
-            if(inputStream == null){
+            if (inputStream == null) {
                 throw new IOException(
                     "getResourceStream(\"/logging/logging.properties\") returned null"
                 );
@@ -115,7 +129,7 @@ public class MainView extends Application implements MainController.API,
     }
 
     @Override
-    public void start(Stage primaryStage) {
+    public void start (Stage primaryStage) {
         primaryStage_ = primaryStage;
 
         primaryStage.setTitle("Personalized Automatic Speech Recognition");
@@ -131,7 +145,7 @@ public class MainView extends Application implements MainController.API,
     }
 
     @Override
-    public void initialScene(){
+    public void initialScene () {
         try {
             primaryStage_.setScene(sceneFactory_.create(SceneFactory.Scenes.MAIN_SCENE, this));
         } catch (IOException e) {
@@ -145,28 +159,28 @@ public class MainView extends Application implements MainController.API,
     }
 
     @Override
-    public String getEmailAddress(){
+    public String getEmailAddress () {
         return emailAddress_;
     }
 
     @Override
-    public String getPassword(){
+    public String getPassword () {
         return password_;
     }
 
     @Override
     public void newCorpus (String emailAddress, String password) {
-        if(emailAddress == null){
+        if (emailAddress == null) {
             logger_.warning("emailAddress in newCorpus was null");
             return;
         }
 
-        if(password == null){
+        if (password == null) {
             logger_.warning("password in newCorpus was null");
             return;
         }
 
-        if(!emailAddress.endsWith("@gmail.com")){
+        if (! emailAddress.endsWith("@gmail.com")) {
             console_.postMessage("At the moment, only gmail addresses are supported.");
             console_.postMessage(
                 "Please, make sure that the provided address ends with @gmail.com" +
@@ -178,12 +192,12 @@ public class MainView extends Application implements MainController.API,
         emailAddress_ = emailAddress;
         password_ = password;
 
-        if(!createNewEmailFetcher()){
+        if (! createNewEmailFetcher()) {
             logger_.severe("Could not create a new EmailFetcher.");
             return;
         }
 
-        if(!openEmailFetcher(emailAddress_, password_)){
+        if (! openEmailFetcher(emailAddress_, password_)) {
             logger_.warning("Could not open EmailFetcher.");
             return;
         }
@@ -202,7 +216,7 @@ public class MainView extends Application implements MainController.API,
         }
     }
 
-    private boolean createNewEmailFetcher(){
+    private boolean createNewEmailFetcher () {
         logger_.info("Creating new EmailFetcher.");
 
         // Before create a new fetcher, make sure any old one is dead
@@ -225,7 +239,7 @@ public class MainView extends Application implements MainController.API,
         return true;
     }
 
-    private boolean openEmailFetcher(String emailAddress, String password){
+    private boolean openEmailFetcher (String emailAddress, String password) {
         logger_.info("Opening EmailFetcher.");
 
         try {
@@ -266,12 +280,12 @@ public class MainView extends Application implements MainController.API,
     }
 
     @Override
-    public EmailFetcher getEmailFetcher(){
+    public EmailFetcher getEmailFetcher () {
         return emailFetcher_;
     }
 
     @Override
-    public void processEmail(Set<Email> emails){
+    public void processEmail (Set<Email> emails) {
         emailFetcher_.terminate();
 
         corpus_ = new Corpus();
@@ -292,12 +306,12 @@ public class MainView extends Application implements MainController.API,
     }
 
     @Override
-    public Corpus getCorpus(){
+    public Corpus getCorpus () {
         return corpus_;
     }
 
     @Override
-    public void record(int corpusId){
+    public void record (int corpusId) {
         setCorpus(corpusId);
 
         try {
@@ -313,7 +327,7 @@ public class MainView extends Application implements MainController.API,
     }
 
     @Override
-    public void dictate(int corpusId){
+    public void dictate (int corpusId) {
         setCorpus(corpusId);
 
         setIntermediateMessage(IntermediateMessages.NEW_ACOUSTIC_MODEL);
@@ -322,11 +336,11 @@ public class MainView extends Application implements MainController.API,
         createNewAcousticModel();
     }
 
-    private void setIntermediateMessage(IntermediateMessages intermediateMessage){
+    private void setIntermediateMessage (IntermediateMessages intermediateMessage) {
         intermediateMessage_ = intermediateMessage.toString();
     }
 
-    private void showIntermediateScene(){
+    private void showIntermediateScene () {
         try {
             primaryStage_.setScene(sceneFactory_.create(
                 SceneFactory.Scenes.INTERMEDIATE_SCENE, this)
@@ -342,17 +356,17 @@ public class MainView extends Application implements MainController.API,
     }
 
     @Override
-    public String getMessage(){
+    public String getMessage () {
         return intermediateMessage_;
     }
 
-    private class NewAcousticModelThread extends Thread{
-        NewAcousticModelThread(){
+    private class NewAcousticModelThread extends Thread {
+        NewAcousticModelThread () {
             setDaemon(true);
         }
 
         @Override
-        public void run(){
+        public void run () {
             logger_.info("NewAcousticModelThread started!");
 
             boolean created = false;
@@ -368,7 +382,7 @@ public class MainView extends Application implements MainController.API,
                 logger_.log(Level.WARNING, "Interrupted while creating new acoustic model.", e);
             }
 
-            if(!created){
+            if (! created) {
                 console_.postMessage("Could not create an adapted acoustic model.\n" +
                     "You should check your user permissions inside the directory " +
                     dataBase_.getConfiguration().getDataBaseDirectoryPath() + ".\n" +
@@ -384,14 +398,14 @@ public class MainView extends Application implements MainController.API,
         private Logger logger_ = Logger.getLogger(getClass().getName());
     }
 
-    private void createNewAcousticModel(){
-        if(newAcousticModelThread_ == null || !newAcousticModelThread_.isAlive()){
+    private void createNewAcousticModel () {
+        if (newAcousticModelThread_ == null || ! newAcousticModelThread_.isAlive()) {
             newAcousticModelThread_ = new NewAcousticModelThread();
             newAcousticModelThread_.start();
         }
     }
 
-    private void showDictateScene(){
+    private void showDictateScene () {
         try {
             primaryStage_.setScene(sceneFactory_.create(SceneFactory.Scenes.DICTATE_SCENE, this));
         } catch (IOException e) {
@@ -405,7 +419,7 @@ public class MainView extends Application implements MainController.API,
     }
 
     private void setCorpus (int corpusId) {
-        if(corpus_ != null && corpus_.getId() == corpusId){
+        if (corpus_ != null && corpus_.getId() == corpusId) {
             return;
         }
 
@@ -427,7 +441,7 @@ public class MainView extends Application implements MainController.API,
             emailFetcher_.terminate();
         }
 
-        if(newAcousticModelThread_ != null && newAcousticModelThread_.isAlive()){
+        if (newAcousticModelThread_ != null && newAcousticModelThread_.isAlive()) {
             newAcousticModelThread_.interrupt();
             try {
                 // Don't wait forever on this thread since it is a daemon and will not block the JVM

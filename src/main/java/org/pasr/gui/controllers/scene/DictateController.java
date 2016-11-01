@@ -1,6 +1,5 @@
 package org.pasr.gui.controllers.scene;
 
-
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -40,21 +39,32 @@ import java.util.logging.Logger;
 import static org.pasr.utilities.Utilities.getResourceStream;
 
 
-public class DictateController extends Controller implements Observer{
-    public DictateController(Controller.API api){
+/**
+ * @class DictateController
+ * @brief Controller for the dictate scene of the application
+ */
+public class DictateController extends Controller implements Observer {
+
+    /**
+     * @brief Constructor
+     *
+     * @param api
+     *     The implementation of the API of this Controller
+     */
+    public DictateController (Controller.API api) {
         super(api);
     }
 
     @FXML
-    public void initialize(){
+    public void initialize () {
         corpusPane.addSelectionListener((observable, oldValue, newValue) -> {
-            if(newValue != null){
+            if (newValue != null) {
                 setCorpus(newValue.getId());
             }
         });
 
         Corpus corpus = ((API) api_).getCorpus();
-        if(corpus != null){
+        if (corpus != null) {
             corpusPane.selectCorpus(corpus.getId());
         }
 
@@ -80,10 +90,10 @@ public class DictateController extends Controller implements Observer{
         batchRadioButton.setSelected(true);
         streamRadioButton.setToggleGroup(toggleGroup);
         toggleGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
-            if(newValue == batchRadioButton){
+            if (newValue == batchRadioButton) {
                 recognitionMode_ = RecognitionMode.BATCH;
             }
-            else{
+            else {
                 recognitionMode_ = RecognitionMode.STREAM;
             }
         });
@@ -95,8 +105,8 @@ public class DictateController extends Controller implements Observer{
         backButton.setOnAction(this :: backButtonOnAction);
     }
 
-    private void setCorpus(int id){
-        if(dictateToggleButton.isSelected()){
+    private void setCorpus (int id) {
+        if (dictateToggleButton.isSelected()) {
             dictateToggleButton.fire();
         }
 
@@ -110,25 +120,26 @@ public class DictateController extends Controller implements Observer{
         startSetCorpusThread(id);
     }
 
-    private void startSetCorpusThread(int id){
-        if(setCorpusThread_ == null || !setCorpusThread_.isAlive()){
+    private void startSetCorpusThread (int id) {
+        if (setCorpusThread_ == null || ! setCorpusThread_.isAlive()) {
             setCorpusThread_ = new SetCorpusThread(id);
             setCorpusThread_.start();
         }
     }
 
-    private class SetCorpusThread extends Thread{
-        SetCorpusThread(int id){
+    private class SetCorpusThread extends Thread {
+
+        SetCorpusThread (int id) {
             id_ = id;
 
             setDaemon(true);
         }
 
         @Override
-        public void run(){
+        public void run () {
             logger_.info("SetCorpusThread started!");
 
-            if(!run_){
+            if (! run_) {
                 onFailure();
                 beforeExit();
                 return;
@@ -146,7 +157,7 @@ public class DictateController extends Controller implements Observer{
                 return;
             }
 
-            if(!run_){
+            if (! run_) {
                 onFailure();
                 beforeExit();
                 return;
@@ -164,14 +175,14 @@ public class DictateController extends Controller implements Observer{
                 return;
             }
 
-            if(!run_){
+            if (! run_) {
                 onFailure();
                 beforeExit();
                 return;
             }
 
             boolean acousticModelLoaded = false;
-            if (!useDefaultAcousticModelCheckBox.isSelected()) {
+            if (! useDefaultAcousticModelCheckBox.isSelected()) {
                 try {
                     recognizerConfiguration.setAcousticModelPath(dataBase_.getAcousticModelPath());
 
@@ -183,7 +194,7 @@ public class DictateController extends Controller implements Observer{
                 }
             }
 
-            if(!acousticModelLoaded){
+            if (! acousticModelLoaded) {
                 try {
                     recognizerConfiguration.setAcousticModelPath(getDefaultAcousticModelPath());
                 } catch (FileNotFoundException e) {
@@ -194,7 +205,7 @@ public class DictateController extends Controller implements Observer{
                 }
             }
 
-            if(!run_){
+            if (! run_) {
                 onFailure();
                 beforeExit();
                 return;
@@ -202,14 +213,14 @@ public class DictateController extends Controller implements Observer{
 
             // Setup the recognizers
             try {
-                if(realTimeSpeechRecognizer_ != null) {
+                if (realTimeSpeechRecognizer_ != null) {
                     realTimeSpeechRecognizer_.terminate();
                 }
 
                 realTimeSpeechRecognizer_ = new RealTimeSpeechRecognizer(recognizerConfiguration);
                 realTimeSpeechRecognizer_.addObserver(DictateController.this);
 
-                if(bufferedRecorder_ == null){
+                if (bufferedRecorder_ == null) {
                     bufferedRecorder_ = new BufferedRecorder();
                 }
 
@@ -275,25 +286,25 @@ public class DictateController extends Controller implements Observer{
             beforeExit();
         }
 
-        private void onFailure(){
+        private void onFailure () {
             Platform.runLater(() -> {
                 dictationDisabledLabel.setText(dictationDisabledLabelMessages.FAILED.getMessage());
                 corpusPane.setDisable(false);
             });
         }
 
-        private String getDefaultAcousticModelPath() throws FileNotFoundException {
+        private String getDefaultAcousticModelPath () throws FileNotFoundException {
             String path = org.pasr.asr.Configuration.getDefaultConfiguration()
                 .getAcousticModelPath();
 
-            if(!(new File(path).isDirectory())){
+            if (! (new File(path).isDirectory())) {
                 throw new FileNotFoundException("Language Model doesn't exist.");
             }
 
             return path;
         }
 
-        private void onSuccess(){
+        private void onSuccess () {
             Platform.runLater(() -> {
                 dictationDisabledLabel.setVisible(false);
                 dictatePane.setDisable(false);
@@ -301,11 +312,11 @@ public class DictateController extends Controller implements Observer{
             });
         }
 
-        private void beforeExit(){
+        private void beforeExit () {
             logger_.info("SetCorpusThread shut down gracefully!");
         }
 
-        public void terminate(){
+        public void terminate () {
             run_ = false;
         }
 
@@ -316,9 +327,9 @@ public class DictateController extends Controller implements Observer{
         private Logger logger_ = Logger.getLogger(getClass().getName());
     }
 
-    private void dictateToggleButtonOnAction(ActionEvent actionEvent){
-        if(dictateToggleButton.isSelected()){
-            switch (recognitionMode_){
+    private void dictateToggleButtonOnAction (ActionEvent actionEvent) {
+        if (dictateToggleButton.isSelected()) {
+            switch (recognitionMode_) {
                 case BATCH:
                     bufferedRecorder_.startRecording();
                     break;
@@ -332,8 +343,8 @@ public class DictateController extends Controller implements Observer{
             useDefaultAcousticModelCheckBox.setDisable(true);
             backButton.setDisable(true);
         }
-        else{
-            switch (recognitionMode_){
+        else {
+            switch (recognitionMode_) {
                 case BATCH:
                     bufferedRecorder_.stopRecording();
                     try {
@@ -365,12 +376,12 @@ public class DictateController extends Controller implements Observer{
         }
     }
 
-    private void useDefaultAcousticModelCheckBoxOnAction(ActionEvent actionEvent){
+    private void useDefaultAcousticModelCheckBoxOnAction (ActionEvent actionEvent) {
         setCorpus(currentCorpusId_);
     }
 
-    private void backButtonOnAction(ActionEvent actionEvent){
-        if(dictateToggleButton.isSelected()){
+    private void backButtonOnAction (ActionEvent actionEvent) {
+        if (dictateToggleButton.isSelected()) {
             dictateToggleButton.fire();
         }
 
@@ -381,30 +392,33 @@ public class DictateController extends Controller implements Observer{
 
     @Override
     public void update (Observable o, Object arg) {
-        if(arg instanceof Stage){
-            if(arg == Stage.STARTED){
+        if (arg instanceof Stage) {
+            if (arg == Stage.STARTED) {
                 outputManager_.start();
             }
-            else if(arg == Stage.STOPPED){
+            else if (arg == Stage.STOPPED) {
                 outputManager_.stop();
             }
-        } else if(arg instanceof String){
+        }
+        else if (arg instanceof String) {
             outputManager_.process((String) arg);
         }
     }
 
-    private class OutputManager{
-        OutputManager(){}
+    private class OutputManager {
+        OutputManager () {
+        }
 
-        void start(){}
+        void start () {
+        }
 
-        void stop(){
+        void stop () {
             aSRTextAreaText_ += aSROutput_ + "\n";
             correctedTextAreaText_ += corrected_ + "\n";
         }
 
-        void process(String aSROutput){
-            if(corrector_ == null){
+        void process (String aSROutput) {
+            if (corrector_ == null) {
                 aSROutput_ = aSROutput;
                 updateASRTextArea();
 
@@ -418,11 +432,11 @@ public class DictateController extends Controller implements Observer{
             updateCorrectedTextArea();
         }
 
-        private void updateASRTextArea(){
+        private void updateASRTextArea () {
             aSRResultTextArea.setText(aSRTextAreaText_ + aSROutput_);
         }
 
-        private void updateCorrectedTextArea(){
+        private void updateCorrectedTextArea () {
             correctedTextArea.setText(correctedTextAreaText_ + corrected_);
         }
 
@@ -434,7 +448,7 @@ public class DictateController extends Controller implements Observer{
     }
 
     @Override
-    public void terminate(){
+    public void terminate () {
         setCorpusThread_.terminate();
 
         try {
@@ -449,9 +463,10 @@ public class DictateController extends Controller implements Observer{
         bufferedRecorder_.terminate();
     }
 
-    public interface API extends Controller.API{
-        Corpus getCorpus();
-        void initialScene();
+    public interface API extends Controller.API {
+        Corpus getCorpus ();
+
+        void initialScene ();
     }
 
     @FXML
@@ -468,16 +483,17 @@ public class DictateController extends Controller implements Observer{
 
     @FXML
     private Label dictationDisabledLabel;
-    private enum dictationDisabledLabelMessages{
+
+    private enum dictationDisabledLabelMessages {
         WAITING("Please wait while the recognition system is setup..."),
         FAILED("There has been an error while setting up the recognition system. Please select" +
             " another corpus.");
 
-        dictationDisabledLabelMessages(String message){
+        dictationDisabledLabelMessages (String message) {
             message_ = message;
         }
 
-        public String getMessage(){
+        public String getMessage () {
             return message_;
         }
 
@@ -506,7 +522,8 @@ public class DictateController extends Controller implements Observer{
     private StreamSpeechRecognizer streamSpeechRecognizer_;
     private RealTimeSpeechRecognizer realTimeSpeechRecognizer_;
     private RecognitionMode recognitionMode_ = RecognitionMode.BATCH;
-    private enum RecognitionMode{
+
+    private enum RecognitionMode {
         STREAM,
         BATCH
     }
@@ -517,7 +534,7 @@ public class DictateController extends Controller implements Observer{
 
     private SetCorpusThread setCorpusThread_;
 
-    private int currentCorpusId_ = -1;
+    private int currentCorpusId_ = - 1;
 
     private OutputManager outputManager_ = new OutputManager();
 

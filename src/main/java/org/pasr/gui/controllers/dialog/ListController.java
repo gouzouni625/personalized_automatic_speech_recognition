@@ -1,6 +1,5 @@
 package org.pasr.gui.controllers.dialog;
 
-
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -11,8 +10,26 @@ import org.pasr.gui.dialog.ListDialog;
 import java.util.List;
 
 
-public class ListController<T> extends Controller<T>{
-    public ListController(ListDialog<T> dialog, String promptText, List<T> list){
+/**
+ * @class ListController
+ * @brief Controller for ListDialog
+ *
+ * @param <T>
+ *     The value type of the items of the List
+ */
+public class ListController<T> extends Controller<T> {
+
+    /**
+     * @brief Constructor
+     *
+     * @param dialog
+     *     The Dialog of this Controller
+     * @param promptText
+     *     The text to be shown to the user
+     * @param list
+     *     The List of this Controller
+     */
+    public ListController (ListDialog<T> dialog, String promptText, List<T> list) {
         super(dialog);
 
         promptText_ = promptText;
@@ -20,7 +37,7 @@ public class ListController<T> extends Controller<T>{
     }
 
     @FXML
-    public void initialize(){
+    public void initialize () {
         label.setText(promptText_);
 
         listView.getItems().addAll(list_);
@@ -29,8 +46,8 @@ public class ListController<T> extends Controller<T>{
     }
 
     @FXML
-    private void buttonOnAction(ActionEvent actionEvent){
-        if(listView.getSelectionModel().getSelectedIndex() != -1){
+    private void buttonOnAction (ActionEvent actionEvent) {
+        if (listView.getSelectionModel().getSelectedIndex() != - 1) {
             dialog_.setValue(listView.getSelectionModel().getSelectedItem());
         }
     }

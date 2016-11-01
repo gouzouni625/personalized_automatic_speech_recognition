@@ -7,17 +7,28 @@ import javafx.scene.control.TextField;
 import org.pasr.gui.dialog.CorpusNameDialog;
 
 
+/**
+ * @class CorpusNameController
+ * @brief Controller for CorpusNameDialog
+ */
 public class CorpusNameController extends Controller<String> {
-    public CorpusNameController (CorpusNameDialog dialog){
+
+    /**
+     * @brief Constructor
+     *
+     * @param dialog
+     *     The Dialog of this Controller
+     */
+    public CorpusNameController (CorpusNameDialog dialog) {
         super(dialog);
     }
 
     @FXML
-    public void initialize(){
+    public void initialize () {
         button.setOnAction(this :: buttonOnAction);
     }
 
-    private void buttonOnAction(ActionEvent actionEvent){
+    private void buttonOnAction (ActionEvent actionEvent) {
         dialog_.setValue(textField.getText());
     }
 

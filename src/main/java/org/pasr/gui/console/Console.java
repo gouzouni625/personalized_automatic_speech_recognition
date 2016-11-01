@@ -19,8 +19,21 @@ import java.util.logging.Logger;
 import static org.pasr.utilities.Utilities.getResource;
 
 
+/**
+ * @class Console
+ * @brief The console acts as an independent JavaFX Stage
+ *        It is used to print messages to the user. In the future this will be replaced by dialogs.
+ */
 public class Console extends Stage implements Runnable {
-    private Console (Window owner){
+
+    /**
+     * @brief Constructor
+     *        Made private to prevent instantiation
+     *
+     * @param owner
+     *     The owner window of this Console
+     */
+    private Console (Window owner) {
         initOwner(owner);
 
         initStyle(StageStyle.UTILITY);
@@ -30,7 +43,7 @@ public class Console extends Stage implements Runnable {
         try {
             URL location = getResource("/fxml/console/view.fxml");
 
-            if(location == null){
+            if (location == null) {
                 throw new IOException("getResource(\"/fxml/console/view.fxml\") returned null");
             }
 
@@ -45,7 +58,6 @@ public class Console extends Stage implements Runnable {
                 "Exception Message: " + e.getMessage());
             Platform.exit();
         }
-
 
         setX(owner.getX() + owner.getWidth() / 8);
         setY(owner.getY() + owner.getHeight() / 2);
@@ -70,21 +82,27 @@ public class Console extends Stage implements Runnable {
     }
 
     @FXML
-    public void initialize(){
+    public void initialize () {
         textArea.setText("Console initiated...\nApplication messages will be printed here!");
 
         button.setOnAction(this :: buttonOnAction);
     }
 
-    private void buttonOnAction(ActionEvent actionEvent){
+    /**
+     * @brief Clear button on action listener
+     *
+     * @param actionEvent
+     *     The actionEvent
+     */
+    private void buttonOnAction (ActionEvent actionEvent) {
         textArea.clear();
     }
 
     @Override
-    public void run(){
+    public void run () {
         logger_.info("Console thread started!");
 
-        while(true){
+        while (true) {
             try {
                 String message = messageQueue_.take();
 
@@ -99,36 +117,56 @@ public class Console extends Stage implements Runnable {
         logger_.info("Console thread shut down gracefully!");
     }
 
-    public static Console create(Window owner){
-        if(instance_ == null) {
+    /**
+     * @brief Creates the Console singleton
+     *
+     * @param owner
+     *     The owner window of the console
+     *
+     * @return The instance of the Console
+     */
+    public static Console create (Window owner) {
+        if (instance_ == null) {
             instance_ = new Console(owner);
         }
 
         return instance_;
     }
 
-    public void postMessage(String message){
+    /**
+     * @brief Adds a message to the message queue
+     *
+     * @param message
+     *     The message to be added to the message queue
+     */
+    public void postMessage (String message) {
         // Since the queue has practically infinite size, no need to check if the message was
         // inserted
         messageQueue_.offer(message);
     }
 
+    /**
+     * @brief Returns the instance of this singleton
+     *
+     * @return The instance of this singleton
+     */
     public static Console getInstance () {
         return instance_;
     }
 
     @FXML
-    private TextArea textArea;
+    private TextArea textArea; //!< The TextArea where messages get printed
 
     @FXML
-    private Button button;
+    private Button button; //!< The clear button of the console
 
-    private static Console instance_;
+    private static Console instance_; //!< The instance of this singleton
 
-    private Thread thread_;
+    private Thread thread_; //!< Thread used to read messages from a queue and post them on the
+                            //!< text area
 
-    private LinkedBlockingQueue<String> messageQueue_;
+    private LinkedBlockingQueue<String> messageQueue_; //!< Message queue used as message entrance
 
-    private static Logger logger_ = Logger.getLogger(Console.class.getName());
+    private static Logger logger_ = Logger.getLogger(Console.class.getName()); //!< The logger
 
 }
