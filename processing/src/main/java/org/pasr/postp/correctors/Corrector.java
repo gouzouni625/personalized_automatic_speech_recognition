@@ -327,7 +327,7 @@ public class Corrector {
             double candidateScore = 0;
             for (Map.Entry<String, Double> candidateMapEntry : candidateMap.entrySet()) {
                 candidateScore += 1 -
-                    (candidateMapEntry.getValue() / contextMap.get(candidateMapEntry.getKey()));
+                    (candidateScoreMap.get(candidateEntry.getKey()) / contextMap.get(candidateMapEntry.getKey()));
             }
 
             if (candidateScore > bestScore) {
